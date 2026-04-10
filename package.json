@@ -1,5 +1,5 @@
 {
-  "name": "@nxus/qbd",
+  "name": "nxus-qbd",
   "version": "0.1.0",
   "description": "Official Node.js/TypeScript SDK for the Nxus QuickBooks Desktop API",
   "license": "MIT",
