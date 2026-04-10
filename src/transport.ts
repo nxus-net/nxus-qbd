@@ -1,0 +1,210 @@
+/**
+ * NxusHttpTransport — internal HTTP transport layer using native `fetch`.
+ *
+ * Handles authentication, base URL resolution, JSON serialization,
+ * and error mapping for all SDK requests.
+ */
+
+import { NxusApiError } from './helpers/errors';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface TransportOptions {
+  /** Base URL for the Nxus API (e.g. "https://api.nx-us.net/"). */
+  baseUrl: string;
+  /** API key for authentication. */
+  apiKey: string;
+  /** Default headers merged into every request. */
+  headers?: Record<string, string>;
+  /** Default request timeout in milliseconds. */
+  timeout?: number;
+}
+
+export interface RequestOptions {
+  /** Connection ID for per-request scoping (sets X-Connection-Id header). */
+  connectionId?: string;
+  /** Extra headers for this request. */
+  headers?: Record<string, string>;
+  /** Request timeout in milliseconds (overrides the default). */
+  timeout?: number;
+}
+
+function normalizeErrorPayload(
+  errorBody: unknown,
+  response: Response,
+): unknown {
+  if (errorBody == null) {
+    return {
+      status: response.status,
+      message: response.statusText,
+    };
+  }
+
+  if (typeof errorBody !== 'object') {
+    return errorBody;
+  }
+
+  const normalized = { ...(errorBody as Record<string, unknown>) };
+
+  if (normalized.status == null) {
+    normalized.status = response.status;
+  }
+
+  const nestedError = normalized.error;
+  if (nestedError && typeof nestedError === 'object') {
+    normalized.error = {
+      ...(nestedError as Record<string, unknown>),
+      httpStatusCode:
+        (nestedError as Record<string, unknown>).httpStatusCode ?? response.status,
+    };
+  }
+
+  return normalized;
+}
+
+// ---------------------------------------------------------------------------
+// Transport
+// ---------------------------------------------------------------------------
+
+export class NxusHttpTransport {
+  private readonly baseUrl: string;
+  private readonly apiKey: string;
+  private readonly defaultHeaders: Record<string, string>;
+  private readonly defaultTimeout: number;
+
+  constructor(options: TransportOptions) {
+    // Ensure trailing slash for consistent URL joining
+    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.apiKey = options.apiKey;
+    this.defaultHeaders = options.headers ?? {};
+    this.defaultTimeout = options.timeout ?? 30_000;
+  }
+
+  async get<T>(
+    path: string,
+    query?: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const url = this.buildUrl(path, query);
+    return this.request<T>(url, { method: 'GET' }, options);
+  }
+
+  async post<T>(
+    path: string,
+    body?: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const url = this.buildUrl(path);
+    return this.request<T>(
+      url,
+      {
+        method: 'POST',
+        body: body != null ? JSON.stringify(body) : undefined,
+      },
+      options,
+    );
+  }
+
+  async delete<T>(
+    path: string,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const url = this.buildUrl(path);
+    return this.request<T>(url, { method: 'DELETE' }, options);
+  }
+
+  // -------------------------------------------------------------------------
+  // Internal
+  // -------------------------------------------------------------------------
+
+  private buildUrl(path: string, query?: Record<string, unknown>): string {
+    const url = new URL(path, this.baseUrl + '/');
+    // The URL constructor resolves relative to base — if path starts with /
+    // we need to set it directly
+    if (path.startsWith('/')) {
+      url.pathname = path;
+    }
+
+    if (query) {
+      for (const [key, value] of Object.entries(query)) {
+        if (value !== undefined && value !== null) {
+          url.searchParams.set(key, String(value));
+        }
+      }
+    }
+
+    return url.toString();
+  }
+
+  private async request<T>(
+    url: string,
+    init: RequestInit,
+    options?: RequestOptions,
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${this.apiKey}`,
+      ...this.defaultHeaders,
+      ...options?.headers,
+    };
+
+    if (options?.connectionId) {
+      headers['X-Connection-Id'] = options.connectionId;
+    }
+
+    const timeout = options?.timeout ?? this.defaultTimeout;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        headers,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        let errorBody: unknown;
+        try {
+          errorBody = await response.json();
+        } catch {
+          errorBody = await response.text().catch(() => null);
+        }
+        throw NxusApiError.from(normalizeErrorPayload(errorBody, response));
+      }
+
+      // 204 No Content
+      if (response.status === 204) {
+        return undefined as T;
+      }
+
+      const text = await response.text();
+      if (!text) {
+        return undefined as T;
+      }
+
+      return JSON.parse(text) as T;
+    } catch (error) {
+      if (error instanceof NxusApiError) throw error;
+
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw new NxusApiError({
+          message: `Request timed out after ${timeout}ms`,
+          userMessage: 'The request timed out. Please try again.',
+          status: 0,
+        });
+      }
+
+      throw new NxusApiError({
+        message: error instanceof Error ? error.message : 'Network request failed',
+        userMessage: 'A network error occurred. Please check your connection and try again.',
+        status: 0,
+        raw: error,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+}

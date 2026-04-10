@@ -1,0 +1,69 @@
+{
+  "name": "@nxus/qbd",
+  "version": "0.1.0",
+  "description": "Official Node.js/TypeScript SDK for the Nxus QuickBooks Desktop API",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./models": {
+      "import": "./dist/models/index.js",
+      "types": "./dist/models/index.d.ts"
+    },
+    "./models/core": {
+      "import": "./dist/models/core/index.js",
+      "types": "./dist/models/core/index.d.ts"
+    },
+    "./models/qbd": {
+      "import": "./dist/models/qbd/index.js",
+      "types": "./dist/models/qbd/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "generate": "openapi-ts && pnpm run generate:models",
+    "generate:live": "OPENAPI_SPEC_URL=https://api.nx-us.net/openapi/v1.json openapi-ts && pnpm run generate:models",
+    "generate:local": "OPENAPI_SPEC_URL=https://localhost:7242/openapi/v1.json openapi-ts && pnpm run generate:models",
+    "generate:models": "node ./scripts/generate-model-exports.mjs",
+    "build": "tsc",
+    "prepublishOnly": "pnpm run build",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.93.1",
+    "dotenv": "^16.4.0",
+    "prettier": "^3.4.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "nxus",
+    "quickbooks",
+    "quickbooks-desktop",
+    "qbd",
+    "sdk",
+    "api",
+    "accounting"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nxus-app/nxus-qbd.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.6.2"
+}
