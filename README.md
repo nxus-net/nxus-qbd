@@ -1,4 +1,4 @@
-# @nxus/qbd
+# nxus-qbd
 
 Official Node.js/TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBooks Desktop API.
 
@@ -6,7 +6,7 @@ Official Node.js/TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBoo
 
 ```bash
 npm install @nxus/qbd
-pnpm add @nxus/qbd
+pnpm add nxus-qbd
 ```
 
 ## Environments
@@ -16,7 +16,7 @@ The SDK targets `https://api.nx-us.net/` by default.
 Use `environment: NxusEnvironment.DEVELOPMENT` to target `https://localhost:7242/`, or pass an explicit `baseUrl` override when you need a custom endpoint.
 
 ```ts
-import { NxusClient, NxusEnvironment } from "@nxus/qbd";
+import { NxusClient, NxusEnvironment } from "nxus-qbd";
 
 const nxus = new NxusClient({
   apiKey: "sk_live_...",
@@ -33,7 +33,7 @@ operations.
 Advanced callers can override this globally or per request:
 
 ```ts
-import { NxusClient } from "@nxus/qbd";
+import { NxusClient } from "nxus-qbd";
 
 const nxus = new NxusClient({
   apiKey: "sk_live_...",
@@ -51,7 +51,7 @@ const page = await nxus.transactions.list({
 ## Quick Start
 
 ```ts
-import { NxusClient } from "@nxus/qbd";
+import { NxusClient } from "nxus-qbd";
 
 const nxus = new NxusClient({ apiKey: "sk_live_..." });
 
@@ -149,7 +149,7 @@ Runnable examples live in [`examples/`](examples/):
 All methods throw `NxusApiError` on non-2xx responses:
 
 ```ts
-import { NxusClient, NxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError } from "nxus-qbd";
 
 try {
   await nxus.vendors.retrieve("non-existent-id");
