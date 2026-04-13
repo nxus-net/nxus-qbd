@@ -21,7 +21,7 @@
  * ```
  */
 
-import { NxusHttpTransport, type TransportOptions } from './transport';
+import { NxusHttpTransport, DEFAULT_TIMEOUT_MS, type TransportOptions } from './transport';
 import type { RequestOptions } from './transport';
 import {
   type NxusEnvironment,
@@ -255,7 +255,7 @@ export interface NxusClientOptions {
   environment?: string | NxusEnvironment;
   /** Extra headers merged into every request (e.g. X-Connection-Id). */
   headers?: Record<string, string>;
-  /** Default request timeout in milliseconds. */
+  /** Default request timeout in milliseconds. Defaults to 100_000ms. */
   timeout?: number;
 }
 
@@ -293,7 +293,7 @@ export class NxusClient {
       baseUrl,
       environment,
       headers,
-      timeout,
+      timeout = DEFAULT_TIMEOUT_MS,
     } = options;
 
     this.transport = new NxusHttpTransport({

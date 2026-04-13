@@ -7,6 +7,8 @@
 
 import { NxusApiError } from './helpers/errors';
 
+export const DEFAULT_TIMEOUT_MS = 100_000;
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -79,7 +81,7 @@ export class NxusHttpTransport {
     this.baseUrl = options.baseUrl.replace(/\/+$/, '');
     this.apiKey = options.apiKey;
     this.defaultHeaders = options.headers ?? {};
-    this.defaultTimeout = options.timeout ?? 30_000;
+    this.defaultTimeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
   }
 
   async get<T>(

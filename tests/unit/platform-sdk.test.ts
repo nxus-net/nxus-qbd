@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   DEFAULT_BASE_URL,
+  DEFAULT_TIMEOUT_MS,
   LOCAL_BASE_URL,
   NxusApiError,
   NxusClient,
@@ -102,6 +103,20 @@ describe('platform SDK surface', () => {
     expect(() => resolveBaseUrl({ environment: 'staging' })).toThrow(
       "Unsupported environment. Use 'production' or 'development'.",
     );
+  });
+
+  it('uses the new default client timeout when none is provided', async () => {
+    const fetchMock = installFetchMock(jsonResponse({ data: [], hasMore: false, nextCursor: null }));
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    await client.vendors.list();
+
+    expect(DEFAULT_TIMEOUT_MS).toBe(100_000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('uses resolved environment URLs when no baseUrl override is provided', async () => {

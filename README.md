@@ -1,11 +1,12 @@
 # @nxus/qbd
 
-Official Node.js/TypeScript SDK for the [Nxus](https://nxus.app) QuickBooks Desktop API.
+Official Node.js/TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBooks Desktop API.
 
 ## Installation
 
 ```bash
 npm install @nxus/qbd
+pnpm add @nxus/qbd
 ```
 
 ## Environments
@@ -20,6 +21,30 @@ import { NxusClient, NxusEnvironment } from "@nxus/qbd";
 const nxus = new NxusClient({
   apiKey: "sk_live_...",
   environment: NxusEnvironment.DEVELOPMENT,
+});
+```
+
+## Timeouts
+
+The SDK defaults to a `100_000ms` client timeout so normal callers can still
+receive the API's structured timeout responses for heavier QuickBooks
+operations.
+
+Advanced callers can override this globally or per request:
+
+```ts
+import { NxusClient } from "@nxus/qbd";
+
+const nxus = new NxusClient({
+  apiKey: "sk_live_...",
+  timeout: 120_000,
+});
+
+const page = await nxus.transactions.list({
+  connectionId: "your-connection-id",
+  limit: 100,
+  DetailLevel: "all",
+  timeout: 30_000,
 });
 ```
 
@@ -96,6 +121,28 @@ while (page.hasNextPage()) {
   page = await page.getNextPage();
 }
 ```
+
+> [!IMPORTANT]
+> **Processing Constraints**: Each paginated request must either complete or be cancelled before the subsequent request can be processed by the backend.
+>
+> - **Async API (Primary)**: The Async API is the recommended way to handle these requests as it allows for better lifecycle management.
+> - **Sync Wrappers**: While sync wrappers are provided for convenience, you may need to increase your client-side timeouts to ensure large paginated sets complete successfully.
+
+## Examples
+
+Runnable examples live in [`examples/`](examples/):
+
+| Example | Description |
+|---|---|
+| [`basic-crud.ts`](examples/basic-crud.ts) | Create, retrieve, update, list, and delete a vendor |
+| [`authSetup.ts`](examples/authSetup.ts) | Create a connection, generate a hosted QWC auth flow URL, and check auth status |
+| [`auto-pagination.ts`](examples/auto-pagination.ts) | Auto-iteration across pages plus manual page navigation |
+| [`connection-scoped.ts`](examples/connection-scoped.ts) | Multi-company isolation with `connectionId` |
+| [`error-handling.ts`](examples/error-handling.ts) | Error categorization and typed SDK errors |
+| [`pagination-walkthrough.ts`](examples/pagination-walkthrough.ts) | Cursor handling walkthrough |
+| [`reports.ts`](examples/reports.ts) | Aging, general detail, and general summary reports |
+| [`timeout-tuning.ts`](examples/timeout-tuning.ts) | Default timeout behavior, client-wide overrides, and per-request timeout tuning |
+
 
 ## Error Handling
 

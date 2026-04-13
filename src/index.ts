@@ -20,6 +20,7 @@ export {
   resolveBaseUrl,
   type ResolveBaseUrlOptions,
 } from './config';
+export { DEFAULT_TIMEOUT_MS } from './transport';
 export * as models from './models';
 export { core, qbd } from './models';
 
