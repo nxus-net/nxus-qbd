@@ -21,8 +21,12 @@ import { PaginationError } from '../helpers/pagination';
 export type ListParams = {
   limit?: number;
   cursor?: string;
+  timeoutSeconds?: number;
+  serverTimeoutSeconds?: number;
   [key: string]: unknown;
 };
+
+const LIST_TIMEOUT_HINT_HEADER = 'X-Nxus-Timeout-Seconds';
 
 // ---------------------------------------------------------------------------
 // Pagination helpers (adapted for transport)
@@ -125,11 +129,12 @@ class TransportPaginationPromise<TItem> implements AutoPaginationPromise<TItem> 
 function extractOptions<T extends Record<string, unknown>>(
   params: T,
 ): { body: Record<string, unknown>; options: RequestOptions } {
-  const { connectionId, headers, timeout, ...body } = params;
+  const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params;
   const options: RequestOptions = {};
   if (connectionId !== undefined) options.connectionId = connectionId as string;
   if (headers !== undefined) options.headers = headers as Record<string, string>;
   if (timeout !== undefined) options.timeout = timeout as number;
+  if (serverTimeoutSeconds !== undefined) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
   return { body, options };
 }
 
@@ -174,11 +179,25 @@ export class Resource<T, TCreate = Record<string, unknown>, TUpdate = Record<str
    * ```
    */
   list(params?: ListParams & RequestOptions): AutoPaginationPromise<T> {
-    const { connectionId, headers, timeout, ...query } = params ?? {};
+    const { connectionId, headers, timeout, timeoutSeconds, serverTimeoutSeconds, ...query } = params ?? {};
     const reqOptions: RequestOptions = {};
-    if (connectionId) reqOptions.connectionId = connectionId;
-    if (headers) reqOptions.headers = headers as Record<string, string>;
-    if (timeout) reqOptions.timeout = timeout as number;
+    if (connectionId !== undefined) reqOptions.connectionId = connectionId;
+    if (timeout !== undefined) reqOptions.timeout = timeout as number;
+
+    const requestHeaders = headers
+      ? { ...(headers as Record<string, string>) }
+      : undefined;
+
+    const backendTimeoutSeconds = serverTimeoutSeconds ?? timeoutSeconds;
+    if (backendTimeoutSeconds !== undefined) {
+      const mergedHeaders = requestHeaders ?? {};
+      if (!(LIST_TIMEOUT_HINT_HEADER in mergedHeaders)) {
+        mergedHeaders[LIST_TIMEOUT_HINT_HEADER] = String(backendTimeoutSeconds);
+      }
+      reqOptions.headers = mergedHeaders;
+    } else if (requestHeaders) {
+      reqOptions.headers = requestHeaders;
+    }
 
     const fetchPage = async (cursor?: string): Promise<PaginatedPage<T>> => {
       const pageQuery = cursor ? { ...query, cursor } : { ...query };
@@ -306,6 +325,28 @@ export class ListRetrieveDeleteResource<T> {
   }
 }
 
+/** list + delete (no retrieve, create, or update) */
+export class ListDeleteResource<T> {
+  constructor(
+    protected readonly transport: NxusHttpTransport,
+    protected readonly basePath: string,
+    protected readonly singularPath?: string,
+  ) {}
+
+  protected getSingularPath(id: string): string {
+    const path = this.singularPath ?? this.basePath.replace(/s$/, '');
+    return `${path}/${id}`;
+  }
+
+  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T> {
+    return new Resource<T, Record<string, unknown>, Record<string, unknown>>(this.transport, this.basePath).list(params);
+  }
+
+  async delete(id: string, options?: RequestOptions): Promise<void> {
+    await this.transport.delete<void>(this.getSingularPath(id), options);
+  }
+}
+
 /** list + retrieve + create (no update, no delete) */
 export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
   constructor(
@@ -332,11 +373,12 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
   }
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
+    if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
     return this.transport.post<T>(this.getCreatePath(), body, options);
   }
 }
@@ -367,11 +409,12 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
   }
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
+    if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
     return this.transport.post<T>(this.getCreatePath(), body, options);
   }
 
@@ -388,11 +431,12 @@ export class CreateOnlyResource<T, TCreate = Record<string, unknown>> {
   ) {}
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
+    if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
     return this.transport.post<T>(this.createPath, body, options);
   }
 }

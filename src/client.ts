@@ -30,6 +30,7 @@ import {
 import {
   Resource,
   ReadOnlyResource,
+  ListDeleteResource,
   ListRetrieveDeleteResource,
   ListRetrieveCreateResource,
   CrudNoUpdateResource,
@@ -257,6 +258,15 @@ export interface NxusClientOptions {
   headers?: Record<string, string>;
   /** Default request timeout in milliseconds. Defaults to 100_000ms. */
   timeout?: number;
+  /**
+   * Default value for the `X-Nxus-Timeout-Seconds` header sent on every
+   * request. Tells the server how long to wait for the queued QuickBooks
+ * Desktop job to complete before returning a 504. The server enforces
+ * operation-specific ceilings and may clamp this value based on deployment
+ * config. Current defaults are typically 120 seconds for CRUD and 90 seconds
+ * for list/report operations. Omit to let the server apply its own default.
+   */
+  serverTimeoutSeconds?: number;
 }
 
 // Re-export RequestOptions for consumers
@@ -294,6 +304,7 @@ export class NxusClient {
       environment,
       headers,
       timeout = DEFAULT_TIMEOUT_MS,
+      serverTimeoutSeconds,
     } = options;
 
     this.transport = new NxusHttpTransport({
@@ -304,6 +315,7 @@ export class NxusClient {
       apiKey,
       headers,
       timeout,
+      serverTimeoutSeconds,
     });
   }
 
@@ -440,9 +452,9 @@ export class NxusClient {
     return new ReadOnlyResource<AccountTaxLineInfo>(this.transport, '/api/v1/account-tax-line-infos');
   }
 
-  /** Bar Codes — list, retrieve, delete (no create/update) */
+  /** Bar Codes — list and delete (no retrieve/create/update) */
   get barCodes() {
-    return new ListRetrieveDeleteResource<BarCode>(this.transport, '/api/v1/bar-codes');
+    return new ListDeleteResource<BarCode>(this.transport, '/api/v1/bar-codes', '/api/v1/bar-code');
   }
 
   /** Billing Rates — list, retrieve, create, delete (no update) */

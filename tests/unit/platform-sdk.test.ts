@@ -37,6 +37,10 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+function getRequestHeaders(callIndex: number, fetchMock: ReturnType<typeof vi.fn>) {
+  return new Headers((fetchMock.mock.calls[callIndex]?.[1] as RequestInit | undefined)?.headers);
+}
+
 describe('platform SDK surface', () => {
   afterEach(() => {
     Object.defineProperty(globalThis, 'fetch', {
@@ -44,6 +48,7 @@ describe('platform SDK surface', () => {
       value: originalFetch,
       writable: true,
     });
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -186,6 +191,182 @@ describe('platform SDK surface', () => {
 
     expect(String(fetchMock.mock.calls[4]?.[0])).toBe('https://api.example.test/api/v1/qwc-auth-setup/conn_123/status/authenticated');
     expect((fetchMock.mock.calls[4]?.[1] as RequestInit | undefined)?.method).toBe('GET');
+  });
+
+  it('sends list timeout hints via X-Nxus-Timeout-Seconds and preserves them for manual next pages', async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({
+        data: [{ id: 'vendor_1', name: 'Vendor 1' }],
+        hasMore: true,
+        nextCursor: 'cursor_2',
+      }),
+      jsonResponse({
+        data: [{ id: 'vendor_2', name: 'Vendor 2' }],
+        hasMore: false,
+        nextCursor: null,
+      }),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    const firstPage = await client.vendors.list({
+      connectionId: 'conn_123',
+      limit: 1,
+      timeout: 30_000,
+      timeoutSeconds: 45,
+    });
+    const secondPage = await firstPage.getNextPage();
+
+    expect(firstPage.data[0]?.id).toBe('vendor_1');
+    expect(secondPage.data[0]?.id).toBe('vendor_2');
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://api.example.test/api/v1/vendors?limit=1',
+    );
+    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+      'https://api.example.test/api/v1/vendors?limit=1&cursor=cursor_2',
+    );
+
+    const firstHeaders = getRequestHeaders(0, fetchMock);
+    const secondHeaders = getRequestHeaders(1, fetchMock);
+
+    expect(firstHeaders.get('X-Connection-Id')).toBe('conn_123');
+    expect(secondHeaders.get('X-Connection-Id')).toBe('conn_123');
+    expect(firstHeaders.get('X-Nxus-Timeout-Seconds')).toBe('45');
+    expect(secondHeaders.get('X-Nxus-Timeout-Seconds')).toBe('45');
+  });
+
+  it('preserves the local client-side timeout for list requests while using the header-based backend hint', async () => {
+    vi.useFakeTimers();
+
+    const fetchMock = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+      const signal = init?.signal;
+      return new Promise<Response>((_resolve, reject) => {
+        if (!signal) {
+          reject(new Error('Missing AbortSignal'));
+          return;
+        }
+
+        signal.addEventListener('abort', () => {
+          reject(new DOMException('The operation was aborted.', 'AbortError'));
+        });
+      });
+    });
+
+    Object.defineProperty(globalThis, 'fetch', {
+      configurable: true,
+      value: fetchMock,
+      writable: true,
+    });
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    const listPromise = client.vendors.list({
+      limit: 1,
+      timeout: 25,
+      timeoutSeconds: 90,
+    });
+
+    const rejection = expect(listPromise).rejects.toMatchObject({
+      message: 'Request timed out after 25ms',
+      status: 0,
+    });
+
+    await vi.advanceTimersByTimeAsync(25);
+
+    await rejection;
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://api.example.test/api/v1/vendors?limit=1',
+    );
+    expect(getRequestHeaders(0, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('90');
+    expect(getRequestHeaders(0, fetchMock).get('Content-Type')).toBe('application/json');
+
+    vi.useRealTimers();
+  });
+
+  it('preserves the list timeout hint across auto-pagination iteration', async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({
+        data: [{ id: 'vendor_1', name: 'Vendor 1' }],
+        hasMore: true,
+        nextCursor: 'cursor_2',
+      }),
+      jsonResponse({
+        data: [{ id: 'vendor_2', name: 'Vendor 2' }],
+        hasMore: false,
+        nextCursor: null,
+      }),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    const seenIds: string[] = [];
+
+    for await (const vendor of client.vendors.list({ limit: 1, timeoutSeconds: 60 })) {
+      seenIds.push(String(vendor.id));
+    }
+
+    expect(seenIds).toEqual(['vendor_1', 'vendor_2']);
+    expect(getRequestHeaders(0, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('60');
+    expect(getRequestHeaders(1, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('60');
+  });
+
+  it('sends per-request serverTimeoutSeconds as a header instead of query or body data', async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({ data: [], hasMore: false, nextCursor: null }),
+      jsonResponse({ id: 'vendor_1' }),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    await client.vendors.list({ limit: 1, serverTimeoutSeconds: 70 });
+    await client.vendors.create({ name: 'Acme', serverTimeoutSeconds: 80 });
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://api.example.test/api/v1/vendors?limit=1',
+    );
+    expect(getRequestHeaders(0, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('70');
+
+    expect(JSON.parse(String((fetchMock.mock.calls[1]?.[1] as RequestInit | undefined)?.body))).toEqual({
+      name: 'Acme',
+    });
+    expect(getRequestHeaders(1, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('80');
+  });
+
+  it('matches the spec surface for bar codes: list and delete only', async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({ data: [], hasMore: false, nextCursor: null }),
+      new Response(null, { status: 204 }),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    expect('retrieve' in client.barCodes).toBe(false);
+
+    await client.barCodes.list();
+    await client.barCodes.delete('barcode_1');
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe('https://api.example.test/api/v1/bar-codes');
+    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+      'https://api.example.test/api/v1/bar-code/barcode_1',
+    );
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit | undefined)?.method).toBe('DELETE');
   });
 
   it('exposes bill-to-pay while omitting removed internal resources', async () => {

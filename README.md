@@ -48,6 +48,24 @@ const page = await nxus.transactions.list({
 });
 ```
 
+Paginated/list requests can also send a backend timeout hint without changing
+the SDK's local abort timer:
+
+```ts
+const page = await nxus.transactions.list({
+  connectionId: "your-connection-id",
+  limit: 100,
+  DetailLevel: "all",
+  timeout: 30_000,
+  timeoutSeconds: 45,
+});
+```
+
+When `timeoutSeconds` is provided on a `.list()` call, the SDK sends it as the
+`X-Nxus-Timeout-Seconds` request header and keeps reusing that header for
+manual `getNextPage()` calls and `for await` auto-pagination. It is not added
+to the query string.
+
 ## Quick Start
 
 ```ts
@@ -111,12 +129,12 @@ List methods return an `AutoPaginationPromise` that supports both manual page na
 
 ```ts
 // Auto-paginate through all records
-for await (const vendor of nxus.vendors.list({ limit: 100 })) {
+for await (const vendor of nxus.vendors.list({ limit: 100, timeoutSeconds: 45 })) {
   console.log(vendor.name);
 }
 
 // Manual page-by-page navigation
-let page = await nxus.vendors.list({ limit: 50 });
+let page = await nxus.vendors.list({ limit: 50, timeoutSeconds: 45 });
 while (page.hasNextPage()) {
   page = await page.getNextPage();
 }

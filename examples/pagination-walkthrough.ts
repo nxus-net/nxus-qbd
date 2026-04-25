@@ -76,7 +76,7 @@ async function main() {
   console.log(`  Sync Pagination Walkthrough  (limit=${LIMIT})`);
   console.log(`${SEPARATOR}\n`);
 
-  let page = await nxus.vendors.list({ limit: LIMIT });
+  let page = await nxus.vendors.list({ limit: LIMIT, timeoutSeconds: 45 });
   let pageNumber = 1;
   let totalItems = 0;
 
@@ -106,7 +106,8 @@ async function main() {
 
     console.log();
 
-    // Advance to the next page or stop
+    // Advance to the next page or stop. The SDK reuses
+    // X-Nxus-Timeout-Seconds for each follow-up page request.
     if (!page.hasNextPage()) {
       break;
     }

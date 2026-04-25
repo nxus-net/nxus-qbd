@@ -53,7 +53,7 @@ async function main() {
   let count = 0;
   const MAX_ITEMS = 25; // cap for demo purposes
 
-  for await (const customer of nxus.customers.list({ limit: 10 })) {
+  for await (const customer of nxus.customers.list({ limit: 10, timeoutSeconds: 45 })) {
     count++;
     console.log(`  ${count}. ${customer.name} (${customer.id})`);
 
@@ -70,12 +70,13 @@ async function main() {
   //
   // Await the list call to get a PaginatedPage, then use hasNextPage() and
   // getNextPage() to step through pages one at a time. Useful when you need
-  // page-level metadata (totalCount, page number, etc.).
+  // page-level metadata (totalCount, page number, etc.). The backend timeout
+  // hint is carried in X-Nxus-Timeout-Seconds for every follow-up page.
   // -------------------------------------------------------------------------
   console.log("\n=== Manual page-by-page navigation ===\n");
 
   // Fetch the first page with a small limit
-  let page = await nxus.customers.list({ limit: 5 });
+  let page = await nxus.customers.list({ limit: 5, timeoutSeconds: 45 });
   let pageNumber = 1;
 
   console.log(`Page ${pageNumber}: ${page.data.length} items (totalCount: ${page.totalCount})`);

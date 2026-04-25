@@ -1876,6 +1876,9 @@ export type Bill = {
    * Reference number for the bill.
    */
   refNumber?: string | null;
+  /**
+   * Indicates whether the bill is currently marked as pending.
+   */
   isPending?: boolean | null;
   terms?: QbdRef;
   class?: QbdRef;
@@ -8207,7 +8210,11 @@ export enum NullableAvsZip {
   NOT_AVAILABLE = "NotAvailable",
 }
 
-export type NullableBillableStatus = number;
+export enum NullableBillableStatus {
+  NOT_BILLABLE = "NotBillable",
+  BILLABLE = "Billable",
+  HAS_BEEN_BILLED = "HasBeenBilled",
+}
 
 export enum NullableCardSecurityCodeMatch {
   PASS = "Pass",
@@ -11571,6 +11578,9 @@ export type UpdatePurchaseOrderLineRequest = {
    * (Optional) The ListID or FullName of the class for this line.
    */
   classId?: string | null;
+  /**
+   * (Optional) Total amount for the line. (Cannot be cleared if modifying existing value)
+   */
   amount?: number | null;
   /**
    * (Optional) The ListID or FullName of the specific inventory site location where items will be received.
@@ -11804,6 +11814,9 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) The ListID or FullName of the inventory site.
    */
   inventorySiteId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the inventory site location.
+   */
   inventorySiteLocationId?: string | null;
   /**
    * (Optional) Serial number for the item. Mutually exclusive with LotNumber. (Max 4095 characters)
@@ -12551,6 +12564,14 @@ export type ListArRefundCreditCardsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -12591,11 +12612,6 @@ export type ListArRefundCreditCardsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -12771,6 +12787,14 @@ export type DeleteArRefundCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -12857,6 +12881,14 @@ export type RetrieveArRefundCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -12943,6 +12975,14 @@ export type UpdateArRefundCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -13029,6 +13069,14 @@ export type CreateArRefundCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -13119,6 +13167,14 @@ export type ListBillsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -13159,11 +13215,6 @@ export type ListBillsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -13336,6 +13387,14 @@ export type DeleteBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -13420,6 +13479,14 @@ export type RetrieveBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -13505,6 +13572,14 @@ export type UpdateBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -13589,6 +13664,14 @@ export type CreateBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -13677,6 +13760,14 @@ export type ListCheckBillsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -13717,11 +13808,6 @@ export type ListCheckBillsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -13902,6 +13988,14 @@ export type DeleteCheckBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -13988,6 +14082,14 @@ export type RetrieveCheckBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -14074,6 +14176,14 @@ export type UpdateCheckBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -14160,6 +14270,14 @@ export type CreateCheckBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -14250,6 +14368,14 @@ export type ListChecksData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -14290,11 +14416,6 @@ export type ListChecksData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -14462,6 +14583,14 @@ export type DeleteCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -14547,6 +14676,14 @@ export type RetrieveCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -14632,6 +14769,14 @@ export type UpdateCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -14717,6 +14862,14 @@ export type CreateCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -14806,6 +14959,14 @@ export type ListCreditCardBillsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -14846,11 +15007,6 @@ export type ListCreditCardBillsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -15032,6 +15188,14 @@ export type DeleteCreditCardBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15118,6 +15282,14 @@ export type RetrieveCreditCardBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15204,6 +15376,14 @@ export type UpdateCreditCardBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15290,6 +15470,14 @@ export type CreateCreditCardBillData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -15380,6 +15568,14 @@ export type ListCreditCardCreditsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -15420,11 +15616,6 @@ export type ListCreditCardCreditsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -15600,6 +15791,14 @@ export type DeleteCreditCardCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15686,6 +15885,14 @@ export type RetrieveCreditCardCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15772,6 +15979,14 @@ export type UpdateCreditCardCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -15858,6 +16073,14 @@ export type CreateCreditCardCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -15948,6 +16171,14 @@ export type ListDepositsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -15988,11 +16219,6 @@ export type ListDepositsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -16167,6 +16393,14 @@ export type DeleteDepositData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16252,6 +16486,14 @@ export type RetrieveDepositData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16338,6 +16580,14 @@ export type UpdateDepositData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16423,6 +16673,14 @@ export type CreateDepositData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -16512,6 +16770,14 @@ export type ListEstimatesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -16552,11 +16818,6 @@ export type ListEstimatesData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -16725,6 +16986,14 @@ export type DeleteEstimateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16811,6 +17080,14 @@ export type RetrieveEstimateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16897,6 +17174,14 @@ export type UpdateEstimateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -16983,6 +17268,14 @@ export type CreateEstimateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -17073,6 +17366,14 @@ export type ListItemReceiptsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -17113,11 +17414,6 @@ export type ListItemReceiptsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -17299,6 +17595,14 @@ export type DeleteItemReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -17385,6 +17689,14 @@ export type RetrieveItemReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -17471,6 +17783,14 @@ export type UpdateItemReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -17557,6 +17877,14 @@ export type CreateItemReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -17647,6 +17975,14 @@ export type ListJournalEntrysData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -17687,11 +18023,6 @@ export type ListJournalEntrysData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -17865,6 +18196,14 @@ export type DeleteJournalEntryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -17951,6 +18290,14 @@ export type RetrieveJournalEntryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -18037,6 +18384,14 @@ export type UpdateJournalEntryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -18123,6 +18478,14 @@ export type CreateJournalEntryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -18213,6 +18576,14 @@ export type ListPurchaseOrdersData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -18253,11 +18624,6 @@ export type ListPurchaseOrdersData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -18431,6 +18797,14 @@ export type DeletePurchaseOrderData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -18517,6 +18891,14 @@ export type RetrievePurchaseOrderData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -18603,6 +18985,14 @@ export type UpdatePurchaseOrderData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -18689,6 +19079,14 @@ export type CreatePurchaseOrderData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -18779,6 +19177,14 @@ export type ListSalesReceiptsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -18819,11 +19225,6 @@ export type ListSalesReceiptsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -18997,6 +19398,14 @@ export type DeleteSalesReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19083,6 +19492,14 @@ export type RetrieveSalesReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19169,6 +19586,14 @@ export type UpdateSalesReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19255,6 +19680,14 @@ export type CreateSalesReceiptData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -19345,6 +19778,14 @@ export type ListSalesTaxPaymentChecksData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -19385,11 +19826,6 @@ export type ListSalesTaxPaymentChecksData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -19583,6 +20019,14 @@ export type DeleteSalesTaxPaymentCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19669,6 +20113,14 @@ export type RetrieveSalesTaxPaymentCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19755,6 +20207,14 @@ export type UpdateSalesTaxPaymentCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -19841,6 +20301,14 @@ export type CreateSalesTaxPaymentCheckData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -19931,6 +20399,14 @@ export type ListTimeTrackingsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -19971,11 +20447,6 @@ export type ListTimeTrackingsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -20153,6 +20624,14 @@ export type DeleteTimeTrackingData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -20239,6 +20718,14 @@ export type RetrieveTimeTrackingData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -20325,6 +20812,14 @@ export type UpdateTimeTrackingData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -20411,6 +20906,14 @@ export type CreateTimeTrackingData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -20501,6 +21004,14 @@ export type ListTransactionsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -20541,11 +21052,6 @@ export type ListTransactionsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -20744,6 +21250,14 @@ export type DeleteTransactionData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -20830,6 +21344,14 @@ export type RetrieveTransactionData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -20922,6 +21444,14 @@ export type ListVendorCreditsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -20962,11 +21492,6 @@ export type ListVendorCreditsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -21136,6 +21661,14 @@ export type DeleteVendorCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21222,6 +21755,14 @@ export type RetrieveVendorCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21308,6 +21849,14 @@ export type UpdateVendorCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21394,6 +21943,14 @@ export type CreateVendorCreditData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -21484,6 +22041,14 @@ export type ListAccountsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -21505,11 +22070,6 @@ export type ListAccountsData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -21680,6 +22240,14 @@ export type DeleteAccountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21765,6 +22333,14 @@ export type RetrieveAccountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21851,6 +22427,14 @@ export type UpdateAccountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -21936,6 +22520,14 @@ export type CreateAccountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -22025,6 +22617,14 @@ export type ListAccountTaxLineInfosData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -22046,11 +22646,6 @@ export type ListAccountTaxLineInfosData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
   };
   url: "/api/v1/accounts-tax-line-info";
 };
@@ -22133,6 +22728,14 @@ export type RetrieveAccountTaxLineInfoData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -22225,6 +22828,14 @@ export type ListBarCodesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -22247,22 +22858,11 @@ export type ListBarCodesData = {
      */
     limit?: number;
     /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
+     * (Optional, repeatable) Filter by one or more specific barcode values.
+     * Only barcodes whose value matches one of the provided strings will be returned.
+     * Omit to return all barcodes.
      */
-    timeoutSeconds?: number;
-    /**
-     * (Optional) Filter to return BarCodes that were created or modified on or after this specific date and time.
-     */
-    FromModifiedDate?: string | null;
-    /**
-     * (Optional) Filter to return BarCodes associated with a specific list type (e.g., "Item", "Employee").
-     */
-    ListType?: string;
-    /**
-     * (Optional) Filter to return BarCodes that were created or modified on or before this specific date and time.
-     */
-    ToModifiedDate?: string | null;
+    BarCodeValues?: Array<string>;
   };
   url: "/api/v1/bar-codes";
 };
@@ -22344,6 +22944,14 @@ export type DeleteBarCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -22415,92 +23023,6 @@ export type DeleteBarCodeResponses = {
 export type DeleteBarCodeResponse =
   DeleteBarCodeResponses[keyof DeleteBarCodeResponses];
 
-export type RetrieveBarCodeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/bar-code/{id}";
-};
-
-export type RetrieveBarCodeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type RetrieveBarCodeError =
-  RetrieveBarCodeErrors[keyof RetrieveBarCodeErrors];
-
-export type RetrieveBarCodeResponses = {
-  /**
-   * OK
-   */
-  200: BarCode;
-};
-
-export type RetrieveBarCodeResponse =
-  RetrieveBarCodeResponses[keyof RetrieveBarCodeResponses];
-
 export type ListBillingRatesData = {
   body?: never;
   headers?: {
@@ -22521,6 +23043,14 @@ export type ListBillingRatesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -22542,11 +23072,6 @@ export type ListBillingRatesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -22712,6 +23237,14 @@ export type DeleteBillingRateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -22798,6 +23331,14 @@ export type RetrieveBillingRateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -22884,6 +23425,14 @@ export type CreateBillingRateData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -22974,6 +23523,14 @@ export type ListQbdClasssData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -22995,11 +23552,6 @@ export type ListQbdClasssData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -23160,6 +23712,14 @@ export type DeleteQbdClassData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -23246,6 +23806,14 @@ export type RetrieveQbdClassData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -23332,6 +23900,14 @@ export type UpdateQbdClassData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -23418,6 +23994,14 @@ export type CreateQbdClassData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -23508,6 +24092,14 @@ export type ListCurrencysData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -23529,11 +24121,6 @@ export type ListCurrencysData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -23694,6 +24281,14 @@ export type RetrieveCurrencyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -23780,6 +24375,14 @@ export type UpdateCurrencyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -23866,6 +24469,14 @@ export type CreateCurrencyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -23956,6 +24567,14 @@ export type ListCustomersData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -23977,11 +24596,6 @@ export type ListCustomersData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -24184,6 +24798,14 @@ export type DeleteCustomerData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24270,6 +24892,14 @@ export type RetrieveCustomerData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24356,6 +24986,14 @@ export type UpdateCustomerData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24442,6 +25080,14 @@ export type CreateCustomerData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -24532,6 +25178,14 @@ export type ListDateDrivenTermsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -24553,11 +25207,6 @@ export type ListDateDrivenTermsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -24719,6 +25368,14 @@ export type DeleteDateDrivenTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24805,6 +25462,14 @@ export type RetrieveDateDrivenTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24891,6 +25556,14 @@ export type UpdateDateDrivenTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -24977,6 +25650,14 @@ export type CreateDateDrivenTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -25067,6 +25748,14 @@ export type ListEmployeesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -25088,11 +25777,6 @@ export type ListEmployeesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -25253,6 +25937,14 @@ export type DeleteEmployeeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -25339,6 +26031,14 @@ export type RetrieveEmployeeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -25425,6 +26125,14 @@ export type UpdateEmployeeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -25511,6 +26219,14 @@ export type CreateEmployeeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -25601,6 +26317,14 @@ export type ListInventorySitesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -25622,11 +26346,6 @@ export type ListInventorySitesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -25788,6 +26507,14 @@ export type DeleteInventorySiteData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -25874,6 +26601,14 @@ export type RetrieveInventorySiteData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -25960,6 +26695,14 @@ export type UpdateInventorySiteData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -26046,6 +26789,14 @@ export type CreateInventorySiteData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -26136,6 +26887,14 @@ export type ListOtherNamesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -26157,11 +26916,6 @@ export type ListOtherNamesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -26323,6 +27077,14 @@ export type DeleteOtherNameData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -26409,6 +27171,14 @@ export type RetrieveOtherNameData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -26495,6 +27265,14 @@ export type UpdateOtherNameData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -26581,6 +27359,14 @@ export type CreateOtherNameData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -26671,6 +27457,14 @@ export type ListPaymentMethodsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -26692,11 +27486,6 @@ export type ListPaymentMethodsData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -26863,6 +27652,14 @@ export type DeletePaymentMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -26949,6 +27746,14 @@ export type RetrievePaymentMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -27035,6 +27840,14 @@ export type UpdatePaymentMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -27121,6 +27934,14 @@ export type CreatePaymentMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -27211,6 +28032,14 @@ export type ListPriceLevelsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -27232,11 +28061,6 @@ export type ListPriceLevelsData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -27404,6 +28228,14 @@ export type DeletePriceLevelData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -27490,6 +28322,14 @@ export type RetrievePriceLevelData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -27576,6 +28416,14 @@ export type UpdatePriceLevelData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -27662,6 +28510,14 @@ export type CreatePriceLevelData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -27752,6 +28608,14 @@ export type ListSalesTaxCodesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -27773,11 +28637,6 @@ export type ListSalesTaxCodesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -27939,6 +28798,14 @@ export type DeleteSalesTaxCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28025,6 +28892,14 @@ export type RetrieveSalesTaxCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28111,6 +28986,14 @@ export type UpdateSalesTaxCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28197,6 +29080,14 @@ export type CreateSalesTaxCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -28287,6 +29178,14 @@ export type ListShipMethodsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -28308,11 +29207,6 @@ export type ListShipMethodsData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -28474,6 +29368,14 @@ export type DeleteShipMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28560,6 +29462,14 @@ export type RetrieveShipMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28646,6 +29556,14 @@ export type UpdateShipMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -28732,6 +29650,14 @@ export type CreateShipMethodData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -28816,6 +29742,14 @@ export type CreateSpecialItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -28906,6 +29840,14 @@ export type ListTermsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -28927,11 +29869,6 @@ export type ListTermsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -29091,6 +30028,14 @@ export type DeleteTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -29175,6 +30120,14 @@ export type RetrieveTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -29260,6 +30213,14 @@ export type UpdateTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -29344,6 +30305,14 @@ export type CreateTermData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -29432,6 +30401,14 @@ export type ListUnitOfMeasureSetsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -29453,11 +30430,6 @@ export type ListUnitOfMeasureSetsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -29619,6 +30591,14 @@ export type RetrieveUnitOfMeasureSetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -29705,6 +30685,14 @@ export type CreateUnitOfMeasureSetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -29795,6 +30783,14 @@ export type ListVendorsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -29816,11 +30812,6 @@ export type ListVendorsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -29981,6 +30972,14 @@ export type DeleteVendorData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -30066,6 +31065,14 @@ export type RetrieveVendorData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -30152,6 +31159,14 @@ export type UpdateVendorData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -30237,6 +31252,14 @@ export type CreateVendorData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -30326,6 +31349,14 @@ export type ListVendorTypesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -30347,11 +31378,6 @@ export type ListVendorTypesData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -30513,6 +31539,14 @@ export type DeleteVendorTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -30599,6 +31633,14 @@ export type RetrieveVendorTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -30685,6 +31727,14 @@ export type CreateVendorTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -30775,6 +31825,14 @@ export type ListBillToPayRetsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -30815,11 +31873,6 @@ export type ListBillToPayRetsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -31005,6 +32058,14 @@ export type RetrieveBillToPayRetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -31097,6 +32158,14 @@ export type ListBuildAssemblysData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -31137,11 +32206,6 @@ export type ListBuildAssemblysData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -31319,6 +32383,14 @@ export type DeleteBuildAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -31405,6 +32477,14 @@ export type RetrieveBuildAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -31491,6 +32571,14 @@ export type UpdateBuildAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -31577,6 +32665,14 @@ export type CreateBuildAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -31667,6 +32763,14 @@ export type ListChargesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -31707,11 +32811,6 @@ export type ListChargesData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -31884,6 +32983,14 @@ export type DeleteChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -31969,6 +33076,14 @@ export type RetrieveChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -32055,6 +33170,14 @@ export type UpdateChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -32140,6 +33263,14 @@ export type CreateChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -32229,6 +33360,14 @@ export type ListCreditCardsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -32269,11 +33408,6 @@ export type ListCreditCardsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -32443,6 +33577,14 @@ export type DeleteCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -32529,6 +33671,14 @@ export type RetrieveCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -32615,6 +33765,14 @@ export type UpdateCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -32701,6 +33859,14 @@ export type CreateCreditCardData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -32791,6 +33957,14 @@ export type ListCreditMemosData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -32831,11 +34005,6 @@ export type ListCreditMemosData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -33005,6 +34174,14 @@ export type DeleteCreditMemoData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33091,6 +34268,14 @@ export type RetrieveCreditMemoData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33177,6 +34362,14 @@ export type UpdateCreditMemoData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33263,6 +34456,14 @@ export type CreateCreditMemoData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -33353,6 +34554,14 @@ export type ListInventoryAdjustmentsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -33393,11 +34602,6 @@ export type ListInventoryAdjustmentsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -33571,6 +34775,14 @@ export type DeleteInventoryAdjustmentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33657,6 +34869,14 @@ export type RetrieveInventoryAdjustmentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33743,6 +34963,14 @@ export type UpdateInventoryAdjustmentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -33829,6 +35057,14 @@ export type CreateInventoryAdjustmentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -33919,6 +35155,14 @@ export type ListInvoicesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -33959,11 +35203,6 @@ export type ListInvoicesData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -34140,6 +35379,14 @@ export type DeleteInvoiceData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34225,6 +35472,14 @@ export type RetrieveInvoiceData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34311,6 +35566,14 @@ export type UpdateInvoiceData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34396,6 +35659,14 @@ export type CreateInvoiceData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -34485,6 +35756,14 @@ export type ListReceivePaymentsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -34525,11 +35804,6 @@ export type ListReceivePaymentsData = {
      * Case-insensitive according to QuickBooks Desktop rules.
      */
     refNumberContains?: string;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter for records modified on or before this date.
      *
@@ -34699,6 +35973,14 @@ export type DeleteReceivePaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34785,6 +36067,14 @@ export type RetrieveReceivePaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34871,6 +36161,14 @@ export type UpdateReceivePaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -34957,6 +36255,14 @@ export type CreateReceivePaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -35029,13 +36335,18 @@ export type CreateReceivePaymentResponse =
 
 export type RetrieveGeneralDetailReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -35239,13 +36550,18 @@ export type RetrieveGeneralDetailReportResponse =
 
 export type RetrieveAgingReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -35438,13 +36754,18 @@ export type RetrieveAgingReportResponse =
 
 export type RetrieveGeneralSummaryReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -35649,13 +36970,18 @@ export type RetrieveGeneralSummaryReportResponse =
 
 export type RetrieveBudgetSummaryReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -35868,13 +37194,18 @@ export type RetrieveBudgetSummaryReportResponse =
 
 export type RetrieveJobReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -36072,13 +37403,18 @@ export type RetrieveJobReportResponse =
 
 export type RetrieveTimeReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -36274,13 +37610,18 @@ export type RetrieveTimeReportResponse =
 
 export type RetrieveCustomDetailReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -36476,13 +37817,18 @@ export type RetrieveCustomDetailReportResponse =
 
 export type RetrieveCustomSummaryReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -36678,13 +38024,18 @@ export type RetrieveCustomSummaryReportResponse =
 
 export type RetrievePayrollDetailReportData = {
   body?: never;
+  headers?: {
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Report operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
   path?: never;
   query?: {
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
     /**
@@ -36899,6 +38250,14 @@ export type ListCustomerTypesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -36920,11 +38279,6 @@ export type ListCustomerTypesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -37086,6 +38440,14 @@ export type DeleteCustomerTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -37172,6 +38534,14 @@ export type RetrieveCustomerTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -37258,6 +38628,14 @@ export type UpdateCustomerTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -37344,6 +38722,14 @@ export type CreateCustomerTypeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -37434,6 +38820,14 @@ export type ListPayrollItemNonWagesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -37455,11 +38849,6 @@ export type ListPayrollItemNonWagesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -37621,6 +39010,14 @@ export type DeletePayrollItemNonWageData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -37707,6 +39104,14 @@ export type RetrievePayrollItemNonWageData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -37799,6 +39204,14 @@ export type ListPayrollItemWagesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -37820,11 +39233,6 @@ export type ListPayrollItemWagesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -37986,6 +39394,14 @@ export type DeletePayrollItemWageData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -38072,6 +39488,14 @@ export type RetrievePayrollItemWageData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -38158,6 +39582,14 @@ export type CreatePayrollItemWageData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -38248,6 +39680,14 @@ export type ListWorkersCompCodesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -38269,11 +39709,6 @@ export type ListWorkersCompCodesData = {
      * The maximum number of items to return for this request.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -38443,6 +39878,14 @@ export type DeleteWorkersCompCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -38529,6 +39972,14 @@ export type RetrieveWorkersCompCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -38615,6 +40066,14 @@ export type UpdateWorkersCompCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -38701,6 +40160,14 @@ export type CreateWorkersCompCodeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -38791,6 +40258,14 @@ export type ListItemsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -38812,11 +40287,6 @@ export type ListItemsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -38976,6 +40446,14 @@ export type RetrieveItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39067,6 +40545,14 @@ export type ListItemDiscountsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -39088,11 +40574,6 @@ export type ListItemDiscountsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -39254,6 +40735,14 @@ export type DeleteItemDiscountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39340,6 +40829,14 @@ export type RetrieveItemDiscountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39426,6 +40923,14 @@ export type UpdateItemDiscountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39512,6 +41017,14 @@ export type CreateItemDiscountData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -39602,6 +41115,14 @@ export type ListItemFixedAssetsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -39623,11 +41144,6 @@ export type ListItemFixedAssetsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -39789,6 +41305,14 @@ export type DeleteItemFixedAssetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39875,6 +41399,14 @@ export type RetrieveItemFixedAssetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -39961,6 +41493,14 @@ export type UpdateItemFixedAssetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40047,6 +41587,14 @@ export type CreateItemFixedAssetData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -40137,6 +41685,14 @@ export type ListItemGroupsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -40158,11 +41714,6 @@ export type ListItemGroupsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -40328,6 +41879,14 @@ export type DeleteItemGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40414,6 +41973,14 @@ export type RetrieveItemGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40500,6 +42067,14 @@ export type UpdateItemGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40586,6 +42161,14 @@ export type CreateItemGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -40676,6 +42259,14 @@ export type ListItemInventoryAssemblysData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -40697,11 +42288,6 @@ export type ListItemInventoryAssemblysData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
      */
@@ -40789,6 +42375,14 @@ export type DeleteItemInventoryAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40875,6 +42469,14 @@ export type RetrieveItemInventoryAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -40961,6 +42563,14 @@ export type UpdateItemInventoryAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -41047,6 +42657,14 @@ export type CreateItemInventoryAssemblyData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -41137,6 +42755,14 @@ export type ListInventoryItemsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -41158,11 +42784,6 @@ export type ListInventoryItemsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -41324,6 +42945,14 @@ export type DeleteInventoryItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -41410,6 +43039,14 @@ export type RetrieveInventoryItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -41496,6 +43133,14 @@ export type UpdateInventoryItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -41582,6 +43227,14 @@ export type CreateInventoryItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -41672,6 +43325,14 @@ export type ListItemNonInventorysData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -41693,11 +43354,6 @@ export type ListItemNonInventorysData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -41863,6 +43519,14 @@ export type DeleteItemNonInventoryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -41949,6 +43613,14 @@ export type RetrieveItemNonInventoryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -42035,6 +43707,14 @@ export type UpdateItemNonInventoryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -42121,6 +43801,14 @@ export type CreateItemNonInventoryData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -42211,6 +43899,14 @@ export type ListItemOtherChargesData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -42232,11 +43928,6 @@ export type ListItemOtherChargesData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -42399,6 +44090,14 @@ export type DeleteItemOtherChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -42485,6 +44184,14 @@ export type RetrieveItemOtherChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -42571,6 +44278,14 @@ export type UpdateItemOtherChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -42657,6 +44372,14 @@ export type CreateItemOtherChargeData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -42747,6 +44470,14 @@ export type ListItemPaymentsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -42768,11 +44499,6 @@ export type ListItemPaymentsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -42934,6 +44660,14 @@ export type DeleteItemPaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43020,6 +44754,14 @@ export type RetrieveItemPaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43106,6 +44848,14 @@ export type UpdateItemPaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43192,6 +44942,14 @@ export type CreateItemPaymentData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -43282,6 +45040,14 @@ export type ListItemSalesTaxsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -43303,11 +45069,6 @@ export type ListItemSalesTaxsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -43469,6 +45230,14 @@ export type DeleteItemSalesTaxData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43555,6 +45324,14 @@ export type RetrieveItemSalesTaxData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43641,6 +45418,14 @@ export type UpdateItemSalesTaxData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -43727,6 +45512,14 @@ export type CreateItemSalesTaxData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -43817,6 +45610,14 @@ export type ListItemSalesTaxGroupsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -43838,11 +45639,6 @@ export type ListItemSalesTaxGroupsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -44004,6 +45800,14 @@ export type DeleteItemSalesTaxGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44090,6 +45894,14 @@ export type RetrieveItemSalesTaxGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44176,6 +45988,14 @@ export type UpdateItemSalesTaxGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44262,6 +46082,14 @@ export type CreateItemSalesTaxGroupData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -44352,6 +46180,14 @@ export type ListServiceItemsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -44373,11 +46209,6 @@ export type ListServiceItemsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -44541,6 +46372,14 @@ export type DeleteServiceItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44627,6 +46466,14 @@ export type RetrieveServiceItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44713,6 +46560,14 @@ export type UpdateServiceItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -44799,6 +46654,14 @@ export type CreateServiceItemData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;
@@ -44889,6 +46752,14 @@ export type ListItemSubtotalsData = {
      * This is not persisted and is used only for logging and monitoring.
      */
     "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: {
@@ -44910,11 +46781,6 @@ export type ListItemSubtotalsData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * The maximum time in seconds to wait for the queued job to be picked up and the first page to be returned from QuickBooks Desktop.
-     * Increase this for slower QWC polling intervals or large data sets.
-     */
-    timeoutSeconds?: number;
     /**
      * Filter by one or more unique identifiers (ListIDs).
      *
@@ -45076,6 +46942,14 @@ export type DeleteItemSubtotalData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -45162,6 +47036,14 @@ export type RetrieveItemSubtotalData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -45248,6 +47130,14 @@ export type UpdateItemSubtotalData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
     id: string;
@@ -45334,6 +47224,14 @@ export type CreateItemSubtotalData = {
      * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
   query?: never;

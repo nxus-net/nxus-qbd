@@ -22,6 +22,18 @@ export interface TransportOptions {
   headers?: Record<string, string>;
   /** Default request timeout in milliseconds. */
   timeout?: number;
+  /**
+   * Default value for the `X-Nxus-Timeout-Seconds` header.
+   *
+   * Tells the server how long to wait for the queued QuickBooks Desktop
+   * job to complete before returning a 504. Distinct from `timeout`
+   * (which is the local HTTP abort timer). The server enforces
+   * operation-specific ceilings and may clamp this value based on
+   * deployment config. Current defaults are typically 120 seconds for
+   * CRUD and 90 seconds for list/report operations. Omit to let the
+   * server apply its own default.
+   */
+  serverTimeoutSeconds?: number;
 }
 
 export interface RequestOptions {
@@ -31,6 +43,11 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   /** Request timeout in milliseconds (overrides the default). */
   timeout?: number;
+  /**
+   * Override for the `X-Nxus-Timeout-Seconds` header on this request.
+   * See {@link TransportOptions.serverTimeoutSeconds}.
+   */
+  serverTimeoutSeconds?: number;
 }
 
 function normalizeErrorPayload(
@@ -75,6 +92,7 @@ export class NxusHttpTransport {
   private readonly apiKey: string;
   private readonly defaultHeaders: Record<string, string>;
   private readonly defaultTimeout: number;
+  private readonly defaultServerTimeoutSeconds?: number;
 
   constructor(options: TransportOptions) {
     // Ensure trailing slash for consistent URL joining
@@ -82,6 +100,7 @@ export class NxusHttpTransport {
     this.apiKey = options.apiKey;
     this.defaultHeaders = options.headers ?? {};
     this.defaultTimeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
+    this.defaultServerTimeoutSeconds = options.serverTimeoutSeconds;
   }
 
   async get<T>(
@@ -154,6 +173,12 @@ export class NxusHttpTransport {
 
     if (options?.connectionId) {
       headers['X-Connection-Id'] = options.connectionId;
+    }
+
+    const serverTimeoutSeconds =
+      options?.serverTimeoutSeconds ?? this.defaultServerTimeoutSeconds;
+    if (serverTimeoutSeconds != null && !('X-Nxus-Timeout-Seconds' in headers)) {
+      headers['X-Nxus-Timeout-Seconds'] = String(serverTimeoutSeconds);
     }
 
     const timeout = options?.timeout ?? this.defaultTimeout;
