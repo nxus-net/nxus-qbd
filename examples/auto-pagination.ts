@@ -5,6 +5,14 @@
  *   1. `for await (const item of ...)` — auto-fetches every page transparently.
  *   2. `await` — resolves to the first PaginatedPage with `.getNextPage()`.
  *
+ * A note on `break` and lane release:
+ *   When you `break` out of a `for await` loop, the SDK quietly tells the
+ *   backend you are done with the cursor (best-effort `POST /api/v1/cursors/
+ *   {cursor}/close`). The QuickBooks Desktop connection lane is released within
+ *   milliseconds — your *next* call on the same connection does not have to
+ *   wait for the silent-client timeout to expire. There is nothing extra to do;
+ *   just `break`.
+ *
  * Usage:
  *   NXUS_API_KEY=sk_test_... npx tsx examples/auto-pagination.ts
  *
@@ -16,10 +24,10 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
-// Configuration
+// Configuration`
 // ---------------------------------------------------------------------------
 
 const apiKey = process.env.NXUS_API_KEY;
@@ -66,7 +74,36 @@ async function main() {
   console.log(`\nTotal items iterated: ${count}`);
 
   // -------------------------------------------------------------------------
-  // Approach 2: Manual page-by-page navigation
+  // Approach 2: Find-and-stop
+  //
+  // The most common real-world pagination pattern: iterate until you find
+  // what you need, then `break`. The SDK auto-iterator handles cleanup —
+  // when the loop exits via `break` (instead of running out of pages),
+  // the SDK fires a best-effort cursor-close so the QBD lane is released
+  // within milliseconds. Your next API call on this connection won't sit
+  // waiting for the silent-client timeout.
+  // -------------------------------------------------------------------------
+  console.log("\n=== Find-and-stop ===\n");
+
+  const targetSubstring = "Store";
+  let matched: string | null = null;
+
+  for await (const customer of nxus.customers.list({ limit: 10, timeoutSeconds: 45 })) {
+    const name = customer.name ?? "";
+    if (name.toLowerCase().includes(targetSubstring.toLowerCase())) {
+      matched = name;
+      break; // ← SDK auto-closes the cursor here
+    }
+  }
+
+  if (matched) {
+    console.log(`  Matched ${JSON.stringify(matched)} — stopped early.`);
+  } else {
+    console.log(`  No customer matched ${JSON.stringify(targetSubstring)}.`);
+  }
+
+  // -------------------------------------------------------------------------
+  // Approach 3: Manual page-by-page navigation
   //
   // Await the list call to get a PaginatedPage, then use hasNextPage() and
   // getNextPage() to step through pages one at a time. Useful when you need

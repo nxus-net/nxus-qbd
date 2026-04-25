@@ -321,6 +321,37 @@ describe('platform SDK surface', () => {
     expect(getRequestHeaders(1, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('60');
   });
 
+  it('best-effort closes the cursor when auto-pagination exits early', async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({
+        data: [{ id: 'vendor_1', name: 'Vendor 1' }],
+        hasMore: true,
+        nextCursor: 'cursor_2',
+      }),
+      new Response(null, { status: 204 }),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    for await (const vendor of client.vendors.list({ limit: 1 })) {
+      expect(vendor.id).toBe('vendor_1');
+      break;
+    }
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://api.example.test/api/v1/vendors?limit=1',
+    );
+    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
+      'https://api.example.test/api/v1/cursors/cursor_2/close',
+    );
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit | undefined)?.method).toBe('POST');
+    expect(getRequestHeaders(1, fetchMock).get('X-Connection-Id')).toBeNull();
+  });
+
   it('sends per-request serverTimeoutSeconds as a header instead of query or body data', async () => {
     const fetchMock = installFetchMock(
       jsonResponse({ data: [], hasMore: false, nextCursor: null }),

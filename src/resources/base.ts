@@ -80,6 +80,7 @@ class TransportPaginationPromise<TItem> implements AutoPaginationPromise<TItem> 
 
   constructor(
     private readonly fetchPage: (cursor?: string) => Promise<PaginatedPage<TItem>>,
+    private readonly closeCursor?: (cursor: string) => Promise<void>,
   ) {
     this.firstPagePromise = fetchPage();
   }
@@ -107,17 +108,28 @@ class TransportPaginationPromise<TItem> implements AutoPaginationPromise<TItem> 
 
   async *[Symbol.asyncIterator](): AsyncIterator<TItem> {
     let page = await this.firstPagePromise;
+    let completed = false;
+    let liveCursor: string | null = page.hasNextPage() ? page.nextCursor : null;
 
-    while (true) {
-      for (const item of page.data) {
-        yield item;
+    try {
+      while (true) {
+        liveCursor = page.hasNextPage() ? page.nextCursor : null;
+
+        for (const item of page.data) {
+          yield item;
+        }
+
+        if (!page.hasNextPage()) {
+          completed = true;
+          return;
+        }
+
+        page = await page.getNextPage();
       }
-
-      if (!page.hasNextPage()) {
-        return;
+    } finally {
+      if (!completed && liveCursor && this.closeCursor) {
+        await this.closeCursor(liveCursor).catch(() => undefined);
       }
-
-      page = await page.getNextPage();
     }
   }
 }
@@ -206,7 +218,13 @@ export class Resource<T, TCreate = Record<string, unknown>, TUpdate = Record<str
       return wrapPage(page, (nextCursor) => fetchPage(nextCursor));
     };
 
-    return new TransportPaginationPromise<T>(fetchPage);
+    const closeCursor = async (cursor: string): Promise<void> => {
+      await this.transport.post<void>(
+        `/api/v1/cursors/${encodeURIComponent(cursor)}/close`,
+      );
+    };
+
+    return new TransportPaginationPromise<T>(fetchPage, closeCursor);
   }
 
   /**

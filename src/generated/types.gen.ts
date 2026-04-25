@@ -1876,9 +1876,6 @@ export type Bill = {
    * Reference number for the bill.
    */
   refNumber?: string | null;
-  /**
-   * Indicates whether the bill is currently marked as pending.
-   */
   isPending?: boolean | null;
   terms?: QbdRef;
   class?: QbdRef;
@@ -11578,9 +11575,6 @@ export type UpdatePurchaseOrderLineRequest = {
    * (Optional) The ListID or FullName of the class for this line.
    */
   classId?: string | null;
-  /**
-   * (Optional) Total amount for the line. (Cannot be cleared if modifying existing value)
-   */
   amount?: number | null;
   /**
    * (Optional) The ListID or FullName of the specific inventory site location where items will be received.
@@ -11814,9 +11808,6 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) The ListID or FullName of the inventory site.
    */
   inventorySiteId?: string | null;
-  /**
-   * (Optional) The ListID or FullName of the inventory site location.
-   */
   inventorySiteLocationId?: string | null;
   /**
    * (Optional) Serial number for the item. Mutually exclusive with LotNumber. (Max 4095 characters)

@@ -19,7 +19,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
