@@ -5,7 +5,7 @@ Official Node.js/TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBoo
 ## Installation
 
 ```bash
-npm install @nxus/qbd
+npm install nxus-qbd
 pnpm add nxus-qbd
 ```
 
