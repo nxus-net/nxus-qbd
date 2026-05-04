@@ -150,7 +150,16 @@ export class NxusHttpTransport {
 
     if (query) {
       for (const [key, value] of Object.entries(query)) {
-        if (value !== undefined && value !== null) {
+        if (value === undefined || value === null) continue;
+        if (Array.isArray(value)) {
+          // ASP.NET model binding for List<T> from [FromQuery] expects repeated
+          // keys (?key=a&key=b), not a single comma-joined value. Items that
+          // are themselves null/undefined are skipped.
+          for (const item of value) {
+            if (item === undefined || item === null) continue;
+            url.searchParams.append(key, String(item));
+          }
+        } else {
           url.searchParams.set(key, String(value));
         }
       }

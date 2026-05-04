@@ -25,7 +25,7 @@ async function main() {
     await mkdir(packageDir, { recursive: true });
 
     for (const moduleDef of modules) {
-      const moduleContent = renderModuleFile(moduleDef.symbols, `../../generated`, generatedExports);
+      const moduleContent = renderModuleFile(moduleDef.module, moduleDef.symbols, `../../generated`, generatedExports);
       await writeFile(path.join(packageDir, `${moduleDef.module}.ts`), moduleContent);
     }
 
@@ -89,8 +89,9 @@ async function readSharedSymbols() {
     .filter(Boolean);
 }
 
-function renderModuleFile(symbols, importPath, generatedExports) {
-  const { typeSymbols, valueSymbols } = classifySymbols(symbols, generatedExports);
+function renderModuleFile(moduleName, symbols, importPath, generatedExports) {
+  const { availableSymbols, missingSymbols } = partitionAvailableSymbols(symbols, generatedExports);
+  const { typeSymbols, valueSymbols } = classifySymbols(availableSymbols, generatedExports);
   const lines = [header()];
 
   if (valueSymbols.length > 0) {
@@ -99,6 +100,18 @@ function renderModuleFile(symbols, importPath, generatedExports) {
 
   if (typeSymbols.length > 0) {
     lines.push(`export type { ${typeSymbols.join(', ')} } from '${importPath}';`);
+  }
+
+  if (missingSymbols.length > 0) {
+    console.warn(`[generate-model-exports] ${moduleName}: skipping ${missingSymbols.length} symbol(s) absent from generated schema: ${missingSymbols.join(', ')}`);
+    lines.push(`// Not re-exported here because they are not present in src/generated/types.gen.ts: ${missingSymbols.join(', ')}`);
+  }
+
+  // Ensure the file is a module even when every symbol was filtered out.
+  // Without an export, TypeScript treats the file as a script and the parent
+  // `export * from './<module>'` fails with TS2306.
+  if (valueSymbols.length === 0 && typeSymbols.length === 0) {
+    lines.push('export {};');
   }
 
   return `${lines.join('\n')}\n`;

@@ -139,7 +139,7 @@ import type {
   DateDrivenTerm,
   Employee,
   InventorySite,
-  BillToPayRet,
+  BillPaymentOrCredit,
   OtherName,
   PaymentMethod,
   PriceLevel,
@@ -548,6 +548,7 @@ export class NxusClient {
     return new ReadOnlyResource<AccountTaxLineInfo>(
       this.transport,
       "/api/v1/accounts-tax-line-info",
+      "/api/v1/account-tax-line-info",
     );
   }
 
@@ -721,7 +722,7 @@ export class NxusClient {
 
   /** Bills to Pay — list, retrieve only */
   get billToPay() {
-    return new ReadOnlyResource<BillToPayRet>(
+    return new ReadOnlyResource<BillPaymentOrCredit>(
       this.transport,
       "/api/v1/bills-to-pay",
       "/api/v1/bill-to-pay",
@@ -737,120 +738,130 @@ export class NxusClient {
     return new ReadOnlyResource<Item>(this.transport, "/api/v1/items");
   }
 
+  /**
+   * Build a Resource for a QBD item-* endpoint.
+   *
+   * The QBD backend has a non-standard route convention for items:
+   *   list:    /api/v1/items-{kind}      (e.g. items-service, items-inventory)
+   *   CRUD:    /api/v1/item-{kind}/{id}  (e.g. item-service/{id})
+   *
+   * Pass the kind suffix (e.g. "service", "inventory", "non-inventory") and
+   * this returns a Resource wired to both paths.
+   */
+  private itemResource<TItem, TCreate, TUpdate>(kind: string) {
+    return new Resource<TItem, TCreate, TUpdate>(
+      this.transport,
+      `/api/v1/items-${kind}`,
+      `/api/v1/item-${kind}`,
+    );
+  }
+
   /** Inventory Items — full CRUD */
   get inventoryItems() {
-    return new Resource<
+    return this.itemResource<
       InventoryItem,
       CreateInventoryItemRequest,
       UpdateInventoryItemRequest
-    >(this.transport, "/api/v1/inventory-items");
+    >("inventory");
   }
 
   /** Item Discounts — full CRUD */
   get itemDiscounts() {
-    return new Resource<
+    return this.itemResource<
       ItemDiscount,
       CreateItemDiscountRequest,
       UpdateItemDiscountRequest
-    >(this.transport, "/api/v1/item-discounts");
+    >("discount");
   }
 
   /** Item Fixed Assets — full CRUD */
   get itemFixedAssets() {
-    return new Resource<
+    return this.itemResource<
       ItemFixedAsset,
       CreateItemFixedAssetRequest,
       UpdateItemFixedAssetRequest
-    >(this.transport, "/api/v1/item-fixed-assets");
+    >("fixed-asset");
   }
 
   /** Item Groups — full CRUD */
   get itemGroups() {
-    return new Resource<
+    return this.itemResource<
       ItemGroup,
       CreateItemGroupRequest,
       UpdateItemGroupRequest
-    >(this.transport, "/api/v1/item-groups");
+    >("group");
   }
 
   /** Item Inventory Assemblies — full CRUD */
   get itemInventoryAssemblies() {
-    return new Resource<
+    return this.itemResource<
       ItemInventoryAssembly,
       CreateItemInventoryAssemblyRequest,
       UpdateItemInventoryAssemblyRequest
-    >(
-      this.transport,
-      "/api/v1/item-inventory-assemblies",
-      "/api/v1/item-inventory-assembly",
-    );
+    >("inventory-assembly");
   }
 
   /** Item Non-Inventory — full CRUD */
   get itemNonInventory() {
-    return new Resource<
+    return this.itemResource<
       ItemNonInventory,
       CreateItemNonInventoryRequest,
       UpdateItemNonInventoryRequest
-    >(
-      this.transport,
-      "/api/v1/item-non-inventories",
-      "/api/v1/item-non-inventory",
-    );
+    >("non-inventory");
   }
 
   /** Item Other Charges — full CRUD */
   get itemOtherCharges() {
-    return new Resource<
+    return this.itemResource<
       ItemOtherCharge,
       CreateItemOtherChargeRequest,
       UpdateItemOtherChargeRequest
-    >(this.transport, "/api/v1/item-other-charges");
+    >("other-charge");
   }
 
   /** Item Payments — full CRUD */
   get itemPayments() {
-    return new Resource<
+    return this.itemResource<
       ItemPayment,
       CreateItemPaymentRequest,
       UpdateItemPaymentRequest
-    >(this.transport, "/api/v1/items-payment");
+    >("payment");
   }
 
   /** Item Sales Tax — full CRUD */
   get itemSalesTax() {
-    return new Resource<
+    return this.itemResource<
       ItemSalesTax,
       CreateItemSalesTaxRequest,
       UpdateItemSalesTaxRequest
-    >(this.transport, "/api/v1/item-sales-taxes", "/api/v1/item-sales-tax");
+    >("sales-tax");
   }
 
   /** Item Sales Tax Groups — full CRUD */
   get itemSalesTaxGroups() {
-    return new Resource<
+    return this.itemResource<
       ItemSalesTaxGroup,
       CreateItemSalesTaxGroupRequest,
       UpdateItemSalesTaxGroupRequest
-    >(this.transport, "/api/v1/item-sales-tax-groups");
+    >("sales-tax-group");
   }
 
   /** Service Items — full CRUD */
   get serviceItems() {
-    return new Resource<
+    return this.itemResource<
       ServiceItem,
       CreateServiceItemRequest,
       UpdateServiceItemRequest
-    >(this.transport, "/api/v1/service-items");
+    >("service");
   }
 
   /** Item Subtotals — full CRUD */
   get itemSubtotals() {
-    return new Resource<
+    return this.itemResource<
       ItemSubtotal,
       CreateItemSubtotalRequest,
       UpdateItemSubtotalRequest
-    >(this.transport, "/api/v1/item-subtotals");
+    >("subtotal");
   }
 
   // =========================================================================

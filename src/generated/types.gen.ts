@@ -211,13 +211,34 @@ export type ApiResponseReport = {
   requestId?: string | null;
 };
 
-export type AppliedToTransactionAddRequest = {
-  txnId: string;
-  paymentAmount?: number | null;
-  setCredits?: Array<SetCreditRequest> | null;
-  discountAmount?: number | null;
-  discountAccountId?: string | null;
-  discountClassId?: string | null;
+/**
+ * Represents a credit that can be applied to a bill.
+ */
+export type ApplicableCredit = {
+  id: string;
+  objectType?: string;
+  createdAt: string;
+  updatedAt: string;
+  revisionNumber: string;
+  transactionDate?: string | null;
+  currency?: QbdRef;
+  exchangeRate?: number | null;
+  refNumber?: string | null;
+  memo?: string | null;
+  transactionType?: string | null;
+  payablesAccount?: QbdRef;
+  creditRemaining?: number | null;
+  creditRemainingInHomeCurrency?: number | null;
+  amount?: number | null;
+  entity?: QbdRef;
+  account?: QbdRef;
+  hasValidLineItems?: boolean;
+  externalId?: string | null;
+  linkedTransactions?: Array<LinkedTransaction> | null;
+  expenseLines?: Array<ExpenseLine> | null;
+  itemLines?: Array<ItemLine> | null;
+  itemGroupLines?: Array<ItemGroupLine> | null;
+  customFields?: Array<QbdDataExt> | null;
 };
 
 /**
@@ -225,21 +246,39 @@ export type AppliedToTransactionAddRequest = {
  * Represents an invoice or transaction that this payment is being applied to.
  */
 export type AppliedToTransactionRequest = {
-  id?: string | null;
+  id: string;
   /**
-   * Amount to apply to this transaction (optional - QB can auto-apply).
+   * Monetary amount of the payment in the transaction's currency.
+   *
+   * Uses decimal for financial precision. Null indicates the amount is unspecified.
    */
-  amount?: number | null;
+  paymentAmount?: number | null;
   /**
-   * Discount amount to apply.
+   * Collection of requests to set credits.
+   *
+   * May be null. Initialized at object creation (init-only). Serialized as
+   * "setCredits".
+   */
+  setCredits?: Array<SetCreditRequest> | null;
+  /**
+   * Monetary amount of any discount applied to the item or transaction.
+   *
+   * Null when no discount is applied. Use the same currency and scale as other monetary values in
+   * the model.
    */
   discountAmount?: number | null;
   /**
-   * Account to post the discount to.
+   * Identifier of the account used for discounts.
+   *
+   * Nullable; null indicates no discount account is assigned. When present, it should correspond
+   * to an account identifier in the accounting system.
    */
   discountAccountId?: string | null;
   /**
-   * Class for the discount (if using class tracking).
+   * Identifier of the discount class.
+   *
+   * Corresponds to the JSON property "discountClassId". May be null when no discount class is
+   * assigned.
    */
   discountClassId?: string | null;
 };
@@ -283,7 +322,7 @@ export type AppliedToTxn = {
  * Used for applying a check as a direct refund to customer transactions.
  * This is the simplified version with only TxnID and Amount.
  */
-export type ApplyCheckToTransactionAddRequest = {
+export type ApplyCheckToTransactionRequest = {
   id: string;
   /**
    * The amount of the check to apply to this transaction.
@@ -297,7 +336,7 @@ export type ApplyCheckToTransactionAddRequest = {
  * Used for applying a payment or credit to a specific transaction (e.g., in BillPaymentCreditCardAdd, BillPaymentCheckAdd).
  * This is the complex version with credits and discounts.
  */
-export type ApplyToTransactionAddRequest = {
+export type ApplyToTransactionRequest = {
   id: string;
   /**
    * The amount of the payment to apply to this transaction.
@@ -308,7 +347,7 @@ export type ApplyToTransactionAddRequest = {
    * List of credits to set/apply to this transaction.
    * (Optional, may repeat)
    */
-  appliedCredits?: Array<SetCreditAddRequest> | null;
+  appliedCredits?: Array<CreateSetCreditRequest> | null;
   /**
    * The amount of discount to apply.
    * (Optional)
@@ -596,10 +635,10 @@ export type BasePageResponseBillingRate = {
  * Simple paginated response designed for SDK consumption
  * Clean, predictable structure perfect for automated pagination handling
  */
-export type BasePageResponseBillToPayRet = {
+export type BasePageResponseBillPaymentOrCredit = {
   requestId?: string | null;
   success?: boolean;
-  data?: Array<BillToPayRet>;
+  data?: Array<BillPaymentOrCredit>;
   nextCursor?: string;
   page?: number;
   count?: number;
@@ -1608,28 +1647,6 @@ export type BasePageResponseShipMethod = {
  * Simple paginated response designed for SDK consumption
  * Clean, predictable structure perfect for automated pagination handling
  */
-export type BasePageResponseSpecialItem = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<SpecialItem>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
 export type BasePageResponseTerm = {
   requestId?: string | null;
   success?: boolean;
@@ -1876,6 +1893,9 @@ export type Bill = {
    * Reference number for the bill.
    */
   refNumber?: string | null;
+  /**
+   * Indicates whether the bill is currently marked as pending.
+   */
   isPending?: boolean | null;
   terms?: QbdRef;
   class?: QbdRef;
@@ -1986,51 +2006,16 @@ export type BillingRatePerItem = {
 };
 
 /**
- * BillToPay is a read-only query result in QuickBooks and cannot be created directly.
- * This class exists for architectural compatibility only.
+ * Represents an outstanding vendor balance. This will contain either a payable bill
+ * that requires payment, or an available credit that can be applied to a payment.
  */
-export type BillToPay = {
-  id: string;
+export type BillPaymentOrCredit = {
   objectType?: string;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef;
-  amountDue?: number | null;
-  exchangeRate?: number | null;
-  /**
-   * Amount due in home currency. This is a direct property for now.
-   */
-  amountDueInHomeCurrency?: string | null;
-  refNumber?: string | null;
-  memo?: string | null;
-  txnType?: string | null;
-  payablesAccount?: QbdRef;
-  dueDate?: string | null;
-  entity?: QbdRef;
-  account?: QbdRef;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
-};
-
-/**
- * The BillToPayQuery request returns information about open bills and credits.
- * You can use this information in subsequent BillPaymentCheck and BillPaymentCreditCard requests.
- */
-export type BillToPayRet = {
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  billToPay?: BillToPay;
-  creditToApply?: CreditToApply;
+  bill?: PayableBill;
+  credit?: ApplicableCredit;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -2573,18 +2558,6 @@ export type CreateAccountRequest = {
 };
 
 /**
- * Request model for creating an AccountTaxLineInfo entry.
- * NOTE: AccountTaxLineInfo is a READ-ONLY list in QuickBooks.
- * This request type exists for interface compliance but is NOT SUPPORTED.
- */
-export type CreateAccountTaxLineInfoRequest = {
-  /**
-   * READ-ONLY: This property fulfills the ICreateRequest interface but is not used.
-   */
-  externalGuid?: string | null;
-};
-
-/**
  * Request model for adding a new additional note (EmployeeAdd).
  * Per DTD: AdditionalNotes just has Note element.
  */
@@ -2656,30 +2629,6 @@ export type CreateAuthSessionRequest = {
 };
 
 /**
- * QuickBooks does not support creating BarCodes. This request type exists for interface compliance but is NOT SUPPORTED   .
- * BarCodes are typically generated by QuickBooks, but this supports the add operation.
- */
-export type CreateBarCodeRequest = {
-  /**
-   * (Required) The type of list object associated with the barcode.
-   */
-  listType: string;
-  /**
-   * (Required) The unique identifier of the list object.
-   */
-  listId: string;
-  /**
-   * (Optional) The full name of the list object.
-   */
-  fullName?: string | null;
-  /**
-   * Fulfills the ICreateRequest interface.
-   * Used for tracking the "Add" job.
-   */
-  externalGuid?: string | null;
-};
-
-/**
  * Adds a billing rate to the billing rate list in QuickBooks Desktop.
  * Once created, it can be assigned to an employee or vendor to override service item rates in time transactions.
  * Use FixedBillingRate to override all items, or BillingRateItems to override specific ones.
@@ -2701,10 +2650,14 @@ export type CreateBillingRateRequest = {
    * Mutually exclusive with FixedBillingRate.
    */
   billingRateItems?: Array<BillingRateItemRequest> | null;
-  /**
-   * (Optional) A unique GUID used to prevent duplicate processing.
-   */
-  externalGuid?: string | null;
+  externalId?: string | null;
+};
+
+/**
+ * BillToPay is a read-only query result in QuickBooks and cannot be created directly.
+ */
+export type CreateBillPaymentOrCreditRequest = {
+  [key: string]: unknown;
 };
 
 /**
@@ -2762,14 +2715,6 @@ export type CreateBillRequest = {
    * Item line items for the bill (for inventory items).
    */
   itemLines?: Array<CreateItemLineRequest> | null;
-};
-
-/**
- * BillToPay is a read-only query result in QuickBooks and cannot be created directly.
- * This class exists for architectural compatibility only.
- */
-export type CreateBillToPayRequest = {
-  externalGuid?: string | null;
 };
 
 /**
@@ -2955,7 +2900,7 @@ export type CreateCheckBillRequest = {
    * (Required) List of transactions (bills) to apply this check to.
    * QBD requiring at least one AppliedToTransactionAddRequest for BillPaymentCheckAdd.
    */
-  appliedToTransactions?: Array<AppliedToTransactionAddRequest> | null;
+  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 /**
@@ -3013,7 +2958,7 @@ export type CreateCheckRequest = {
    * Any transactions linked from a check in the ApplyToTxnAdd aggregate MUST use the same AR account specified in the ExpenseLineAdd AccountRef, which MUST be an ARAccount
    * Any transactions linked from a check in the ApplyToTxnAdd aggregate must apply to the same entity referred to in the check PayeeEntityRef.
    */
-  applyToTransactions?: Array<ApplyCheckToTransactionAddRequest> | null;
+  applyToTransactions?: Array<ApplyCheckToTransactionRequest> | null;
 };
 
 /**
@@ -3101,7 +3046,7 @@ export type CreateCreditCardBillRequest = {
    */
   exchangeRate?: number | null;
   externalId?: string | null;
-  applyToTransactions: Array<ApplyToTransactionAddRequest>;
+  applyToTransactions: Array<ApplyToTransactionRequest>;
   /**
    * Validation: Ensure total matches applied amounts
    */
@@ -3216,6 +3161,56 @@ export type CreateCreditCardRequest = {
 };
 
 /**
+ * Container for Credit Card Transaction Input and Result info.
+ * Shared across transactions like SalesReceipt and ARRefundCreditCard.
+ */
+export type CreateCreditCardTransactionInfoRequest = {
+  /**
+   * (Required) Input details for the credit card transaction.
+   */
+  inputInfo: CreateCreditCardTransactionInputInfoRequest;
+  /**
+   * (Required) Result details from the credit card processor.
+   */
+  resultInfo: CreateCreditCardTransactionResultInfoRequest;
+};
+
+/**
+ * Input card details for a Credit Card transaction.
+ */
+export type CreateCreditCardTransactionInputInfoRequest = {
+  creditCardNumber: string;
+  expirationMonth: number;
+  expirationYear: number;
+  nameOnCard: string;
+  creditCardAddress?: string | null;
+  creditCardPostalCode?: string | null;
+  commercialCardCode?: string | null;
+  transactionMode?: NullableTransactionMode;
+  creditCardTxnType?: NullableCreditCardTransactionType;
+};
+
+/**
+ * Results from the payment gateway for a Credit Card transaction.
+ */
+export type CreateCreditCardTransactionResultInfoRequest = {
+  resultCode: number;
+  resultMessage: string;
+  creditCardTransId: string;
+  merchantAccountNumber: string;
+  paymentStatus: PaymentStatus;
+  txnAuthorizationTime: string;
+  authorizationCode?: string | null;
+  avsStreet?: NullableAvsStreet;
+  avsZip?: NullableAvsZip;
+  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
+  reconBatchId?: string | null;
+  paymentGroupingCode?: number | null;
+  txnAuthorizationStamp?: number | null;
+  clientTransId?: string | null;
+};
+
+/**
  * Represents a group of items within a Credit Memo creation request.
  * Based on CreditMemoLineGroupAdd.
  */
@@ -3314,7 +3309,7 @@ export type CreateCreditMemoLineRequest = {
   overrideItemAccountId?: string | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransactionInfo?: CreditCardTransactionInfoAddRequest;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest;
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -3777,7 +3772,7 @@ export type CreateEstimateRequest = {
 };
 
 /**
- * A reusable request DTO for adding an Expense Line to a transaction.
+ * Expense Line to a transaction.
  * Based on the ExpenseLineAdd QBXML type.
  */
 export type CreateExpenseLineRequest = {
@@ -3818,6 +3813,19 @@ export type CreateExpenseLineRequest = {
 };
 
 /**
+ * Represents a single line item for an Inventory Adjustment add operation.
+ * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
+ */
+export type CreateInventoryAdjustmentLineRequest = {
+  itemId: string;
+  memo?: string | null;
+  quantityAdjustment?: QuantityAdjustmentRequest;
+  valueAdjustment?: ValueAdjustmentRequest;
+  serialNumberAdjustment?: SerialNumberAdjustmentRequest;
+  lotNumberAdjustment?: LotNumberAdjustmentRequest;
+};
+
+/**
  * A request model for adding a new Inventory Adjustment transaction.
  * Corresponds to the InventoryAdjustmentAdd QBXML message.
  *
@@ -3854,7 +3862,7 @@ export type CreateInventoryAdjustmentRequest = {
    * (Optional) General memo about the Inventory Adjustment. (Max 4095 characters)
    */
   memo?: string | null;
-  inventoryAdjustmentLines: Array<InventoryAdjustmentLineAddRequest>;
+  inventoryAdjustmentLines: Array<CreateInventoryAdjustmentLineRequest>;
   externalId?: string | null;
 };
 
@@ -3959,7 +3967,7 @@ export type CreateInvoiceRequest = {
   exchangeRate?: number | null;
   externalId?: string | null;
   linkToTransactionIds?: Array<string> | null;
-  applyCredits?: Array<SetCreditAddRequest> | null;
+  applyCredits?: Array<CreateSetCreditRequest> | null;
   lines?: Array<CreateItemLineRequest> | null;
   lineGroups?: Array<CreateItemGroupLineRequest> | null;
 };
@@ -3979,7 +3987,7 @@ export type CreateItemDiscountRequest = {
   discountRatePercent?: number | null;
   accountId?: string | null;
   accountName?: string | null;
-  externalGuid?: string | null;
+  externalId?: string | null;
 };
 
 /**
@@ -4453,38 +4461,6 @@ export type CreatePaymentMethodRequest = {
 };
 
 /**
- * Request record for creating a new PayrollItemNonWage in QuickBooks (e.g., Deduction, Company Contribution).
- * NOTE: Direct creation of this item via QBXML is generally unsupported/read-only by the QuickBooks SDK.
- */
-export type CreatePayrollItemNonWageRequest = {
-  /**
-   * (Required) The name of the non-wage payroll item.
-   */
-  name: string;
-  /**
-   * (Required) The non-wage item type.
-   * Possible values: Addition, CompanyContribution, Deduction, DirectDeposit, Tax
-   */
-  nonWageType: string;
-  /**
-   * (Optional) Indicates whether the payroll item is active.
-   */
-  isActive?: boolean | null;
-  /**
-   * (Optional) The ListID of the Expense Account associated with the payroll item. (Flattened-ID Pattern)
-   */
-  expenseAccountId?: string | null;
-  /**
-   * (Optional) The ListID of the Liability Account associated with the payroll item. (Flattened-ID Pattern)
-   */
-  liabilityAccountId?: string | null;
-  /**
-   * (Optional) External GUID for tracking the request.
-   */
-  externalGuid?: string | null;
-};
-
-/**
  * Request record for creating a new PayrollItemWage in QuickBooks.
  */
 export type CreatePayrollItemWageRequest = {
@@ -4505,7 +4481,7 @@ export type CreatePayrollItemWageRequest = {
    * (Optional) Indicates whether the payroll item is active.
    */
   isActive?: boolean | null;
-  externalGuid?: string | null;
+  externalId?: string | null;
 };
 
 /**
@@ -4752,6 +4728,24 @@ export type CreateReceivePaymentRequest = {
   appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
+export type CreateSalesAndPurchaseRequest = {
+  salesDescription?: string | null;
+  salesPrice?: number | null;
+  incomeAccountId?: string | null;
+  purchaseDescription?: string | null;
+  purchaseCost?: number | null;
+  purchaseTaxCodeId?: string | null;
+  expenseAccountId?: string | null;
+  prefVendorId?: string | null;
+};
+
+export type CreateSalesOrPurchaseRequest = {
+  description?: string | null;
+  price?: number | null;
+  pricePercent?: number | null;
+  accountId?: string | null;
+};
+
 /**
  * A reusable request DTO for adding an Item Group Line to a Sales Receipt (SalesReceiptLineGroupAdd structure).
  */
@@ -4842,7 +4836,7 @@ export type CreateSalesReceiptLineRequest = {
   salesTaxCodeId?: string | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfoAddRequest;
+  creditCardTransaction?: CreateCreditCardTransactionInfoRequest;
 };
 
 /**
@@ -4914,7 +4908,7 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The ListID or FullName of the account to deposit the payment to.
    */
   depositToAccountId?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfoAddRequest;
+  creditCardTransaction?: CreateCreditCardTransactionInfoRequest;
   /**
    * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
    */
@@ -5007,7 +5001,7 @@ export type CreateSalesTaxPaymentCheckRequest = {
 export type CreateServiceItemRequest = {
   name: string;
   barCode?: BarCodeRequest;
-  externalGuid?: string | null;
+  externalId?: string | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -5016,8 +5010,26 @@ export type CreateServiceItemRequest = {
   forceUOMChange?: boolean | null;
   isTaxIncluded?: boolean | null;
   dataExt?: Array<QbdDataExt> | null;
-  salesOrPurchase?: SalesOrPurchaseRequest;
-  salesAndPurchase?: SalesAndPurchaseRequest;
+  salesOrPurchase?: CreateSalesOrPurchaseRequest;
+  salesAndPurchase?: CreateSalesAndPurchaseRequest;
+};
+
+/**
+ * Represents the SetCredit aggregate in QBXML.
+ * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
+ */
+export type CreateSetCreditRequest = {
+  creditTransactionId: string;
+  /**
+   * The amount of the credit to apply.
+   * (Required)
+   */
+  appliedAmount: number;
+  /**
+   * If true, overrides default logic for applying credits.
+   * (Optional)
+   */
+  override?: boolean | null;
 };
 
 /**
@@ -5277,11 +5289,7 @@ export type CreateVendorTypeRequest = {
    * Follows the Flattened-ID Pattern for ParentRef.
    */
   parentId?: string | null;
-  /**
-   * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
-   */
-  externalGuid?: string | null;
+  externalId?: string | null;
 };
 
 /**
@@ -5362,7 +5370,6 @@ export type CreditCardBill = {
 
 /**
  * Represents a Credit Card Charge transaction.
- * Corresponds to CreditCardChargeRet in QbdXml.
  */
 export type CreditCardCharge = {
   id: string;
@@ -5468,93 +5475,27 @@ export type CreditCardTransactionInfo = {
 };
 
 /**
- * Container for Credit Card Transaction Input and Result info.
- * Shared across transactions like SalesReceipt and ARRefundCreditCard.
- */
-export type CreditCardTransactionInfoAddRequest = {
-  /**
-   * (Required) Input details for the credit card transaction.
-   */
-  inputInfo: CreditCardTransactionInputInfoAddRequest;
-  /**
-   * (Required) Result details from the credit card processor.
-   */
-  resultInfo: CreditCardTransactionResultInfoAddRequest;
-};
-
-/**
- * Aggregate containing credit card input and result information for a payment (Mod).
- */
-export type CreditCardTransactionInfoModRequest = {
-  creditCardTxnInputInfoMod?: CreditCardTransactionInputInfoModRequest;
-  creditCardTxnResultInfoMod?: CreditCardTransactionResultInfoModRequest;
-};
-
-/**
  * DTO for credit card input details.
  */
 export type CreditCardTransactionInputInfo = {
   number: string;
+  /**
+   * (Optional) The credit card's new expiration month (1-12).
+   */
   expirationMonth: number | null;
+  /**
+   * (Optional) The credit card's new expiration year (e.g., 2025).
+   */
   expirationYear: number | null;
   name: string;
   sddress?: string | null;
   postalCode?: string | null;
-  commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode;
-  transactionType?: NullableCreditCardTransactionType;
-};
-
-/**
- * Input card details for a Credit Card transaction.
- */
-export type CreditCardTransactionInputInfoAddRequest = {
-  creditCardNumber: string;
-  expirationMonth: number;
-  expirationYear: number;
-  nameOnCard: string;
-  creditCardAddress?: string | null;
-  creditCardPostalCode?: string | null;
-  commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode;
-  creditCardTxnType?: NullableCreditCardTransactionType;
-};
-
-/**
- * Contains modifiable data about the credit card itself for a payment request (Mod).
- * Note: All properties are optional as this is a modification request.
- */
-export type CreditCardTransactionInputInfoModRequest = {
-  /**
-   * (Optional) The customer's new credit card number. (Max 25 characters)
-   */
-  creditCardNumber?: string | null;
-  /**
-   * (Optional) The credit card's new expiration month (1-12).
-   */
-  expirationMonth?: number | null;
-  /**
-   * (Optional) The credit card's new expiration year (e.g., 2025).
-   */
-  expirationYear?: number | null;
-  /**
-   * (Optional) The new name as it appears on the credit card. (Max 50 characters)
-   */
-  nameOnCard?: string | null;
-  /**
-   * (Optional) New street address for AVS validation. (Max 41 characters)
-   */
-  creditCardAddress?: string | null;
-  /**
-   * (Optional) New Postal/ZIP code for AVS validation. (Max 13 characters)
-   */
-  creditCardPostalCode?: string | null;
   /**
    * (Optional) New commercial card code. (Max 4 characters)
    */
   commercialCardCode?: string | null;
   transactionMode?: NullableTransactionMode;
-  creditCardTxnType?: NullableCreditCardTransactionType;
+  transactionType?: NullableCreditCardTransactionType;
 };
 
 /**
@@ -5575,43 +5516,6 @@ export type CreditCardTransactionResultInfo = {
   transactionAuthorizationTime: string | null;
   transactionAuthorizationStamp?: number | null;
   clientTransactionId?: string | null;
-};
-
-/**
- * Results from the payment gateway for a Credit Card transaction.
- */
-export type CreditCardTransactionResultInfoAddRequest = {
-  resultCode: number;
-  resultMessage: string;
-  creditCardTransId: string;
-  merchantAccountNumber: string;
-  paymentStatus: PaymentStatus;
-  txnAuthorizationTime: string;
-  authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet;
-  avsZip?: NullableAvsZip;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
-  reconBatchId?: string | null;
-  paymentGroupingCode?: number | null;
-  txnAuthorizationStamp?: number | null;
-  clientTransId?: string | null;
-};
-
-export type CreditCardTransactionResultInfoModRequest = {
-  resultCode: number;
-  resultMessage: string;
-  creditCardTransId: string;
-  merchantAccountNumber: string;
-  paymentStatus: PaymentStatus;
-  txnAuthorizationTime: string;
-  authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet;
-  avsZip?: NullableAvsZip;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
-  reconBatchId?: string | null;
-  paymentGroupingCode?: number | null;
-  txnAuthorizationStamp?: number | null;
-  clientTransId?: string | null;
 };
 
 /**
@@ -5803,36 +5707,6 @@ export type CreditMemoLineGroup = {
    * (Optional) List of modifications for the individual items within this group.
    */
   lines?: Array<CreditMemoLine> | null;
-  customFields?: Array<QbdDataExt> | null;
-};
-
-/**
- * Represents a credit that can be applied to a bill.
- */
-export type CreditToApply = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef;
-  exchangeRate?: number | null;
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionType?: string | null;
-  payablesAccount?: QbdRef;
-  creditRemaining?: number | null;
-  creditRemainingInHomeCurrency?: number | null;
-  amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -6713,6 +6587,10 @@ export type InventoryAdjustment = {
   customFields?: Array<QbdDataExt> | null;
 };
 
+/**
+ * Represents a single line item for an Inventory Adjustment add operation.
+ * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
+ */
 export type InventoryAdjustmentLine = {
   id: string;
   item?: QbdRef;
@@ -6724,34 +6602,6 @@ export type InventoryAdjustmentLine = {
   quantityDifference?: number | null;
   valueDifference?: number | null;
   customFields?: Array<QbdDataExt> | null;
-};
-
-/**
- * Represents a single line item for an Inventory Adjustment add operation.
- * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
- */
-export type InventoryAdjustmentLineAddRequest = {
-  itemId: string;
-  memo?: string | null;
-  quantityAdjustment?: QuantityAdjustmentRequest;
-  valueAdjustment?: ValueAdjustmentRequest;
-  serialNumberAdjustment?: SerialNumberAdjustmentRequest;
-  lotNumberAdjustment?: LotNumberAdjustmentRequest;
-};
-
-/**
- * Represents a single line item modification for an Inventory Adjustment.
- */
-export type InventoryAdjustmentLineModRequest = {
-  id: string;
-  itemId?: string | null;
-  quantityDifference?: number | null;
-  valueDifference?: number | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  countAdjustment?: number | null;
-  expirationDateForSerialLotNumber?: string | null;
-  inventorySiteLocationId?: string | null;
 };
 
 /**
@@ -8166,16 +8016,6 @@ export type LotNumberAdjustmentRequest = {
   inventorySiteLocationId?: string | null;
 };
 
-/**
- * Simple message-only response payload.
- */
-export type MessageResponse = {
-  /**
-   * Human-readable message describing the result.
-   */
-  message: string;
-};
-
 export enum NullableAccountType {
   ACCOUNTS_PAYABLE = "AccountsPayable",
   ACCOUNTS_RECEIVABLE = "AccountsReceivable",
@@ -8301,6 +8141,40 @@ export type OtherName = {
   accountNumber?: string | null;
   notes?: string | null;
   isActive?: boolean;
+  customFields?: Array<QbdDataExt> | null;
+};
+
+/**
+ * Represents an open bill that needs to be paid.
+ */
+export type PayableBill = {
+  id: string;
+  objectType?: string;
+  createdAt: string;
+  updatedAt: string;
+  revisionNumber: string;
+  transactionDate?: string | null;
+  currency?: QbdRef;
+  amountDue?: number | null;
+  exchangeRate?: number | null;
+  /**
+   * Amount due in home currency. This is a direct property for now.
+   */
+  amountDueInHomeCurrency?: string | null;
+  refNumber?: string | null;
+  memo?: string | null;
+  transactionType?: string | null;
+  payablesAccount?: QbdRef;
+  dueDate?: string | null;
+  entity?: QbdRef;
+  account?: QbdRef;
+  amountInHomeCurrency?: string | null;
+  hasValidLineItems?: boolean;
+  externalId?: string | null;
+  linkedTransactions?: Array<LinkedTransaction> | null;
+  expenseLines?: Array<ExpenseLine> | null;
+  itemLines?: Array<ItemLine> | null;
+  itemGroupLines?: Array<ItemGroupLine> | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -8466,14 +8340,6 @@ export type PriceLevelPerItemRequest = {
    * (Optional) The base price to adjust relative to. Valid values: StandardPrice, Cost, CurrentCustomPrice. Required if AdjustPercentage is provided. Mutually exclusive with CustomPrice and CustomPricePercent. (ENUMTYPE)
    */
   adjustRelativeTo?: string | null;
-};
-
-export type ProblemDetails = {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
 };
 
 /**
@@ -8950,45 +8816,6 @@ export type RotatePublishableKeyResponse = {
   rotatedAt?: string;
 };
 
-export type SalesAndPurchaseModRequest = {
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccountId?: string | null;
-  applyIncomeAccountToExistingTransactions?: boolean | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCodeId?: string | null;
-  expenseAccountId?: string | null;
-  applyExpenseAccountToExistingTransactions?: boolean | null;
-  prefVendorId?: string | null;
-};
-
-export type SalesAndPurchaseRequest = {
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccountId?: string | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCodeId?: string | null;
-  expenseAccountId?: string | null;
-  prefVendorId?: string | null;
-};
-
-export type SalesOrPurchaseModRequest = {
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  accountId?: string | null;
-  applyAccountToExistingTransactions?: boolean | null;
-};
-
-export type SalesOrPurchaseRequest = {
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  accountId?: string | null;
-};
-
 /**
  * Represents a Sales Receipt transaction (SalesReceiptRet).
  * Used for immediate payment sales.
@@ -9276,23 +9103,13 @@ export type ServiceItem = {
   customFields?: Array<QbdDataExt> | null;
 };
 
-export type SetCredit = {
-  id: string;
-  amount: number;
-  override?: boolean | null;
-};
-
 /**
  * Represents the SetCredit aggregate in QBXML.
  * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
  */
-export type SetCreditAddRequest = {
-  creditTransactionId: string;
-  /**
-   * The amount of the credit to apply.
-   * (Required)
-   */
-  appliedAmount: number;
+export type SetCredit = {
+  id: string;
+  amount: number;
   /**
    * If true, overrides default logic for applying credits.
    * (Optional)
@@ -9303,7 +9120,16 @@ export type SetCreditAddRequest = {
 export type SetCreditRequest = {
   creditTransactionId: string;
   id?: string | null;
+  /**
+   * Amount applied to an account, invoice, or payment (Optional).
+   *
+   * Represents a monetary value; currency and precision are determined by the surrounding
+   * context.
+   */
   appliedAmount: number;
+  /**
+   * Indicates whether to override the default credit application behavior.
+   */
   override?: boolean | null;
 };
 
@@ -9615,25 +9441,21 @@ export type UpdateAccountRequest = {
    * Whether the account is active
    */
   isActive?: boolean | null;
+  accountType?: NullableAccountType;
   /**
-   * Account type (required)
-   * NOTE: Cannot create non_posting accounts via API - QuickBooks creates these internally
-   */
-  accountType: AccountType;
-  /**
-   * Whether the account is a tax account
+   * Whether the account is a tax account (optional)
    */
   isTaxAccount?: boolean | null;
   /**
-   * Account number
+   * Account number (optional)
    */
   accountNumber?: string | null;
   /**
-   * Account description
+   * Account description (optional)
    */
   description?: string | null;
   /**
-   * Parent account reference (for sub-accounts)
+   * Parent account reference (optional, for sub-accounts)
    */
   parentId?: string | null;
   /**
@@ -9641,7 +9463,7 @@ export type UpdateAccountRequest = {
    * the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level.
    * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks.
    * If QuickBooks is not set up to charge sales tax(via the "Do You Charge Sales Tax?" preference), it will assign the
-   * default non-taxable code to all sales.
+   * default non-taxable code to all sales. (Optional)
    */
   salesTaxCodeId?: string | null;
   /**
@@ -9659,25 +9481,16 @@ export type UpdateAccountRequest = {
   taxLineId?: string | null;
   /**
    * The account's currency. For built-in currencies, the name and code are standard international values. For user-defined
-   * currencies, all values are editable.
+   * currencies, all values are editable. (Optional)
    */
   currencyId?: string | null;
   /**
-   * Bank account number (for bank accounts only)
+   * Bank account number (Optional, for bank accounts only)
    *
    *
    * <i>**NOTE:** QuickBooks Desktop does not support cursor-based pagination for this resource.</i>
    */
   bankNumber?: string | null;
-};
-
-/**
- * Request model for updating an AccountTaxLineInfo entry.
- * NOTE: AccountTaxLineInfo is a READ-ONLY list in QuickBooks.
- * This request type exists for interface compliance but is NOT SUPPORTED.
- */
-export type UpdateAccountTaxLineInfoRequest = {
-  revisionNumber: string;
 };
 
 /**
@@ -9734,21 +9547,10 @@ export type UpdateArRefundCreditCardRequest = {
 };
 
 /**
- * QuickBooks does not support updates to BarCodes, but this request can be used to change the bar code value or
- * settings by deleting the existing BarCode and creating a new one with the updated information.
+ * BillToPay is a read-only query result in QuickBooks and cannot be modified directly.
  */
-export type UpdateBarCodeRequest = {
-  listType: string;
-  fullName?: string | null;
-  revisionNumber: string;
-};
-
-/**
- * BillingRate Mod Request - Not supported, but required for abstract classes
- * BillingRate Mod Request - Not supported, but required for abstract classes
- */
-export type UpdateBillingRateRequest = {
-  editSequence?: string;
+export type UpdateBillPaymentOrCreditRequest = {
+  [key: string]: unknown;
 };
 
 /**
@@ -9789,14 +9591,6 @@ export type UpdateBillRequest = {
   expenseLines?: Array<UpdateExpenseLineRequest> | null;
   clearItemLines?: boolean | null;
   itemLines?: Array<UpdateItemLineRequest> | null;
-};
-
-/**
- * BillToPay is a read-only query result in QuickBooks and cannot be modified directly.
- * This class exists for architectural compatibility only.
- */
-export type UpdateBillToPayRequest = {
-  editSequence?: string;
 };
 
 /**
@@ -9920,23 +9714,7 @@ export type UpdateChargeRequest = {
 };
 
 /**
- * A reusable request DTO for modifying an existing Check transaction.
- * Based on the CheckMod QBXML type.
- *
- * QBXML Schema Constraints (from qbxmlops170.xml):
- * - TxnID: Required
- * - EditSequence: Required, max length = 16
- * - PayeeEntityRef: Optional, FullName max length = 209
- * - AccountRef: Optional, FullName max length = 159
- * - TxnDate: Optional
- * - RefNumber: Optional, max length = 11 (OR IsToBePrinted)
- * - APAccountRef: Optional, FullName max length = 159
- * - Amount: Optional
- * - CurrencyRef: Optional, FullName max length = 64
- * - ExchangeRate: Optional
- * - AmountInHomeCurrency: Optional
- * - Memo: Optional, max length = 4095
- * - IsToBePrinted: Optional (OR RefNumber)
+ * Request model for updating an existing Check transaction used to pay bills.
  */
 export type UpdateCheckBillRequest = {
   revisionNumber: string;
@@ -9983,7 +9761,7 @@ export type UpdateCheckBillRequest = {
   /**
    * (Optional) List of transactions to apply updates to.
    */
-  appliedToTransactions?: Array<AppliedToTransactionAddRequest> | null;
+  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 /**
@@ -10025,7 +9803,7 @@ export type UpdateCheckRequest = {
   /**
    * Transactions to which this check is applied (modifies existing links)
    */
-  applyToTransactions?: Array<ApplyCheckToTransactionAddRequest> | null;
+  applyToTransactions?: Array<ApplyCheckToTransactionRequest> | null;
   /**
    * Clear existing expense lines
    */
@@ -10116,7 +9894,7 @@ export type UpdateCreditCardBillRequest = {
    * Memo/description for the payment
    */
   memo?: string | null;
-  applyToTransactions?: Array<ApplyToTransactionAddRequest> | null;
+  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
 /**
@@ -10219,6 +9997,7 @@ export type UpdateCreditCardRequest = {
   clearExpenseLines?: boolean | null;
   /**
    * (Optional) A list of expense lines to modify.
+   * Note: To add new lines, use a line id of "-1". To modify existing lines, provide the current line id from QuickBooks.
    */
   expenseLines?: Array<UpdateExpenseLineRequest> | null;
   /**
@@ -10228,12 +10007,76 @@ export type UpdateCreditCardRequest = {
   clearItemLines?: boolean | null;
   /**
    * (Optional) A list of item lines to modify.
+   * Note: To add new lines, use a line id of "-1". To modify existing lines, provide the current line id from QuickBooks.
    */
   itemLines?: Array<UpdateItemLineRequest> | null;
   /**
    * (Optional) A list of item group lines to modify.
+   * Note: To add new lines, use a line id of "-1". To modify existing lines, provide the current line id from QuickBooks.
    */
   itemGroupLines?: Array<UpdateItemGroupLineRequest> | null;
+};
+
+/**
+ * Aggregate containing credit card input and result information for a payment (Mod).
+ */
+export type UpdateCreditCardTransactionInfoRequest = {
+  creditCardTxnInputInfoMod?: UpdateCreditCardTransactionInputInfoRequest;
+  creditCardTxnResultInfoMod?: UpdateCreditCardTransactionResultInfoRequest;
+};
+
+/**
+ * Contains modifiable data about the credit card itself for a payment request (Mod).
+ * Note: All properties are optional as this is a modification request.
+ */
+export type UpdateCreditCardTransactionInputInfoRequest = {
+  /**
+   * (Optional) The customer's new credit card number. (Max 25 characters)
+   */
+  creditCardNumber?: string | null;
+  /**
+   * (Optional) The credit card's new expiration month (1-12).
+   */
+  expirationMonth?: number | null;
+  /**
+   * (Optional) The credit card's new expiration year (e.g., 2025).
+   */
+  expirationYear?: number | null;
+  /**
+   * (Optional) The new name as it appears on the credit card. (Max 50 characters)
+   */
+  nameOnCard?: string | null;
+  /**
+   * (Optional) New street address for AVS validation. (Max 41 characters)
+   */
+  creditCardAddress?: string | null;
+  /**
+   * (Optional) New Postal/ZIP code for AVS validation. (Max 13 characters)
+   */
+  creditCardPostalCode?: string | null;
+  /**
+   * (Optional) New commercial card code. (Max 4 characters)
+   */
+  commercialCardCode?: string | null;
+  transactionMode?: NullableTransactionMode;
+  creditCardTxnType?: NullableCreditCardTransactionType;
+};
+
+export type UpdateCreditCardTransactionResultInfoRequest = {
+  resultCode: number;
+  resultMessage: string;
+  creditCardTransId: string;
+  merchantAccountNumber: string;
+  paymentStatus: PaymentStatus;
+  txnAuthorizationTime: string;
+  authorizationCode?: string | null;
+  avsStreet?: NullableAvsStreet;
+  avsZip?: NullableAvsZip;
+  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
+  reconBatchId?: string | null;
+  paymentGroupingCode?: number | null;
+  txnAuthorizationStamp?: number | null;
+  clientTransId?: string | null;
 };
 
 /**
@@ -10828,6 +10671,21 @@ export type UpdateExpenseLineRequest = {
 };
 
 /**
+ * Represents a single line item modification for an Inventory Adjustment.
+ */
+export type UpdateInventoryAdjustmentLineRequest = {
+  id: string;
+  itemId?: string | null;
+  quantityDifference?: number | null;
+  valueDifference?: number | null;
+  serialNumber?: string | null;
+  lotNumber?: string | null;
+  countAdjustment?: number | null;
+  expirationDateForSerialLotNumber?: string | null;
+  inventorySiteLocationId?: string | null;
+};
+
+/**
  * A request model for modifying an existing Inventory Adjustment transaction.
  * Corresponds to the InventoryAdjustmentMod QBXML message.
  */
@@ -10862,7 +10720,7 @@ export type UpdateInventoryAdjustmentRequest = {
    * (Optional) New general memo about the Inventory Adjustment. (Max 4095 characters)
    */
   memo?: string | null;
-  inventoryAdjustmentLines?: Array<InventoryAdjustmentLineModRequest> | null;
+  inventoryAdjustmentLines?: Array<UpdateInventoryAdjustmentLineRequest> | null;
   externalId?: string | null;
 };
 
@@ -10962,7 +10820,7 @@ export type UpdateInvoiceRequest = {
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
   exchangeRate?: number | null;
-  applyCredits?: Array<SetCreditAddRequest> | null;
+  applyCredits?: Array<CreateSetCreditRequest> | null;
   lines?: Array<UpdateItemLineRequest> | null;
   lineGroups?: Array<UpdateItemGroupLineRequest> | null;
 };
@@ -11287,7 +11145,7 @@ export type UpdateItemSalesTaxGroupRequest = {
 
 /**
  * Request class for modifying an existing ItemSalesTax (Sales Tax Item) in QuickBooks.
- * Requires ListId and EditSequence for optimistic concurrency.
+ * Requires id and revisionNumber.
  */
 export type UpdateItemSalesTaxRequest = {
   revisionNumber: string;
@@ -11446,51 +11304,6 @@ export type UpdatePaymentMethodRequest = {
 };
 
 /**
- * Request class for modifying an existing PayrollItemNonWage in QuickBooks.
- * Requires ListId and EditSequence.
- * NOTE: Direct modification of this item via QBXML is generally unsupported/read-only by the QuickBooks SDK.
- */
-export type UpdatePayrollItemNonWageRequest = {
-  revisionNumber: string;
-  /**
-   * (Optional) The new name for the non-wage payroll item.
-   */
-  name?: string | null;
-  /**
-   * (Optional) Indicates whether the payroll item is active.
-   */
-  isActive?: boolean | null;
-  /**
-   * (Optional) The ListID of the Expense Account associated with the payroll item. (Flattened-ID Pattern)
-   */
-  expenseAccountId?: string | null;
-  /**
-   * (Optional) The ListID of the Liability Account associated with the payroll item. (Flattened-ID Pattern)
-   */
-  liabilityAccountId?: string | null;
-};
-
-/**
- * Request class for modifying an existing PayrollItemWage in QuickBooks.
- * Requires ListId and EditSequence. Note: Some fields like WageType are typically not modifiable.
- */
-export type UpdatePayrollItemWageRequest = {
-  revisionNumber: string;
-  /**
-   * (Optional) The new name for the wage payroll item.
-   */
-  name?: string | null;
-  /**
-   * (Optional) Indicates whether the payroll item is active.
-   */
-  isActive?: boolean | null;
-  /**
-   * (Optional) The ListID of the Expense Account associated with the payroll item. (Flattened-ID Pattern)
-   */
-  expenseAccountId?: string | null;
-};
-
-/**
  * Request model for modifying an existing Price Level in QuickBooks.
  * Based on the PriceLevelMod QBXML type.
  *
@@ -11575,6 +11388,9 @@ export type UpdatePurchaseOrderLineRequest = {
    * (Optional) The ListID or FullName of the class for this line.
    */
   classId?: string | null;
+  /**
+   * (Optional) Total amount for the line. (Cannot be cleared if modifying existing value)
+   */
   amount?: number | null;
   /**
    * (Optional) The ListID or FullName of the specific inventory site location where items will be received.
@@ -11742,6 +11558,27 @@ export type UpdateReceivePaymentRequest = {
   appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
+export type UpdateSalesAndPurchaseRequest = {
+  salesDescription?: string | null;
+  salesPrice?: number | null;
+  incomeAccountId?: string | null;
+  applyIncomeAccountToExistingTransactions?: boolean | null;
+  purchaseDescription?: string | null;
+  purchaseCost?: number | null;
+  purchaseTaxCodeId?: string | null;
+  expenseAccountId?: string | null;
+  applyExpenseAccountToExistingTransactions?: boolean | null;
+  prefVendorId?: string | null;
+};
+
+export type UpdateSalesOrPurchaseRequest = {
+  description?: string | null;
+  price?: number | null;
+  pricePercent?: number | null;
+  accountId?: string | null;
+  applyAccountToExistingTransactions?: boolean | null;
+};
+
 /**
  * A reusable request DTO for modifying an existing Item Group Line on a Sales Receipt (SalesReceiptLineGroupMod structure).
  */
@@ -11808,6 +11645,9 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) The ListID or FullName of the inventory site.
    */
   inventorySiteId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the inventory site location.
+   */
   inventorySiteLocationId?: string | null;
   /**
    * (Optional) Serial number for the item. Mutually exclusive with LotNumber. (Max 4095 characters)
@@ -11898,7 +11738,7 @@ export type UpdateSalesReceiptRequest = {
    */
   exchangeRate?: number | null;
   otherCustomField?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfoModRequest;
+  creditCardTransaction?: UpdateCreditCardTransactionInfoRequest;
   lines?: Array<UpdateSalesReceiptLineRequest> | null;
   lineGroups?: Array<UpdateSalesReceiptLineGroupRequest> | null;
 };
@@ -11963,7 +11803,7 @@ export type UpdateSalesTaxPaymentCheckRequest = {
 };
 
 export type UpdateServiceItemRequest = {
-  editSequence: string;
+  revisionNumber: string;
   name?: string | null;
   barCode?: BarCodeRequest;
   isActive?: boolean | null;
@@ -11975,8 +11815,8 @@ export type UpdateServiceItemRequest = {
   applyAccountToExistingTransactions?: boolean | null;
   applyIncomeAccountToExistingTransactions?: boolean | null;
   applyExpenseAccountToExistingTransactions?: boolean | null;
-  salesOrPurchaseMod?: SalesOrPurchaseModRequest;
-  salesAndPurchaseMod?: SalesAndPurchaseModRequest;
+  salesOrPurchaseMod?: UpdateSalesOrPurchaseRequest;
+  salesAndPurchaseMod?: UpdateSalesAndPurchaseRequest;
   includeRetElement?: Array<string> | null;
 };
 
@@ -11997,15 +11837,6 @@ export type UpdateShipMethodRequest = {
 };
 
 /**
- * Placeholder request model for updating SpecialItem.
- * NOTE: SpecialItem is CREATE-ONLY in QuickBooks - Update operations are NOT supported.
- * This model exists only for interface compatibility. The validator will reject all requests.
- */
-export type UpdateSpecialItemRequest = {
-  revisionNumber: string;
-};
-
-/**
  * Placeholder request model for updating Terms.
  * NOTE: Terms is a READ-ONLY resource in QuickBooks - Update operations are NOT supported.
  * This model exists only for interface compatibility. The validator will reject all requests.
@@ -12023,6 +11854,8 @@ export type UpdateTimeTrackingRequest = {
   transactionDate?: string | null;
   /**
    * (Required) The ListID or FullName of the Entity (Employee, Vendor, or OtherName) that performed the work.
+   * Note: This field is required even if you don't need to modify it, due to a quirk in the QBD SDK.
+   * You must include the existing EntityId value if you don't want to change it.
    */
   entityId: string;
   /**
@@ -12057,15 +11890,6 @@ export type UpdateTimeTrackingRequest = {
    * (Optional) Legacy flag to set time as billable. Use BillableStatus instead if possible.
    */
   isBillable?: boolean | null;
-};
-
-/**
- * Placeholder request model for updating a UnitOfMeasureSet.
- * NOTE: UnitOfMeasureSet is CREATE + QUERY ONLY in QuickBooks - Update operations are NOT supported.
- * This model exists only for interface compatibility. The validator will reject all requests.
- */
-export type UpdateUnitOfMeasureSetRequest = {
-  revisionNumber: string;
 };
 
 /**
@@ -12176,28 +12000,6 @@ export type UpdateVendorRequest = {
   isCompoundingTax?: boolean | null;
   defaultExpenseAccountIds?: Array<string> | null;
   currencyId?: string | null;
-};
-
-/**
- * A request model for updating an existing Vendor Type.
- * Corresponds to the VendorTypeMod QBXML message.
- * All fields are optional - only provided fields will be updated.
- */
-export type UpdateVendorTypeRequest = {
-  revisionNumber: string;
-  /**
-   * (Optional) The new name of the vendor type. (Max 31 characters)
-   */
-  name?: string | null;
-  /**
-   * (Optional) If false, this Vendor Type is inactive.
-   */
-  isActive?: boolean | null;
-  /**
-   * (Optional) The ListID or FullName of the parent vendor type.
-   * Follows the Flattened-ID Pattern for ParentRef.
-   */
-  parentId?: string | null;
 };
 
 /**
@@ -30418,7 +30220,7 @@ export type ListUnitOfMeasureSetsData = {
      */
     cursor?: string;
     /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -31796,7 +31598,7 @@ export type CreateVendorTypeResponses = {
 export type CreateVendorTypeResponse =
   CreateVendorTypeResponses[keyof CreateVendorTypeResponses];
 
-export type ListBillToPayRetsData = {
+export type ListBillPaymentOrCreditsData = {
   body?: never;
   headers?: {
     /**
@@ -31957,6 +31759,7 @@ export type ListBillToPayRetsData = {
     APAccountId?: string;
     /**
      * (Optional) Filter results by a specific Currency ListID or FullName.
+     * Note: QuickBoooks Desktop must have the "Multi-Currency" feature enabled to use this filter or nXus will return an error.
      */
     CurrencyId?: string;
     /**
@@ -31966,12 +31769,12 @@ export type ListBillToPayRetsData = {
     /**
      * (Required) The ListID or FullName of the Payee (Vendor, Employee, etc.) to find open bills/credits for.
      */
-    PayeeEntityId?: string;
+    id?: string;
   };
-  url: "/api/v1/bills-to-pay";
+  url: "/api/v1/bill-payment-or-credits";
 };
 
-export type ListBillToPayRetsErrors = {
+export type ListBillPaymentOrCreditsErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -32022,20 +31825,20 @@ export type ListBillToPayRetsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListBillToPayRetsError =
-  ListBillToPayRetsErrors[keyof ListBillToPayRetsErrors];
+export type ListBillPaymentOrCreditsError =
+  ListBillPaymentOrCreditsErrors[keyof ListBillPaymentOrCreditsErrors];
 
-export type ListBillToPayRetsResponses = {
+export type ListBillPaymentOrCreditsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBillToPayRet;
+  200: BasePageResponseBillPaymentOrCredit;
 };
 
-export type ListBillToPayRetsResponse =
-  ListBillToPayRetsResponses[keyof ListBillToPayRetsResponses];
+export type ListBillPaymentOrCreditsResponse =
+  ListBillPaymentOrCreditsResponses[keyof ListBillPaymentOrCreditsResponses];
 
-export type RetrieveBillToPayRetData = {
+export type DeleteBillPaymentOrCreditData = {
   body?: never;
   headers?: {
     /**
@@ -32062,10 +31865,10 @@ export type RetrieveBillToPayRetData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/bill-to-pay/{id}";
+  url: "/api/v1/bill-payment-or-credit/{id}";
 };
 
-export type RetrieveBillToPayRetErrors = {
+export type DeleteBillPaymentOrCreditErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -32116,18 +31919,298 @@ export type RetrieveBillToPayRetErrors = {
   502: StandardErrorResponse;
 };
 
-export type RetrieveBillToPayRetError =
-  RetrieveBillToPayRetErrors[keyof RetrieveBillToPayRetErrors];
+export type DeleteBillPaymentOrCreditError =
+  DeleteBillPaymentOrCreditErrors[keyof DeleteBillPaymentOrCreditErrors];
 
-export type RetrieveBillToPayRetResponses = {
+export type DeleteBillPaymentOrCreditResponses = {
   /**
    * OK
    */
-  200: BillToPayRet;
+  200: DeleteResponse;
 };
 
-export type RetrieveBillToPayRetResponse =
-  RetrieveBillToPayRetResponses[keyof RetrieveBillToPayRetResponses];
+export type DeleteBillPaymentOrCreditResponse =
+  DeleteBillPaymentOrCreditResponses[keyof DeleteBillPaymentOrCreditResponses];
+
+export type RetrieveBillPaymentOrCreditData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/bill-payment-or-credit/{id}";
+};
+
+export type RetrieveBillPaymentOrCreditErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type RetrieveBillPaymentOrCreditError =
+  RetrieveBillPaymentOrCreditErrors[keyof RetrieveBillPaymentOrCreditErrors];
+
+export type RetrieveBillPaymentOrCreditResponses = {
+  /**
+   * OK
+   */
+  200: BillPaymentOrCredit;
+};
+
+export type RetrieveBillPaymentOrCreditResponse =
+  RetrieveBillPaymentOrCreditResponses[keyof RetrieveBillPaymentOrCreditResponses];
+
+export type UpdateBillPaymentOrCreditData = {
+  body: UpdateBillPaymentOrCreditRequest;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/bill-payment-or-credit/{id}";
+};
+
+export type UpdateBillPaymentOrCreditErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type UpdateBillPaymentOrCreditError =
+  UpdateBillPaymentOrCreditErrors[keyof UpdateBillPaymentOrCreditErrors];
+
+export type UpdateBillPaymentOrCreditResponses = {
+  /**
+   * OK
+   */
+  200: BillPaymentOrCredit;
+};
+
+export type UpdateBillPaymentOrCreditResponse =
+  UpdateBillPaymentOrCreditResponses[keyof UpdateBillPaymentOrCreditResponses];
+
+export type CreateBillPaymentOrCreditData = {
+  body: CreateBillPaymentOrCreditRequest;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/bill-payment-or-credit";
+};
+
+export type CreateBillPaymentOrCreditErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CreateBillPaymentOrCreditError =
+  CreateBillPaymentOrCreditErrors[keyof CreateBillPaymentOrCreditErrors];
+
+export type CreateBillPaymentOrCreditResponses = {
+  /**
+   * Created
+   */
+  201: BillPaymentOrCredit;
+};
+
+export type CreateBillPaymentOrCreditResponse =
+  CreateBillPaymentOrCreditResponses[keyof CreateBillPaymentOrCreditResponses];
 
 export type ListBuildAssemblysData = {
   body?: never;
@@ -47292,6 +47375,75 @@ export type CreateItemSubtotalResponses = {
 
 export type CreateItemSubtotalResponse =
   CreateItemSubtotalResponses[keyof CreateItemSubtotalResponses];
+
+export type CloseData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/api/v1/cursors/{operationId}/close";
+};
+
+export type CloseErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CloseError = CloseErrors[keyof CloseErrors];
+
+export type CloseResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type CloseResponse = CloseResponses[keyof CloseResponses];
 
 export type CreateAuthSessionData = {
   body: CreateAuthSessionRequest;
