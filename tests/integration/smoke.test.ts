@@ -44,9 +44,13 @@ describe.skipIf(!shouldRunIntegrationTests)("Integration Tests", () => {
 
   describe("Smoke Tests", () => {
     it("should list vendors", async () => {
-      const page = await client.vendors.list();
+      const page = await client.vendors.list({
+        limit: 1,
+        serverTimeoutSeconds: 15,
+      });
       expect(page).toHaveProperty("data");
       expect(Array.isArray(page.data)).toBe(true);
+      expect(page.data.length).toBeLessThanOrEqual(1);
       expect(page).toHaveProperty("hasMore");
       expect(typeof page.hasMore).toBe("boolean");
       expect(page).toHaveProperty("nextCursor");

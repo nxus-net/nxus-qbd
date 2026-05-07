@@ -67,12 +67,13 @@ export class AuthSessionsResource<
   constructor(private readonly transport: NxusHttpTransport) {}
 
   async create(params: TCreate & RequestOptions): Promise<TResponse> {
-    const { headers, timeout, ...body } = params as TCreate &
+    const { headers, timeout, maxRetries, ...body } = params as TCreate &
       Record<string, unknown> &
       RequestOptions;
     const options: RequestOptions = {};
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
+    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
     return this.transport.post<TResponse>('/api/v1/auth-sessions', body, options);
   }
 

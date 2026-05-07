@@ -1,12 +1,17 @@
 # nxus-qbd
 
-Official Node.js/TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBooks Desktop API.
+Official TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBooks Desktop API.
+
+## Runtime Support
+
+Runs on **Node.js 18+** and **Bun 1.0+**. The SDK uses native `fetch` and `AbortController` with no Node-specific dependencies.
 
 ## Installation
 
 ```bash
 npm install nxus-qbd
 pnpm add nxus-qbd
+bun add nxus-qbd
 ```
 
 ## Environments
@@ -65,6 +70,52 @@ When `timeoutSeconds` is provided on a `.list()` call, the SDK sends it as the
 `X-Nxus-Timeout-Seconds` request header and keeps reusing that header for
 manual `getNextPage()` calls and `for await` auto-pagination. It is not added
 to the query string.
+
+## Automatic Retries
+
+The SDK automatically retries transient failures up to `2` additional times
+(3 total attempts) with exponential backoff and jitter.
+
+The `x-should-retry` response header from the API is the primary signal:
+
+- `true` → retry, even for statuses that wouldn't normally retry.
+- `false` → don't retry, even for statuses that normally would.
+
+When the header is absent (older backend, infrastructure-level error), the SDK
+falls back to retrying:
+
+- Network errors (fetch threw before receiving a response)
+- HTTP `408` (Request Timeout) and `429` (Too Many Requests)
+- HTTP `5xx`
+
+`409` is **not** in the fallback retry set: the API overloads `409` for both
+retryable lock contention (`ObjectInUse`, `LockFailed`) and terminal
+business-rule violations (`OutdatedEditSequence`, `NameNotUnique`). Without
+`x-should-retry` to disambiguate, the safe default is to surface the error to
+the caller. Servers that emit `x-should-retry: true` opt the retryable 409s
+back in.
+
+For backoff, the standard `Retry-After` response header (seconds or HTTP-date)
+is honored when present, with `error.retryAfter` (seconds) in the JSON body
+as a fallback. Local timeouts (the SDK's abort timer) are treated as
+cancellations and are not retried.
+
+Configure globally or per-request:
+
+```ts
+const nxus = new NxusClient({
+  apiKey: "sk_live_...",
+  maxRetries: 3, // default is 2; set to 0 to disable
+});
+
+// Disable retries for one call
+const created = await nxus.invoices.create({
+  customerRefListId: "...",
+  invoiceLineAdds: [{ itemRefListId: "...", amount: 100 }],
+  connectionId: "...",
+  maxRetries: 0,
+});
+```
 
 ## Quick Start
 

@@ -21,13 +21,22 @@ export type Account = {
    * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive. Parent:Child:SubChild
    */
   fullName?: string | null;
-  parent?: QbdRef;
+  /**
+   * The short name of the account as it appears in the QuickBooks UI.
+   */
+  parent?: QbdRef | null;
   /**
    * Depth level of the account in the hierarchy (0 for top level).
    */
   sublevel?: number;
-  accountType?: NullableAccountType;
-  specialAccountType?: NullableSpecialAccountType;
+  /**
+   * The specific type of the account.
+   */
+  accountType?: NullableAccountType | null;
+  /**
+   * Special sub-classification for the account.
+   */
+  specialAccountType?: NullableSpecialAccountType | null;
   /**
    * Whether the account is a tax account (optional, default: false)
    * Only set to true for accounts that track tax liabilities/expenses
@@ -47,10 +56,21 @@ export type Account = {
   description?: string | null;
   balance?: number | null;
   totalBalance?: number | null;
-  salesTaxCode?: QbdRef;
-  taxLineDetails?: TaxLineInfo;
-  cashFlowClassification?: NullableCashFlowClassification;
-  currency?: QbdRef;
+  /**
+   * Reference to the associated Sales Tax Code.
+   * Derived from SalesTaxCodeRef.
+   */
+  salesTaxCode?: QbdRef | null;
+  taxLineDetails?: TaxLineInfo | null;
+  /**
+   * Cash flow classification for the account.
+   */
+  cashFlowClassification?: NullableCashFlowClassification | null;
+  /**
+   * Reference to the currency associated with the account.
+   * Derived from CurrencyRef.
+   */
+  currency?: QbdRef | null;
   /**
    * Whether the account is active (default: true)
    */
@@ -206,7 +226,7 @@ export type AddressRequest = {
 export type ApiResponseReport = {
   success?: boolean;
   message?: string | null;
-  data?: Report;
+  data?: Report | null;
   timestamp?: string;
   requestId?: string | null;
 };
@@ -221,17 +241,17 @@ export type ApplicableCredit = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
-  payablesAccount?: QbdRef;
+  payablesAccount?: QbdRef | null;
   creditRemaining?: number | null;
   creditRemainingInHomeCurrency?: number | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
@@ -308,8 +328,14 @@ export type AppliedToTxn = {
    * The discount amount given on the applied-to transaction.
    */
   discountAmount?: number | null;
-  discountAccount?: QbdRef;
-  discountClass?: QbdRef;
+  /**
+   * Reference to the discount account used.
+   */
+  discountAccount?: QbdRef | null;
+  /**
+   * Reference to the class used for the discount.
+   */
+  discountClass?: QbdRef | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
   /**
    * Credits applied to this transaction.
@@ -382,7 +408,7 @@ export type ArRefundCreditCard = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -396,18 +422,21 @@ export type ArRefundCreditCard = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  receivablesAccount?: QbdRef;
-  address?: Address;
-  addressBlock?: AddressBlock;
-  paymentMethod?: QbdRef;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  receivablesAccount?: QbdRef | null;
+  /**
+   * (Optional) Address details for the refund.
+   */
+  address?: Address | null;
+  addressBlock?: AddressBlock | null;
+  paymentMethod?: QbdRef | null;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   /**
    * (Required) List of credit transactions (e.g., Credit Memos) to apply this refund to.
    */
   refundAppliedToTxns?: Array<RefundAppliedToTransaction> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -1867,9 +1896,16 @@ export type Bill = {
   updatedAt: string;
   revisionNumber: string;
   transactionNumber?: number | null;
-  vendor?: QbdRef;
-  vendorAddress?: Address;
-  payablesAccount?: QbdRef;
+  /**
+   * The vendor who issued the bill. When linking to a Purchase Order, this vendor
+   * must match the vendor on the Purchase Order.
+   */
+  vendor?: QbdRef | null;
+  /**
+   * The billing address of the vendor.
+   */
+  vendorAddress?: Address | null;
+  payablesAccount?: QbdRef | null;
   transactionDate?: string | null;
   /**
    * The date by which the bill must be paid.
@@ -1879,7 +1915,7 @@ export type Bill = {
    * The total monetary amount of the bill.
    */
   amountDue?: number;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate for multi-currency transactions (v8.0).
    */
@@ -1897,13 +1933,23 @@ export type Bill = {
    * Indicates whether the bill is currently marked as pending.
    */
   isPending?: boolean | null;
-  terms?: QbdRef;
-  class?: QbdRef;
+  /**
+   * The payment terms associated with the bill (e.g., Net 30), which calculate the DueDate.
+   */
+  terms?: QbdRef | null;
+  /**
+   * The class associated with the bill, used for categorizing expenses and reporting
+   * (requires class tracking to be enabled in QuickBooks).
+   */
+  class?: QbdRef | null;
   /**
    * Memo/description for the bill.
    */
   memo?: string | null;
-  salesTaxCode?: QbdRef;
+  /**
+   * The sales tax code indicating the general taxability of the bill (e.g., Tax, Non).
+   */
+  salesTaxCode?: QbdRef | null;
   /**
    * Indicates whether the bill has been paid in full and closed.
    */
@@ -1913,7 +1959,7 @@ export type Bill = {
    * Indicates whether the amounts in the bill already include sales tax.
    */
   isTaxIncluded?: boolean | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
@@ -1993,7 +2039,10 @@ export type BillingRateItemRequest = {
  * Represents a custom rate or percentage adjustment applied to a specific service item within a billing rate [2, 4].
  */
 export type BillingRatePerItem = {
-  item?: QbdRef;
+  /**
+   * A reference to the specific service item this custom rate applies to [4, 5].
+   */
+  item?: QbdRef | null;
   /**
    * A fixed hourly rate for this specific service item that overrides the item's standard rate [6].
    */
@@ -2014,8 +2063,8 @@ export type BillPaymentOrCredit = {
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  bill?: PayableBill;
-  credit?: ApplicableCredit;
+  bill?: PayableBill | null;
+  credit?: ApplicableCredit | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -2029,7 +2078,7 @@ export type BuildAssembly = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
    * (Optional) The reference number for the build.
@@ -2043,9 +2092,12 @@ export type BuildAssembly = {
    * The internal transaction number.
    */
   txnNumber?: number | null;
-  itemInventoryAssembly?: QbdRef;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  /**
+   * Reference to the Inventory Assembly Item being built.
+   */
+  itemInventoryAssembly?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   /**
    * (Optional) Serial number for the built assembly.
    */
@@ -2071,8 +2123,8 @@ export type BuildAssembly = {
   quantityOnSalesOrder?: number | null;
   lines?: Array<ComponentItemLine> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -2089,7 +2141,7 @@ export type BuildAssembly = {
  */
 export type CashBackInfo = {
   transactionLineId?: string | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   /**
    * (Optional) Memo about the cash back line. (Max 4095 characters)
    */
@@ -2131,7 +2183,7 @@ export type Charge = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
    * (Optional) The reference number.
@@ -2139,10 +2191,10 @@ export type Charge = {
   refNumber?: string | null;
   memo?: string | null;
   txnNumber?: number | null;
-  customer?: QbdRef;
-  item?: QbdRef;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  customer?: QbdRef | null;
+  item?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   /**
    * (Optional) Quantity of the item.
    */
@@ -2151,8 +2203,8 @@ export type Charge = {
    * (Optional) Unit of measure.
    */
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
-  overrideItemAccount?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
+  overrideItemAccount?: QbdRef | null;
   /**
    * (Optional) The rate or price per unit.
    */
@@ -2162,8 +2214,8 @@ export type Charge = {
    * (Optional) Description of the charge.
    */
   description?: string | null;
-  receivablesAccount?: QbdRef;
-  class?: QbdRef;
+  receivablesAccount?: QbdRef | null;
+  class?: QbdRef | null;
   /**
    * (Optional) The date the charge was billed.
    */
@@ -2177,8 +2229,8 @@ export type Charge = {
    * (Optional) The total amount of the charge.
    */
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -2200,7 +2252,7 @@ export type Check = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate (for multi-currency)
    */
@@ -2213,19 +2265,22 @@ export type Check = {
    * Memo/description for the check
    */
   memo?: string | null;
-  address?: Address;
+  /**
+   * Payee address (optional)
+   */
+  address?: Address | null;
   isPending?: boolean | null;
   isQueuedForPrint?: boolean;
   /**
    * If true, the amount includes sales tax.
    */
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   isVoid?: boolean;
   transactionNumber?: number | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -2270,7 +2325,7 @@ export type CheckBill = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) The currency exchange rate.
    */
@@ -2287,9 +2342,15 @@ export type CheckBill = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  payablesAccount?: QbdRef;
-  address?: Address;
-  addressBlock?: AddressBlock;
+  payablesAccount?: QbdRef | null;
+  /**
+   * The payee's full address.
+   */
+  address?: Address | null;
+  /**
+   * The address block formatted for printing on the check.
+   */
+  addressBlock?: AddressBlock | null;
   isQueuedForPrint?: boolean | null;
   /**
    * (Required) List of transactions (bills) to apply this check to.
@@ -2300,8 +2361,8 @@ export type CheckBill = {
    * (Optional) The total amount of the check.
    */
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   /**
    * (Optional) The amount in the home currency.
    */
@@ -2335,7 +2396,7 @@ export type Class = {
    * The FullName is the name prefixed by the names of each ancestor, for example Parent:Child:SubClass. FullName values are not case-sensitive.
    */
   fullName?: string | null;
-  parent?: QbdRef;
+  parent?: QbdRef | null;
   /**
    * A number indicating the number of ancestors. For example, The customer job with Name = carpets and FullName = Jones:Building2:carpets would have a sublevel of 2.
    */
@@ -2353,9 +2414,12 @@ export type Class = {
  */
 export type ComponentItemLine = {
   objectType?: string;
-  item?: QbdRef;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  /**
+   * The Inventory Assembly item being created.
+   */
+  item?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   serialNumber?: string | null;
   lotNumber?: string | null;
   expirationDateForSerialLotNumber?: string | null;
@@ -2591,7 +2655,10 @@ export type CreateArRefundCreditCardRequest = {
    * (Optional) The reference number for the refund.
    */
   refNumber?: string | null;
-  address?: AddressRequest;
+  /**
+   * (Optional) Address details for the refund.
+   */
+  address?: AddressRequest | null;
   /**
    * (Optional) The ListID or FullName of the payment method.
    */
@@ -2600,7 +2667,7 @@ export type CreateArRefundCreditCardRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -2669,7 +2736,10 @@ export type CreateBillRequest = {
    * Filter by Vendor ID.
    */
   vendorId: string;
-  vendorAddress?: AddressRequest;
+  /**
+   * Optional vendor address override.
+   */
+  vendorAddress?: AddressRequest | null;
   payablesAccountId?: string | null;
   transactionDate: string;
   /**
@@ -2934,7 +3004,10 @@ export type CreateCheckRequest = {
    * The ListID or FullName of the sales tax code.
    */
   salesTaxCodeId?: string | null;
-  address?: Address;
+  /**
+   * Payee address (optional)
+   */
+  address?: Address | null;
   /**
    * Exchange rate (for multi-currency)
    */
@@ -3186,8 +3259,8 @@ export type CreateCreditCardTransactionInputInfoRequest = {
   creditCardAddress?: string | null;
   creditCardPostalCode?: string | null;
   commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode;
-  creditCardTxnType?: NullableCreditCardTransactionType;
+  transactionMode?: NullableTransactionMode | null;
+  creditCardTxnType?: NullableCreditCardTransactionType | null;
 };
 
 /**
@@ -3201,9 +3274,9 @@ export type CreateCreditCardTransactionResultInfoRequest = {
   paymentStatus: PaymentStatus;
   txnAuthorizationTime: string;
   authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet;
-  avsZip?: NullableAvsZip;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
+  avsStreet?: NullableAvsStreet | null;
+  avsZip?: NullableAvsZip | null;
+  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
   txnAuthorizationStamp?: number | null;
@@ -3309,7 +3382,7 @@ export type CreateCreditMemoLineRequest = {
   overrideItemAccountId?: string | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -3338,8 +3411,8 @@ export type CreateCreditMemoRequest = {
    * (Optional) The reference number (e.g., Credit Memo #).
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the credit memo is pending.
    */
@@ -3418,7 +3491,10 @@ export type CreateCurrencyRequest = {
    * (Required) The three-letter currency code (e.g., USD, EUR). Values are normalized to trimmed uppercase. (Max 3 characters)
    */
   currencyCode: string;
-  currencyFormat?: CurrencyFormatRequest;
+  /**
+   * (Optional) Specifies the formatting rules for the currency.
+   */
+  currencyFormat?: CurrencyFormatRequest | null;
   externalId?: string | null;
 };
 
@@ -3436,8 +3512,8 @@ export type CreateCustomerRequest = {
   middleName?: string | null;
   lastName?: string | null;
   jobTitle?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   shippingAddresses?: Array<ShipToAddressRequest> | null;
   phone?: string | null;
   altPhone?: string | null;
@@ -3460,8 +3536,11 @@ export type CreateCustomerRequest = {
   accountNumber?: string | null;
   creditLimit?: number | null;
   preferredPaymentMethodId?: string | null;
-  creditCardInfo?: CreditCardInfo;
-  jobStatus?: NullableJobStatus;
+  creditCardInfo?: CreditCardInfo | null;
+  /**
+   * JobStatus may have one of the following values: Awarded, Closed, InProgress, None [DEFAULT], NotAwarded, Pending
+   */
+  jobStatus?: NullableJobStatus | null;
   jobStartDate?: string | null;
   jobProjectedEndDate?: string | null;
   jobEndDate?: string | null;
@@ -3521,8 +3600,16 @@ export type CreateDateDrivenTermRequest = {
  * Defines a single Deposit Line item to be added to the Deposit (uses discriminator pattern).
  */
 export type CreateDepositLineRequest = {
-  paymentLine?: DepositPaymentLineRequest;
-  manualLine?: DepositManualLineRequest;
+  /**
+   * (Optional) Details for depositing a previously recorded payment (ReceivePayment, SalesReceipt).
+   * Mutually exclusive with ManualLine.
+   */
+  paymentLine?: DepositPaymentLineRequest | null;
+  /**
+   * (Optional) Details for manually depositing a fund from another source.
+   * Mutually exclusive with PaymentLine.
+   */
+  manualLine?: DepositManualLineRequest | null;
 };
 
 /**
@@ -3543,7 +3630,10 @@ export type CreateDepositRequest = {
    * (Optional) General memo about the Deposit. (Max 4095 characters)
    */
   memo?: string | null;
-  cashBackInfo?: CashBackInfoRequest;
+  /**
+   * (Optional) Information about cash back requested from the deposit total.
+   */
+  cashBackInfo?: CashBackInfoRequest | null;
   /**
    * (Optional) The ListID or FullName of the currency for the transaction.
    * Follows the Flattened-ID Pattern for CurrencyRef.
@@ -3579,7 +3669,7 @@ export type CreateEmployeeRequest = {
   supervisorId?: string | null;
   department?: string | null;
   description?: string | null;
-  employeeAddress?: EmployeeAddress;
+  employeeAddress?: EmployeeAddress | null;
   printAs?: string | null;
   phone?: string | null;
   mobile?: string | null;
@@ -3593,7 +3683,10 @@ export type CreateEmployeeRequest = {
    * Additional contact references (may repeat, v12.0+).
    */
   additionalContacts?: Array<AdditionalContact> | null;
-  emergencyContacts?: EmergencyContact;
+  /**
+   * Emergency contacts for the employee (QBD only, v13.0+).
+   */
+  emergencyContacts?: EmergencyContact | null;
   /**
    * Additional notes (may repeat, v12.0+). For Add, only Note is needed.
    */
@@ -3623,7 +3716,7 @@ export type CreateEmployeeRequest = {
   workAuthExpireDate?: string | null;
   usVeteran?: string | null;
   militaryStatus?: string | null;
-  employeePayrollInfo?: EmployeePayrollInfo;
+  employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
   suffix?: string | null;
 };
@@ -3707,8 +3800,8 @@ export type CreateEstimateRequest = {
    * (Optional) The sequential reference number for the Estimate (e.g., Estimate Number). (STRTYPE)
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Whether the Estimate is active. (BOOLTYPE)
    */
@@ -3819,10 +3912,10 @@ export type CreateExpenseLineRequest = {
 export type CreateInventoryAdjustmentLineRequest = {
   itemId: string;
   memo?: string | null;
-  quantityAdjustment?: QuantityAdjustmentRequest;
-  valueAdjustment?: ValueAdjustmentRequest;
-  serialNumberAdjustment?: SerialNumberAdjustmentRequest;
-  lotNumberAdjustment?: LotNumberAdjustmentRequest;
+  quantityAdjustment?: QuantityAdjustmentRequest | null;
+  valueAdjustment?: ValueAdjustmentRequest | null;
+  serialNumberAdjustment?: SerialNumberAdjustmentRequest | null;
+  lotNumberAdjustment?: LotNumberAdjustmentRequest | null;
 };
 
 /**
@@ -3872,7 +3965,7 @@ export type CreateInventoryAdjustmentRequest = {
  */
 export type CreateInventoryItemRequest = {
   name: string;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   classId?: string | null;
   parentId?: string | null;
   sku?: string | null;
@@ -3906,7 +3999,7 @@ export type CreateInventorySiteRequest = {
   phone?: string | null;
   fax?: string | null;
   email?: string | null;
-  address?: AddressRequest;
+  address?: AddressRequest | null;
   externalId?: string | null;
 };
 
@@ -3933,8 +4026,8 @@ export type CreateInvoiceRequest = {
    * Reference number for the invoice.
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   isPending?: boolean | null;
   isFinanceCharge?: boolean | null;
   purchaseOrderNumber?: string | null;
@@ -4054,7 +4147,7 @@ export type CreateItemGroupLineRequest = {
  */
 export type CreateItemGroupRequest = {
   name: string;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   description?: string | null;
   isActive?: boolean | null;
   unitOfMeasureSetId?: string | null;
@@ -4076,7 +4169,7 @@ export type CreateItemInventoryAssemblyRequest = {
   incomeAccountId?: string | null;
   assetAccountId: string | null;
   cogsAccountId?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -4172,7 +4265,7 @@ export type CreateItemLineRequest = {
    * (Optional) Overrides the default income/expense account associated with the item.
    */
   overrideItemAccountId?: string | null;
-  linkToTransaction?: LinkToTransactionLineRequest;
+  linkToTransaction?: LinkToTransactionLineRequest | null;
   salesRepresentativeId?: string | null;
   customFields?: Array<DataExtRequest> | null;
 };
@@ -4182,7 +4275,7 @@ export type CreateItemLineRequest = {
  */
 export type CreateItemNonInventoryRequest = {
   name: string;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -4190,8 +4283,8 @@ export type CreateItemNonInventoryRequest = {
   unitOfMeasureSetId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
-  salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest;
-  salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest;
+  salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest | null;
+  salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest | null;
   externalId?: string | null;
 };
 
@@ -4200,7 +4293,7 @@ export type CreateItemNonInventoryRequest = {
  */
 export type CreateItemOtherChargeRequest = {
   name: string;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   className?: string | null;
@@ -4208,8 +4301,8 @@ export type CreateItemOtherChargeRequest = {
   parentName?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
-  salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest;
-  salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest;
+  salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest | null;
+  salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest | null;
   externalId?: string | null;
 };
 
@@ -4287,7 +4380,7 @@ export type CreateItemReceiptRequest = {
  */
 export type CreateItemSalesTaxGroupRequest = {
   name: string;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   description?: string | null;
   externalId?: string | null;
@@ -4304,7 +4397,10 @@ export type CreateItemSalesTaxRequest = {
    * (Required) The name or identifier for the new sales tax item.
    */
   name: string;
-  barcode?: BarCodeRequest;
+  /**
+   * (Optional) BarCode information.
+   */
+  barcode?: BarCodeRequest | null;
   /**
    * (Optional) Indicates whether the sales tax item is active.
    */
@@ -4346,7 +4442,7 @@ export type CreateItemSubtotalRequest = {
   name: string;
   isActive?: boolean | null;
   barCodeValue?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   externalId?: string | null;
 };
 
@@ -4425,8 +4521,8 @@ export type CreateOtherNameRequest = {
   firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
-  address?: Address;
-  addressBlock?: AddressBlock;
+  address?: Address | null;
+  addressBlock?: AddressBlock | null;
   phone?: string | null;
   alternatPhone?: string | null;
   fax?: string | null;
@@ -4633,8 +4729,14 @@ export type CreatePurchaseOrderRequest = {
    * (Optional) The document number. (Max 11 characters)
    */
   refNumber?: string | null;
-  vendorAddress?: AddressRequest;
-  shipAddress?: AddressRequest;
+  /**
+   * (Optional) The primary address for the Vendor on this Purchase Order.
+   */
+  vendorAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address for the Purchase Order.
+   */
+  shipAddress?: AddressRequest | null;
   /**
    * (Optional) The ListID or FullName of the payment terms.
    * Follows the Flattened-ID Pattern for TermsRef.
@@ -4718,7 +4820,7 @@ export type CreateReceivePaymentRequest = {
    * Account to deposit the payment into.
    */
   depositToAccountId?: string | null;
-  creditCardTransactionInfo?: CreditCardTxnInfoRequest;
+  creditCardTransactionInfo?: CreditCardTxnInfoRequest | null;
   externalId?: string | null;
   /**
    * If true, QuickBooks will automatically apply the payment to outstanding invoices.
@@ -4836,7 +4938,7 @@ export type CreateSalesReceiptLineRequest = {
   salesTaxCodeId?: string | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransaction?: CreateCreditCardTransactionInfoRequest;
+  creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
 };
 
 /**
@@ -4861,8 +4963,8 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The document number (e.g., receipt number). (Max 11 characters)
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the transaction is pending.
    */
@@ -4908,7 +5010,7 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The ListID or FullName of the account to deposit the payment to.
    */
   depositToAccountId?: string | null;
-  creditCardTransaction?: CreateCreditCardTransactionInfoRequest;
+  creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
    */
@@ -4990,7 +5092,10 @@ export type CreateSalesTaxPaymentCheckRequest = {
    * (Optional) A memo for the transaction. Max 4095 chars.
    */
   memo?: string | null;
-  address?: AddressRequest;
+  /**
+   * (Optional) The address of the payee.
+   */
+  address?: AddressRequest | null;
   externalId?: string | null;
   /**
    * (Required) A list of sales tax items and the amounts being paid.
@@ -5000,7 +5105,7 @@ export type CreateSalesTaxPaymentCheckRequest = {
 
 export type CreateServiceItemRequest = {
   name: string;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   externalId?: string | null;
   isActive?: boolean | null;
   classId?: string | null;
@@ -5010,8 +5115,8 @@ export type CreateServiceItemRequest = {
   forceUOMChange?: boolean | null;
   isTaxIncluded?: boolean | null;
   dataExt?: Array<QbdDataExt> | null;
-  salesOrPurchase?: CreateSalesOrPurchaseRequest;
-  salesAndPurchase?: CreateSalesAndPurchaseRequest;
+  salesOrPurchase?: CreateSalesOrPurchaseRequest | null;
+  salesAndPurchase?: CreateSalesAndPurchaseRequest | null;
 };
 
 /**
@@ -5068,7 +5173,10 @@ export type CreateSpecialItemRequest = {
    * Valid values: "FinanceCharge", "ReimbursableExpenseGroup", "ReimbursableExpenseSubtotal"
    */
   specialItemType: string;
-  barCode?: BarCodeRequest;
+  /**
+   * (Optional) Bar Code details for the special item.
+   */
+  barCode?: BarCodeRequest | null;
   externalId?: string | null;
 };
 
@@ -5232,8 +5340,8 @@ export type CreateVendorRequest = {
   middleName?: string | null;
   lastName?: string | null;
   jobTitle?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   phone?: string | null;
   alternatePhone?: string | null;
   fax?: string | null;
@@ -5336,7 +5444,7 @@ export type CreditCardBill = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate (required if currency is specified)
    */
@@ -5349,15 +5457,20 @@ export type CreditCardBill = {
    * Memo/description for the payment
    */
   memo?: string | null;
-  creditCardAccount?: QbdRef;
-  payablesAccount?: QbdRef;
+  /**
+   * Credit card account being charged (required)
+   * The credit card account to which this bill credit card payment is being charged.
+   * This bill credit card payment will decrease the balance of this account.
+   */
+  creditCardAccount?: QbdRef | null;
+  payablesAccount?: QbdRef | null;
   appliedToTransactions?: Array<AppliedToTxn> | null;
   /**
    * Total amount of the payment
    */
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -5378,16 +5491,16 @@ export type CreditCardCharge = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: string | null;
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -5409,7 +5522,7 @@ export type CreditCardCredit = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate for multi-currency transactions (Optional).
    */
@@ -5428,10 +5541,13 @@ export type CreditCardCredit = {
    * Indicates if tax is included in the line items.
    */
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  /**
+   * Reference to the sales tax code.
+   */
+  salesTaxCode?: QbdRef | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -5494,8 +5610,11 @@ export type CreditCardTransactionInputInfo = {
    * (Optional) New commercial card code. (Max 4 characters)
    */
   commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode;
-  transactionType?: NullableCreditCardTransactionType;
+  /**
+   * (Optional) New transaction mode (0 for CardNotPresent [DEFAULT], 1 for CardPresent).
+   */
+  transactionMode?: NullableTransactionMode | null;
+  transactionType?: NullableCreditCardTransactionType | null;
 };
 
 /**
@@ -5507,9 +5626,9 @@ export type CreditCardTransactionResultInfo = {
   creditCardTransID: string;
   merchantAccountNumber: string;
   authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet;
-  avsZip?: NullableAvsZip;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
+  avsStreet?: NullableAvsStreet | null;
+  avsZip?: NullableAvsZip | null;
+  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
   reconBatchID?: string | null;
   paymentGroupingCode?: number | null;
   paymentStatus: PaymentStatus;
@@ -5543,7 +5662,7 @@ export type CreditMemo = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -5557,25 +5676,25 @@ export type CreditMemo = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  customer?: QbdRef;
-  class?: QbdRef;
-  receivablesAccount?: QbdRef;
-  template?: QbdRef;
-  billingAddress?: Address;
-  billingAddressBlock?: AddressBlock;
-  shippingAddress?: Address;
-  shippingAddressBlock?: AddressBlock;
+  customer?: QbdRef | null;
+  class?: QbdRef | null;
+  receivablesAccount?: QbdRef | null;
+  template?: QbdRef | null;
+  billingAddress?: Address | null;
+  billingAddressBlock?: AddressBlock | null;
+  shippingAddress?: Address | null;
+  shippingAddressBlock?: AddressBlock | null;
   /**
    * (Optional) Indicates if the credit memo is pending.
    */
   isPending?: boolean | null;
   poNumber?: string | null;
-  terms?: QbdRef;
+  terms?: QbdRef | null;
   /**
    * (Optional) The due date.
    */
   dueDate?: string | null;
-  salesRepresentative?: QbdRef;
+  salesRepresentative?: QbdRef | null;
   /**
    * (Optional) Free On Board (FOB) terms. (Max 13 characters)
    */
@@ -5584,15 +5703,15 @@ export type CreditMemo = {
    * (Optional) The date of shipment.
    */
   shipDate?: string | null;
-  shipMethod?: QbdRef;
+  shipMethod?: QbdRef | null;
   subtotal?: number | null;
-  itemSalesTax?: QbdRef;
+  itemSalesTax?: QbdRef | null;
   salesTaxPercentage?: number | null;
   salesTaxTotal?: number | null;
   totalAmount?: number | null;
   creditRemaining?: number | null;
   creditRemainingInHomeCurrency?: number | null;
-  customerMsg?: QbdRef;
+  customerMsg?: QbdRef | null;
   /**
    * (Optional) Indicates if the transaction is to be printed.
    */
@@ -5605,7 +5724,7 @@ export type CreditMemo = {
    * (Optional) Indicates if tax is included in the amounts.
    */
   isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef;
+  customerSalesTaxCode?: QbdRef | null;
   /**
    * (Optional) Other custom field. (Max 29 characters)
    */
@@ -5616,8 +5735,8 @@ export type CreditMemo = {
   lines?: Array<CreditMemoLine> | null;
   lineGroups?: Array<CreditMemoLineGroup> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
@@ -5634,7 +5753,7 @@ export type CreditMemo = {
 export type CreditMemoLine = {
   objectType?: string;
   id: string;
-  item?: QbdRef;
+  item?: QbdRef | null;
   /**
    * (Optional) Description of the line item.
    */
@@ -5647,7 +5766,7 @@ export type CreditMemoLine = {
    * (Optional) Unit of measure.
    */
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   /**
    * (Optional) Rate or price per unit.
    */
@@ -5656,13 +5775,13 @@ export type CreditMemoLine = {
    * (Optional) Rate expressed as a percentage.
    */
   ratePercent?: number | null;
-  class?: QbdRef;
+  class?: QbdRef | null;
   /**
    * (Optional) Total amount for the line.
    */
   amount?: number | null;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   /**
    * (Optional) Serial number for the item.
    */
@@ -5676,10 +5795,10 @@ export type CreditMemoLine = {
    * (Optional) Service date for the item.
    */
   serviceDate?: string | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -5690,7 +5809,7 @@ export type CreditMemoLine = {
 export type CreditMemoLineGroup = {
   id: string;
   objectType?: string;
-  itemGroup?: QbdRef;
+  itemGroup?: QbdRef | null;
   description?: string | null;
   /**
    * (Optional) Quantity of the group.
@@ -5700,7 +5819,7 @@ export type CreditMemoLineGroup = {
    * (Optional) Unit of measure.
    */
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   shouldPrintItemsInGroup?: boolean | null;
   totalAmount?: number | null;
   /**
@@ -5728,7 +5847,10 @@ export type Currency = {
    * (Required) The three-letter currency code (e.g., USD, EUR). Values are normalized to trimmed uppercase. (Max 3 characters)
    */
   currencyCode?: string | null;
-  currencyFormat?: CurrencyFormat;
+  /**
+   * (Optional) Specifies the formatting rules for the currency.
+   */
+  currencyFormat?: CurrencyFormat | null;
   isUserDefinedCurrency?: boolean | null;
   exchangeRate?: number | null;
   asOfDate?: string | null;
@@ -5841,8 +5963,8 @@ export type Customer = {
    * Job title of the customer's primary contact.
    */
   jobTitle?: string | null;
-  billingAddress?: Address;
-  shippingAddress?: Address;
+  billingAddress?: Address | null;
+  shippingAddress?: Address | null;
   alternateShippingAddresses?: Array<ShipToAddress> | null;
   /**
    * Primary phone number for the customer.
@@ -5876,17 +5998,50 @@ export type Customer = {
    * Maps to Contacts in QbXML.
    */
   additionalContacts?: Array<Contact> | null;
-  class?: QbdRef;
-  parent?: QbdRef;
-  customerType?: QbdRef;
-  terms?: QbdRef;
-  salesRep?: QbdRef;
-  salesTaxCode?: QbdRef;
-  itemSalesTax?: QbdRef;
-  preferredPaymentMethod?: QbdRef;
-  jobType?: QbdRef;
-  priceLevel?: QbdRef;
-  currency?: QbdRef;
+  /**
+   * The class assigned to this customer for departmental tracking.
+   */
+  class?: QbdRef | null;
+  /**
+   * The parent customer or job this record belongs to (for sub-customers/jobs).
+   */
+  parent?: QbdRef | null;
+  /**
+   * The customer type category assigned to this customer.
+   */
+  customerType?: QbdRef | null;
+  /**
+   * The default payment terms for this customer (e.g., "Net 30").
+   */
+  terms?: QbdRef | null;
+  /**
+   * The sales representative assigned to this customer.
+   */
+  salesRep?: QbdRef | null;
+  /**
+   * The sales tax code that determines whether sales to this customer are taxable.
+   */
+  salesTaxCode?: QbdRef | null;
+  /**
+   * The default sales tax item applied to taxable sales for this customer.
+   */
+  itemSalesTax?: QbdRef | null;
+  /**
+   * The customer's preferred payment method.
+   */
+  preferredPaymentMethod?: QbdRef | null;
+  /**
+   * The type of job (used when this record represents a job under a customer).
+   */
+  jobType?: QbdRef | null;
+  /**
+   * The custom price level applied to sales for this customer.
+   */
+  priceLevel?: QbdRef | null;
+  /**
+   * The currency used for transactions with this customer (multi-currency files only).
+   */
+  currency?: QbdRef | null;
   /**
    * Current outstanding balance owed by this customer.
    */
@@ -5911,7 +6066,7 @@ export type Customer = {
    * Maximum credit limit extended to this customer.
    */
   creditLimit?: number | null;
-  creditCard?: CreditCardInfo;
+  creditCard?: CreditCardInfo | null;
   /**
    * Current status of the job (e.g., "InProgress", "Awarded", "Closed"). Applies when this record is a job.
    */
@@ -5971,7 +6126,7 @@ export type CustomerType = {
    * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
    */
   fullName?: string | null;
-  parent?: QbdRef;
+  parent?: QbdRef | null;
   sublevel?: number | null;
   /**
    * (Optional) If false, this Customer Type is inactive. Default is true.
@@ -6079,7 +6234,7 @@ export type Deposit = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Deposit.
    */
@@ -6090,17 +6245,20 @@ export type Deposit = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  depositToAccount?: QbdRef;
+  depositToAccount?: QbdRef | null;
   depositTotal?: number | null;
   depositTotalInHomeCurrency?: number | null;
-  cashBackInfo?: CashBackInfo;
+  /**
+   * (Optional) Information about cash back requested from the deposit total.
+   */
+  cashBackInfo?: CashBackInfo | null;
   /**
    * (Optional) A list of payment and manual lines making up the total deposit amount.
    */
   depositLines?: Array<DepositLine> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -6119,12 +6277,12 @@ export type DepositLine = {
   transactionId?: string | null;
   transactionLineId?: string | null;
   paymentTransactionLineId?: string | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   memo?: string | null;
   checkNumber?: string | null;
-  paymentMethod?: QbdRef;
-  class?: QbdRef;
+  paymentMethod?: QbdRef | null;
+  class?: QbdRef | null;
   amount?: number | null;
 };
 
@@ -6196,8 +6354,14 @@ export type DictionaryStringString = {
 };
 
 export type EmergencyContact = {
-  primaryContact?: AdditionalContact;
-  secondaryContact?: AdditionalContact;
+  /**
+   * The employee's primary emergency contact.
+   */
+  primaryContact?: AdditionalContact | null;
+  /**
+   * The employee's secondary emergency contact.
+   */
+  secondaryContact?: AdditionalContact | null;
 };
 
 /**
@@ -6216,11 +6380,11 @@ export type Employee = {
   middleName?: string | null;
   lastName?: string | null;
   jobTitle?: string | null;
-  supervisor?: QbdRef;
+  supervisor?: QbdRef | null;
   department?: string | null;
   description?: string | null;
   targetBonus?: number | null;
-  employeeAddress?: EmployeeAddress;
+  employeeAddress?: EmployeeAddress | null;
   printAs?: string | null;
   phone?: string | null;
   mobile?: string | null;
@@ -6230,7 +6394,10 @@ export type Employee = {
   fax?: string | null;
   ssn?: string | null;
   email?: string | null;
-  emergencyContacts?: EmergencyContact;
+  /**
+   * Emergency contacts for the employee (QBD only, v13.0+).
+   */
+  emergencyContacts?: EmergencyContact | null;
   /**
    * Additional contact references (may repeat, v12.0+).
    */
@@ -6259,8 +6426,8 @@ export type Employee = {
   militaryStatus?: string | null;
   accountNumber?: string | null;
   notes?: string | null;
-  billingRate?: QbdRef;
-  employeePayrollInfo?: EmployeePayrollInfo;
+  billingRate?: QbdRef | null;
+  employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
   /**
    * The employee's name (required). This is the display name in QuickBooks.
@@ -6290,13 +6457,13 @@ export type EmployeeAddress = {
  */
 export type EmployeePayrollInfo = {
   payPeriod?: string | null;
-  paySchedule?: QbdRef;
-  class?: QbdRef;
+  paySchedule?: QbdRef | null;
+  class?: QbdRef | null;
   clearEarnings?: boolean | null;
   clearNonEarnings?: boolean | null;
   useTimeDataToCreatePaychecks?: string | null;
-  sickHours?: SickHours;
-  vacationHours?: VacationHours;
+  sickHours?: SickHours | null;
+  vacationHours?: VacationHours | null;
 };
 
 /**
@@ -6390,7 +6557,7 @@ export type Estimate = {
    * (Optional) The date of the transaction. Cannot be cleared. (DATETYPE)
    */
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) The exchange rate for multi-currency transactions. (FLOATTYPE)
    */
@@ -6404,11 +6571,11 @@ export type Estimate = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  customer?: QbdRef;
-  class?: QbdRef;
-  template?: QbdRef;
-  billingAddress?: Address;
-  shippingAddress?: Address;
+  customer?: QbdRef | null;
+  class?: QbdRef | null;
+  template?: QbdRef | null;
+  billingAddress?: Address | null;
+  shippingAddress?: Address | null;
   /**
    * (Optional) Whether the Estimate is active. (BOOLTYPE)
    */
@@ -6417,22 +6584,22 @@ export type Estimate = {
    * (Optional) Customer's Purchase Order number. (STRTYPE)
    */
   poNumber?: string | null;
-  terms?: QbdRef;
+  terms?: QbdRef | null;
   /**
    * (Optional) The due date calculated from the terms. (DATETYPE)
    */
   dueDate?: string | null;
-  salesRepresentative?: QbdRef;
+  salesRepresentative?: QbdRef | null;
   /**
    * (Optional) Freight on Board term. (STRTYPE)
    */
   fob?: string | null;
   subtotal?: number | null;
-  itemSalesTax?: QbdRef;
+  itemSalesTax?: QbdRef | null;
   salesTaxPercentage?: number | null;
   salesTaxTotal?: number | null;
   totalAmountInHomeCurrency?: number | null;
-  customerMsg?: QbdRef;
+  customerMsg?: QbdRef | null;
   /**
    * (Optional) Whether the Estimate should be flagged to be emailed. (BOOLTYPE)
    */
@@ -6441,7 +6608,7 @@ export type Estimate = {
    * (Optional) Whether tax is included in the line item amounts. (BOOLTYPE)
    */
   isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef;
+  customerSalesTaxCode?: QbdRef | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
   itemLines?: Array<EstimateItemLine> | null;
   itemGroupLines?: Array<EstimateItemGroupLine> | null;
@@ -6450,8 +6617,8 @@ export type Estimate = {
    */
   other?: string | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   expenseLines?: Array<ExpenseLine> | null;
@@ -6464,11 +6631,11 @@ export type Estimate = {
 export type EstimateItemGroupLine = {
   id: string;
   objectType?: string;
-  itemGroup?: QbdRef;
+  itemGroup?: QbdRef | null;
   description?: string | null;
   quantity?: number | null;
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   isPrintItemsInGroup?: boolean | null;
   totalAmount?: number | null;
   itemLines?: Array<EstimateItemLine> | null;
@@ -6481,18 +6648,18 @@ export type EstimateItemGroupLine = {
 export type EstimateItemLine = {
   id: string;
   objectType?: string;
-  item?: QbdRef;
+  item?: QbdRef | null;
   description?: string | null;
   quantity?: number | null;
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   rate?: number | null;
   ratePercent?: number | null;
-  class?: QbdRef;
+  class?: QbdRef | null;
   amount?: number | null;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
-  salesTaxCode?: QbdRef;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   markupRate?: number | null;
   markupRatePercent?: number | null;
   other?: string | null;
@@ -6506,7 +6673,10 @@ export type EstimateItemLine = {
 export type ExpenseLine = {
   id: string;
   objectType?: string;
-  account?: QbdRef;
+  /**
+   * Expense account (e.g., "Office Supplies")
+   */
+  account?: QbdRef | null;
   /**
    * (Optional) The amount of the expense line.
    */
@@ -6515,13 +6685,16 @@ export type ExpenseLine = {
    * (Optional) A memo specific to this line item.
    */
   memo?: string | null;
-  class?: QbdRef;
-  customer?: QbdRef;
-  salesRepresentative?: QbdRef;
-  salesTaxCode?: QbdRef;
+  class?: QbdRef | null;
+  customer?: QbdRef | null;
+  salesRepresentative?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   taxAmount?: number | null;
-  vendor?: QbdRef;
-  billableStatus?: NullableBillableStatus;
+  vendor?: QbdRef | null;
+  /**
+   * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
+   */
+  billableStatus?: NullableBillableStatus | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -6559,7 +6732,7 @@ export type InventoryAdjustment = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
    * (Optional) The document number. (Max 11 characters)
@@ -6570,13 +6743,13 @@ export type InventoryAdjustment = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  account?: QbdRef;
-  inventorySite?: QbdRef;
-  customer?: QbdRef;
-  class?: QbdRef;
+  account?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  customer?: QbdRef | null;
+  class?: QbdRef | null;
   lines?: Array<InventoryAdjustmentLine> | null;
   amount?: number | null;
-  entity?: QbdRef;
+  entity?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -6593,12 +6766,12 @@ export type InventoryAdjustment = {
  */
 export type InventoryAdjustmentLine = {
   id: string;
-  item?: QbdRef;
+  item?: QbdRef | null;
   serialNumber?: string | null;
   serialNumberAddedOrRemoved?: string | null;
   lotNumber?: string | null;
   expirationDate?: string | null;
-  inventorySiteLocation?: QbdRef;
+  inventorySiteLocation?: QbdRef | null;
   quantityDifference?: number | null;
   valueDifference?: number | null;
   customFields?: Array<QbdDataExt> | null;
@@ -6622,13 +6795,13 @@ export type InventoryItem = {
   isTaxIncluded?: boolean | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  cogsAccount?: QbdRef;
-  preferredVendor?: QbdRef;
-  assetAccount?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  cogsAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
+  assetAccount?: QbdRef | null;
   reorderPoint?: number | null;
   max?: number | null;
   quantityOnHand?: number | null;
@@ -6637,11 +6810,11 @@ export type InventoryItem = {
   quantityOnSalesOrder?: number | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -6659,15 +6832,15 @@ export type InventorySite = {
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  parentSite?: QbdRef;
+  parentSite?: QbdRef | null;
   isDefaultSite?: boolean | null;
   siteDesc?: string | null;
   contact?: string | null;
   phone?: string | null;
   fax?: string | null;
   email?: string | null;
-  siteAddress?: Address;
-  siteAddressBlock?: AddressBlock;
+  siteAddress?: Address | null;
+  siteAddressBlock?: AddressBlock | null;
   isActive?: boolean;
   customFields?: Array<QbdDataExt> | null;
 };
@@ -6685,7 +6858,7 @@ export type Invoice = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
    * Reference number for the invoice.
@@ -6695,30 +6868,42 @@ export type Invoice = {
    * Memo/description for the invoice.
    */
   memo?: string | null;
-  customer?: QbdRef;
-  class?: QbdRef;
-  receivablesAccount?: QbdRef;
-  template?: QbdRef;
+  /**
+   * The customer to whom the invoice is addressed.
+   */
+  customer?: QbdRef | null;
+  /**
+   * Class Reference.
+   */
+  class?: QbdRef | null;
+  receivablesAccount?: QbdRef | null;
+  /**
+   * Reference to the visual template (e.g., "Custom Invoice") used in QuickBooks.
+   */
+  template?: QbdRef | null;
   /**
    * The date the invoice is due.
    */
   dueDate?: string | null;
-  billingAddress?: Address;
-  shippingAddress?: Address;
+  billingAddress?: Address | null;
+  shippingAddress?: Address | null;
   isPending?: boolean | null;
   isFinanceCharge?: boolean | null;
   purchaseOrderNumber?: string | null;
-  terms?: QbdRef;
-  salesRepresentative?: QbdRef;
+  /**
+   * Reference to the payment terms (e.g., "Net 30") applied to this invoice.
+   */
+  terms?: QbdRef | null;
+  salesRepresentative?: QbdRef | null;
   shipmentOrigin?: string | null;
   shippingDate?: string | null;
-  shippingMethod?: QbdRef;
-  itemSalesTax?: QbdRef;
-  customerMsg?: QbdRef;
+  shippingMethod?: QbdRef | null;
+  itemSalesTax?: QbdRef | null;
+  customerMsg?: QbdRef | null;
   isQueuedForPrint?: boolean | null;
   isQueuedForEmail?: boolean | null;
   isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef;
+  customerSalesTaxCode?: QbdRef | null;
   otherCustomField?: string | null;
   /**
    * The total of all line items, before sales tax.
@@ -6738,8 +6923,11 @@ export type Invoice = {
    */
   isPaid?: boolean | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  /**
+   * The Accounts Receivable (A/R) account associated with this invoice.
+   */
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -6813,14 +7001,14 @@ export type ItemDiscount = {
   itemDesc?: string | null;
   discountRate?: number | null;
   discountRatePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -6858,8 +7046,11 @@ export type ItemFixedAsset = {
    * The original purchase price or cost of acquiring the asset.
    */
   vendorOrPayeeName?: string | null;
-  assetAccount?: QbdRef;
-  salesInfo?: FixedAssetSalesInfo;
+  /**
+   * A reference to the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
+   */
+  assetAccount?: QbdRef | null;
+  salesInfo?: FixedAssetSalesInfo | null;
   /**
    * A general description of the fixed asset.
    */
@@ -6902,11 +7093,11 @@ export type ItemFixedAsset = {
   yearEndBookValue?: number | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -6928,11 +7119,11 @@ export type ItemGroup = {
   lines?: Array<ItemGroupLineDetail> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -6945,7 +7136,7 @@ export type ItemGroup = {
 export type ItemGroupLine = {
   id: string;
   objectType?: string;
-  itemGroup?: QbdRef;
+  itemGroup?: QbdRef | null;
   description?: string | null;
   /**
    * (Optional) Quantity of the group. QuickBooks will multiply this by the group's internal quantities.
@@ -6965,7 +7156,7 @@ export type ItemGroupLine = {
  * Represents a line item detail request for ItemGroup operations.
  */
 export type ItemGroupLineDetail = {
-  item?: QbdRef;
+  item?: QbdRef | null;
   quantity?: number | null;
   unitOfMeasure?: string | null;
 };
@@ -6994,13 +7185,13 @@ export type ItemInventoryAssembly = {
   isTaxIncluded?: boolean | null;
   salesDescription?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDescription?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  cogsAccount?: QbdRef;
-  preferredVendor?: QbdRef;
-  assetAccount?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  cogsAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
+  assetAccount?: QbdRef | null;
   buildPoint?: number | null;
   max?: number | null;
   quantityOnHand?: number | null;
@@ -7011,11 +7202,11 @@ export type ItemInventoryAssembly = {
   lines?: Array<ItemInventoryAssemblyLine> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7023,7 +7214,7 @@ export type ItemInventoryAssembly = {
 };
 
 export type ItemInventoryAssemblyLine = {
-  inventoryItem?: QbdRef;
+  inventoryItem?: QbdRef | null;
   quantity?: number | null;
 };
 
@@ -7046,13 +7237,13 @@ export type ItemInventoryItem = {
   isTaxIncluded?: boolean | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  cogsAccount?: QbdRef;
-  preferredVendor?: QbdRef;
-  assetAccount?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  cogsAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
+  assetAccount?: QbdRef | null;
   reorderPoint?: number | null;
   max?: number | null;
   quantityOnHand?: number | null;
@@ -7061,11 +7252,11 @@ export type ItemInventoryItem = {
   quantityOnSalesOrder?: number | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7094,14 +7285,14 @@ export type ItemItemDiscount = {
   itemDesc?: string | null;
   discountRate?: number | null;
   discountRatePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7133,8 +7324,8 @@ export type ItemItemFixedAsset = {
   purchaseDate?: string | null;
   purchaseCost?: number | null;
   vendorOrPayeeName?: string | null;
-  assetAccount?: QbdRef;
-  salesInfo?: FixedAssetSalesInfo;
+  assetAccount?: QbdRef | null;
+  salesInfo?: FixedAssetSalesInfo | null;
   assetDesc?: string | null;
   location?: string | null;
   poNumber?: string | null;
@@ -7147,11 +7338,11 @@ export type ItemItemFixedAsset = {
   yearEndBookValue?: number | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7182,11 +7373,11 @@ export type ItemItemGroup = {
   lines?: Array<ItemGroupLineDetail> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7217,13 +7408,13 @@ export type ItemItemInventoryAssembly = {
   isTaxIncluded?: boolean | null;
   salesDescription?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDescription?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  cogsAccount?: QbdRef;
-  preferredVendor?: QbdRef;
-  assetAccount?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  cogsAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
+  assetAccount?: QbdRef | null;
   buildPoint?: number | null;
   max?: number | null;
   quantityOnHand?: number | null;
@@ -7234,11 +7425,11 @@ export type ItemItemInventoryAssembly = {
   lines?: Array<ItemInventoryAssemblyLine> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7269,22 +7460,22 @@ export type ItemItemNonInventory = {
   desc?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7316,22 +7507,22 @@ export type ItemItemOtherCharge = {
   itemOtherChargeDescription?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7358,15 +7549,15 @@ export type ItemItemPayment = {
   updatedAt: string;
   revisionNumber: string;
   itemDesc?: string | null;
-  depositToAccount?: QbdRef;
-  paymentMethod?: QbdRef;
+  depositToAccount?: QbdRef | null;
+  paymentMethod?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7394,15 +7585,15 @@ export type ItemItemSalesTax = {
   revisionNumber: string;
   itemDesc?: string | null;
   taxRate?: number | null;
-  taxVendor?: QbdRef;
-  salesTaxReturnLine?: QbdRef;
+  taxVendor?: QbdRef | null;
+  salesTaxReturnLine?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7434,11 +7625,11 @@ export type ItemItemSalesTaxGroup = {
   itemSalesTax?: Array<QbdRef> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7476,11 +7667,11 @@ export type ItemItemSubtotal = {
   specialItemType?: string | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7503,7 +7694,7 @@ export type ItemLine = {
   objectType?: string;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  item?: QbdRef;
+  item?: QbdRef | null;
   /**
    * (Optional) Description for the line item.
    */
@@ -7520,11 +7711,14 @@ export type ItemLine = {
    * (Optional) Total amount for the line.
    */
   amount?: number | null;
-  customer?: QbdRef;
-  class?: QbdRef;
-  overrideItemAccount?: QbdRef;
-  billableStatus?: NullableBillableStatus;
-  itemGroup?: QbdRef;
+  customer?: QbdRef | null;
+  class?: QbdRef | null;
+  overrideItemAccount?: QbdRef | null;
+  /**
+   * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
+   */
+  billableStatus?: NullableBillableStatus | null;
+  itemGroup?: QbdRef | null;
   /**
    * (Optional) Unit of measure.
    */
@@ -7533,9 +7727,9 @@ export type ItemLine = {
    * (Optional) Price per item (used in sales).
    */
   rate?: number | null;
-  salesTaxCode?: QbdRef;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  salesTaxCode?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   /**
    * (Optional) Serial number for the item.
    */
@@ -7566,22 +7760,22 @@ export type ItemNonInventory = {
   desc?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7626,22 +7820,22 @@ export type ItemOtherCharge = {
   itemOtherChargeDescription?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7677,15 +7871,15 @@ export type ItemPayment = {
   updatedAt: string;
   revisionNumber: string;
   itemDesc?: string | null;
-  depositToAccount?: QbdRef;
-  paymentMethod?: QbdRef;
+  depositToAccount?: QbdRef | null;
+  paymentMethod?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7710,7 +7904,7 @@ export type ItemReceipt = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate for multi-currency transactions (Optional).
    */
@@ -7724,16 +7918,19 @@ export type ItemReceipt = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  payablesAccount?: QbdRef;
-  liabilityAccount?: QbdRef;
+  payablesAccount?: QbdRef | null;
+  /**
+   * The Liability account (e.g., for items received without a bill).
+   */
+  liabilityAccount?: QbdRef | null;
   /**
    * Indicates if tax is included in line items (Optional).
    */
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -7774,18 +7971,18 @@ export type ItemSalesTax = {
    * (Optional) The tax rate as a percentage (e.g., 7.5 for 7.5%).
    */
   taxRate?: number | null;
-  taxVendor?: QbdRef;
-  salesTaxReturnLine?: QbdRef;
+  taxVendor?: QbdRef | null;
+  salesTaxReturnLine?: QbdRef | null;
   fullName?: string | null;
   /**
    * (Optional) BarCode information.
    */
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   /**
@@ -7819,11 +8016,11 @@ export type ItemSalesTaxGroup = {
   itemSalesTax?: Array<QbdRef> | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7844,22 +8041,22 @@ export type ItemServiceItem = {
   desc?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDescription?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7896,11 +8093,11 @@ export type ItemSubtotal = {
   specialItemType?: string | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -7917,7 +8114,7 @@ export type JournalEntry = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
    * Reference number for the journal entry. (Max 20 characters)
@@ -7940,8 +8137,8 @@ export type JournalEntry = {
   debitLines?: Array<JournalLine> | null;
   creditLines?: Array<JournalLine> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -7958,7 +8155,7 @@ export type JournalEntry = {
 export type JournalLine = {
   objectType?: string;
   id: string;
-  account?: QbdRef;
+  account?: QbdRef | null;
   /**
    * (Required) Amount for the line.
    */
@@ -7967,9 +8164,9 @@ export type JournalLine = {
    * Memo for the line. (Max 4095 characters)
    */
   memo?: string | null;
-  entity?: QbdRef;
-  class?: QbdRef;
-  itemSalesTax?: QbdRef;
+  entity?: QbdRef | null;
+  class?: QbdRef | null;
+  itemSalesTax?: QbdRef | null;
   /**
    * Billable status of the line (Billable, NotBillable, HasBeenBilled).
    */
@@ -8130,8 +8327,14 @@ export type OtherName = {
   firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
-  address?: Address;
-  addressBlock?: AddressBlock;
+  /**
+   * The primary address for the "Other Name".
+   */
+  address?: Address | null;
+  /**
+   * The address formatted as a 5-line block.
+   */
+  addressBlock?: AddressBlock | null;
   phone?: string | null;
   alternatePhone?: string | null;
   fax?: string | null;
@@ -8154,7 +8357,7 @@ export type PayableBill = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   amountDue?: number | null;
   exchangeRate?: number | null;
   /**
@@ -8164,10 +8367,10 @@ export type PayableBill = {
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
-  payablesAccount?: QbdRef;
+  payablesAccount?: QbdRef | null;
   dueDate?: string | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -8227,8 +8430,14 @@ export type PayrollItemNonWage = {
    * Possible values: Addition, CompanyContribution, Deduction, DirectDeposit, Tax
    */
   nonWageType: string;
-  expenseAccount?: QbdRef;
-  liabilityAccount?: QbdRef;
+  /**
+   * The expense account associated with this payroll item.
+   */
+  expenseAccount?: QbdRef | null;
+  /**
+   * The liability account associated with this payroll item.
+   */
+  liabilityAccount?: QbdRef | null;
   /**
    * (Optional) Indicates whether the payroll item is active.
    */
@@ -8291,7 +8500,10 @@ export type PriceLevel = {
    * List of per-item price level rules (only for PerItem type).
    */
   perItemPriceLevels?: Array<PriceLevelPerItem> | null;
-  currency?: QbdRef;
+  /**
+   * The currency associated with this price level.
+   */
+  currency?: QbdRef | null;
   /**
    * (Optional) Whether the price level is active. Defaults to true.
    */
@@ -8304,7 +8516,10 @@ export type PriceLevel = {
  * Maps to PriceLevelPerItemRet in QBXML.
  */
 export type PriceLevelPerItem = {
-  item?: QbdRef;
+  /**
+   * The item this pricing rule applies to.
+   */
+  item?: QbdRef | null;
   /**
    * The custom price for this item (mutually exclusive with CustomPricePercent).
    */
@@ -8353,7 +8568,7 @@ export type PurchaseOrder = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Purchase Order.
    */
@@ -8367,16 +8582,22 @@ export type PurchaseOrder = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  vendor?: QbdRef;
-  class?: QbdRef;
-  inventorySite?: QbdRef;
-  shipToEntity?: QbdRef;
-  template?: QbdRef;
-  vendorAddress?: Address;
-  vendorAddressBlock?: AddressBlock;
-  shipAddress?: Address;
-  shipAddressBlock?: AddressBlock;
-  terms?: QbdRef;
+  vendor?: QbdRef | null;
+  class?: QbdRef | null;
+  inventorySite?: QbdRef | null;
+  shipToEntity?: QbdRef | null;
+  template?: QbdRef | null;
+  /**
+   * (Optional) The primary address for the Vendor on this Purchase Order.
+   */
+  vendorAddress?: Address | null;
+  vendorAddressBlock?: AddressBlock | null;
+  /**
+   * (Optional) The shipping address for the Purchase Order.
+   */
+  shipAddress?: Address | null;
+  shipAddressBlock?: AddressBlock | null;
+  terms?: QbdRef | null;
   /**
    * (Optional) The date the payment is due based on terms.
    */
@@ -8385,7 +8606,7 @@ export type PurchaseOrder = {
    * (Optional) The date the vendor is expected to deliver the item.
    */
   expectedDate?: string | null;
-  shipmentMethod?: QbdRef;
+  shipmentMethod?: QbdRef | null;
   shipmentOrigin?: string | null;
   totalAmount?: number | null;
   /**
@@ -8400,14 +8621,14 @@ export type PurchaseOrder = {
    * (Optional) If true, the line item rates/amounts are inclusive of sales tax.
    */
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
   lines?: Array<PurchaseOrderLine> | null;
   lineGroups?: Array<PurchaseOrderLineGroup> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -8423,7 +8644,7 @@ export type PurchaseOrder = {
  */
 export type PurchaseOrderLine = {
   id: string;
-  item?: QbdRef;
+  item?: QbdRef | null;
   /**
    * (Optional) The manufacturer's part number for the item. (Max 31 characters)
    */
@@ -8437,23 +8658,23 @@ export type PurchaseOrderLine = {
    */
   quantity?: number | null;
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   /**
    * (Optional) Cost/Rate per item unit.
    */
   rate?: number | null;
-  class?: QbdRef;
+  class?: QbdRef | null;
   /**
    * (Optional) Total amount for the line.
    */
   amount?: number | null;
-  inventorySiteLocation?: QbdRef;
-  customer?: QbdRef;
+  inventorySiteLocation?: QbdRef | null;
+  customer?: QbdRef | null;
   /**
    * (Optional) The date the service was performed (if this is a service item).
    */
   serviceDate?: string | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   receivedQuantity?: number | null;
   unbilledQuantity?: number | null;
   isBilled?: boolean | null;
@@ -8472,14 +8693,14 @@ export type PurchaseOrderLine = {
 export type PurchaseOrderLineGroup = {
   id: string;
   objectType?: string;
-  itemGroup?: QbdRef;
+  itemGroup?: QbdRef | null;
   description?: string | null;
   /**
    * (Optional) Quantity of the group to purchase.
    */
   quantity?: number | null;
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   isPrintItemsInGroup?: boolean | null;
   totalAmount?: number | null;
   lines?: Array<PurchaseOrderLine> | null;
@@ -8565,7 +8786,7 @@ export type ReceivePayment = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * Exchange rate for multi-currency transactions (v8.0+).
    */
@@ -8579,11 +8800,11 @@ export type ReceivePayment = {
    */
   memo?: string | null;
   txnNumber?: number | null;
-  customer?: QbdRef;
-  receivablesAccount?: QbdRef;
-  paymentMethod?: QbdRef;
-  depositToAccount?: QbdRef;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  customer?: QbdRef | null;
+  receivablesAccount?: QbdRef | null;
+  paymentMethod?: QbdRef | null;
+  depositToAccount?: QbdRef | null;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   unusedPayment?: number | null;
   unusedCredits?: number | null;
   /**
@@ -8592,8 +8813,8 @@ export type ReceivePayment = {
    */
   appliedToTxns?: Array<AppliedToTxn> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -8703,7 +8924,7 @@ export type Report = {
   columnCount?: number | null;
   headerRowCount?: number | null;
   columns?: Array<ReportColumnDescription> | null;
-  data?: ReportData;
+  data?: ReportData | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -8720,7 +8941,10 @@ export type ReportColData = {
    * The data type of the column.
    */
   dataType?: string | null;
-  attributes?: DictionaryStringString;
+  /**
+   * The attributes of the column.
+   */
+  attributes?: DictionaryStringString | null;
 };
 
 /**
@@ -8784,7 +9008,7 @@ export type ReportRow = {
    * The value of the row.
    */
   value?: string | null;
-  info?: ReportRowData;
+  info?: ReportRowData | null;
   values?: Array<ReportColData> | null;
   rows?: Array<ReportRow> | null;
 };
@@ -8827,7 +9051,7 @@ export type SalesReceipt = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
    */
@@ -8841,13 +9065,13 @@ export type SalesReceipt = {
    */
   memo?: string | null;
   txnNumber?: number | null;
-  customer?: QbdRef;
-  class?: QbdRef;
-  template?: QbdRef;
-  billingAddress?: Address;
-  billingAddressBlock?: AddressBlock;
-  shippingAddress?: Address;
-  shippingAddressBlock?: AddressBlock;
+  customer?: QbdRef | null;
+  class?: QbdRef | null;
+  template?: QbdRef | null;
+  billingAddress?: Address | null;
+  billingAddressBlock?: AddressBlock | null;
+  shippingAddress?: Address | null;
+  shippingAddressBlock?: AddressBlock | null;
   /**
    * (Optional) Indicates if the transaction is pending.
    */
@@ -8856,37 +9080,37 @@ export type SalesReceipt = {
    * (Optional) Check number if payment method is check. (Max 25 characters)
    */
   checkNumber?: string | null;
-  paymentMethod?: QbdRef;
+  paymentMethod?: QbdRef | null;
   /**
    * (Optional) The date the payment is due (if applicable).
    */
   dueDate?: string | null;
-  salesRepresentative?: QbdRef;
+  salesRepresentative?: QbdRef | null;
   shipDate?: string | null;
-  shipMethod?: QbdRef;
+  shipMethod?: QbdRef | null;
   shipmentOrigin?: string | null;
   subtotal?: number | null;
-  itemSalesTax?: QbdRef;
+  itemSalesTax?: QbdRef | null;
   salesTaxPercentage?: number | null;
   salesTaxTotal?: number | null;
   totalAmount?: number | null;
   totalAmountInHomeCurrency?: number | null;
-  customerMessage?: QbdRef;
+  customerMessage?: QbdRef | null;
   isQueuedForPrint?: boolean | null;
   isQueuedForEmail?: boolean | null;
   /**
    * (Optional) If true, tax is included in the item amounts (tax-inclusive pricing).
    */
   isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef;
-  depositToAccount?: QbdRef;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  customerSalesTaxCode?: QbdRef | null;
+  depositToAccount?: QbdRef | null;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   otherCustomField?: string | null;
   lines?: Array<SalesReceiptLine> | null;
   lineGroups?: Array<SalesReceiptLineGroup> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -8903,7 +9127,7 @@ export type SalesReceipt = {
 export type SalesReceiptLine = {
   id: string;
   objectType?: string | null;
-  item?: QbdRef;
+  item?: QbdRef | null;
   /**
    * (Optional) Description for the line item. (Max 4095 characters)
    */
@@ -8916,7 +9140,7 @@ export type SalesReceiptLine = {
    * (Optional) Unit of measure override. (Max 31 characters)
    */
   unitOfMeasure?: string | null;
-  overrideUOMSet?: QbdRef;
+  overrideUOMSet?: QbdRef | null;
   /**
    * (Optional) The direct rate per unit. Use either Rate, RatePercent, or PriceLevelId.
    */
@@ -8925,13 +9149,13 @@ export type SalesReceiptLine = {
    * (Optional) The percentage rate based on item price. Use either Rate, RatePercent, or PriceLevelId.
    */
   ratePercent?: number | null;
-  class?: QbdRef;
+  class?: QbdRef | null;
   /**
    * (Optional) Total amount for the line. Overrides calculation if Rate/RatePercent not set.
    */
   amount?: number | null;
-  inventorySite?: QbdRef;
-  inventorySiteLocation?: QbdRef;
+  inventorySite?: QbdRef | null;
+  inventorySiteLocation?: QbdRef | null;
   /**
    * (Optional) Serial number for the item. Mutually exclusive with LotNumber. (Max 4095 characters)
    */
@@ -8945,10 +9169,10 @@ export type SalesReceiptLine = {
    * (Optional) The date the service was performed.
    */
   serviceDate?: string | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   customFields?: Array<QbdDataExt> | null;
 };
 
@@ -8958,7 +9182,7 @@ export type SalesReceiptLine = {
 export type SalesReceiptLineGroup = {
   id: string;
   objectType?: string | null;
-  itemGroup?: QbdRef;
+  itemGroup?: QbdRef | null;
   description?: string | null;
   /**
    * (Optional) Quantity of the group.
@@ -8968,7 +9192,7 @@ export type SalesReceiptLineGroup = {
    * (Optional) Unit of measure override. (Max 31 characters)
    */
   unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef;
+  overrideUnitOfMeasureSet?: QbdRef | null;
   shouldPrintItemsInGroup?: boolean | null;
   totalAmount?: number | null;
   lines?: Array<SalesReceiptLine> | null;
@@ -8994,8 +9218,8 @@ export type SalesTaxCode = {
    */
   isTaxable?: boolean;
   desc?: string | null;
-  itemPurchaseTax?: QbdRef;
-  itemSalesTax?: QbdRef;
+  itemPurchaseTax?: QbdRef | null;
+  itemSalesTax?: QbdRef | null;
   /**
    * (Optional) If false, this Sales Tax Code is inactive. Default is true.
    */
@@ -9017,7 +9241,7 @@ export type SalesTaxPaymentCheck = {
    * (Required) The date of the transaction.
    */
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   refNumber?: string | null;
   /**
@@ -9025,16 +9249,19 @@ export type SalesTaxPaymentCheck = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  address?: Address;
-  addressBlock?: AddressBlock;
+  /**
+   * (Optional) The address of the payee.
+   */
+  address?: Address | null;
+  addressBlock?: AddressBlock | null;
   isQueuedForPrint?: boolean | null;
   /**
    * (Required) A list of sales tax items and the amounts being paid.
    */
   lines?: Array<SalesTaxPaymentCheckLine> | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -9051,7 +9278,7 @@ export type SalesTaxPaymentCheck = {
 export type SalesTaxPaymentCheckLine = {
   objectType?: string;
   id: string;
-  itemSalesTax?: QbdRef;
+  itemSalesTax?: QbdRef | null;
   /**
    * (Required) The amount of the payment for this line.
    */
@@ -9081,22 +9308,22 @@ export type ServiceItem = {
   desc?: string | null;
   price?: number | null;
   pricePercent?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   salesDescription?: string | null;
   salesPrice?: number | null;
-  incomeAccount?: QbdRef;
+  incomeAccount?: QbdRef | null;
   purchaseDesc?: string | null;
   purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef;
-  expenseAccount?: QbdRef;
-  preferredVendor?: QbdRef;
+  purchaseTaxCode?: QbdRef | null;
+  expenseAccount?: QbdRef | null;
+  preferredVendor?: QbdRef | null;
   fullName?: string | null;
   barcode?: string | null;
-  class?: QbdRef;
-  parent?: QbdRef;
+  class?: QbdRef | null;
+  parent?: QbdRef | null;
   sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef;
-  salesTaxCode?: QbdRef;
+  unitOfMeasureSet?: QbdRef | null;
+  salesTaxCode?: QbdRef | null;
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
@@ -9325,19 +9552,19 @@ export type TimeTracking = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: number | null;
-  customer?: QbdRef;
-  itemService?: QbdRef;
+  customer?: QbdRef | null;
+  itemService?: QbdRef | null;
   /**
    * (Required) The duration of the work performed, formatted as an XML TimeIntervalType string (e.g., "PT8H0M0S" for 8 hours).
    */
   duration?: string | null;
-  class?: QbdRef;
-  payrollItemWage?: QbdRef;
+  class?: QbdRef | null;
+  payrollItemWage?: QbdRef | null;
   /**
    * (Optional) General notes about the time entry. Max 4095 chars.
    */
@@ -9352,8 +9579,8 @@ export type TimeTracking = {
   isBillable?: boolean | null;
   isBilled?: boolean | null;
   amount?: number | null;
-  entity?: QbdRef;
-  account?: QbdRef;
+  entity?: QbdRef | null;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -9375,15 +9602,18 @@ export type Transaction = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   exchangeRate?: number | null;
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
   transactionLineId?: string | null;
-  entity?: QbdRef;
+  /**
+   * The entity associated with this transaction (Customer, Vendor, Employee, etc.)
+   */
+  entity?: QbdRef | null;
   amount?: number | null;
-  account?: QbdRef;
+  account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -9412,7 +9642,10 @@ export type UnitOfMeasureSet = {
    * The type of measurement: "Area", "Count", "Length", "Other", "Time", "Volume", "Weight".
    */
   unitOfMeasureType?: string | null;
-  baseUnit?: BaseUnit;
+  /**
+   * The base unit definition for this set.
+   */
+  baseUnit?: BaseUnit | null;
   /**
    * List of related units with conversion ratios.
    */
@@ -9441,7 +9674,11 @@ export type UpdateAccountRequest = {
    * Whether the account is active
    */
   isActive?: boolean | null;
-  accountType?: NullableAccountType;
+  /**
+   * Account type (optional)
+   * NOTE: Cannot create non_posting accounts via API - QuickBooks creates these internally
+   */
+  accountType?: NullableAccountType | null;
   /**
    * Whether the account is a tax account (optional)
    */
@@ -9529,7 +9766,10 @@ export type UpdateArRefundCreditCardRequest = {
    * (Optional) The reference number for the refund.
    */
   refNumber?: string | null;
-  address?: AddressRequest;
+  /**
+   * (Optional) Address details for the refund.
+   */
+  address?: AddressRequest | null;
   /**
    * (Optional) The ListID or FullName of the payment method.
    */
@@ -9538,7 +9778,7 @@ export type UpdateArRefundCreditCardRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo;
+  creditCardTransaction?: CreditCardTransactionInfo | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -9564,7 +9804,7 @@ export type UpdateBillRequest = {
    * Filter by Vendor ID.
    */
   vendorId?: string | null;
-  vendorAddress?: AddressRequest;
+  vendorAddress?: AddressRequest | null;
   payablesAccountId?: string | null;
   transactionDate?: string | null;
   dueDate?: string | null;
@@ -9787,7 +10027,10 @@ export type UpdateCheckRequest = {
    */
   memo?: string | null;
   isQueuedForPrint?: boolean | null;
-  address?: Address;
+  /**
+   * Payee address
+   */
+  address?: Address | null;
   /**
    * If true, the amount includes sales tax.
    */
@@ -10021,8 +10264,8 @@ export type UpdateCreditCardRequest = {
  * Aggregate containing credit card input and result information for a payment (Mod).
  */
 export type UpdateCreditCardTransactionInfoRequest = {
-  creditCardTxnInputInfoMod?: UpdateCreditCardTransactionInputInfoRequest;
-  creditCardTxnResultInfoMod?: UpdateCreditCardTransactionResultInfoRequest;
+  creditCardTxnInputInfoMod?: UpdateCreditCardTransactionInputInfoRequest | null;
+  creditCardTxnResultInfoMod?: UpdateCreditCardTransactionResultInfoRequest | null;
 };
 
 /**
@@ -10058,8 +10301,15 @@ export type UpdateCreditCardTransactionInputInfoRequest = {
    * (Optional) New commercial card code. (Max 4 characters)
    */
   commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode;
-  creditCardTxnType?: NullableCreditCardTransactionType;
+  /**
+   * (Optional) New transaction mode (0 for CardNotPresent [DEFAULT], 1 for CardPresent).
+   */
+  transactionMode?: NullableTransactionMode | null;
+  /**
+   * (Optional) New type of credit card transaction.
+   * Used for actions like changing an Authorization to a Capture (1).
+   */
+  creditCardTxnType?: NullableCreditCardTransactionType | null;
 };
 
 export type UpdateCreditCardTransactionResultInfoRequest = {
@@ -10070,9 +10320,9 @@ export type UpdateCreditCardTransactionResultInfoRequest = {
   paymentStatus: PaymentStatus;
   txnAuthorizationTime: string;
   authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet;
-  avsZip?: NullableAvsZip;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch;
+  avsStreet?: NullableAvsStreet | null;
+  avsZip?: NullableAvsZip | null;
+  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
   txnAuthorizationStamp?: number | null;
@@ -10209,8 +10459,8 @@ export type UpdateCreditMemoRequest = {
    * (Optional) The reference number.
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the credit memo is pending.
    */
@@ -10286,7 +10536,10 @@ export type UpdateCurrencyRequest = {
    * (Optional) The three-letter currency code (e.g., USD, EUR). Values are normalized to trimmed uppercase. Cannot be changed for built-in QuickBooks currencies. (Max 3 characters)
    */
   currencyCode?: string | null;
-  currencyFormat?: CurrencyFormatRequest;
+  /**
+   * (Optional) Specifies the formatting rules for the currency.
+   */
+  currencyFormat?: CurrencyFormatRequest | null;
 };
 
 /**
@@ -10313,14 +10566,14 @@ export type UpdateCustomerRequest = {
   taxRegistrationNumber?: string | null;
   jobTypeId?: string | null;
   currencyId?: string | null;
-  creditCardInfo?: CreditCardInfo;
+  creditCardInfo?: CreditCardInfo | null;
   salutation?: string | null;
   firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
   jobTitle?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * Additional ship-to addresses (up to 50 allowed by QuickBooks).
    * Note: Updating ship-to addresses replaces the entire list.
@@ -10338,7 +10591,7 @@ export type UpdateCustomerRequest = {
    */
   customContactFields?: Array<CustomContactField> | null;
   creditLimit?: number | null;
-  jobStatus?: NullableJobStatus;
+  jobStatus?: NullableJobStatus | null;
   jobStartDate?: string | null;
   jobProjectedEndDate?: string | null;
   jobEndDate?: string | null;
@@ -10375,8 +10628,16 @@ export type UpdateDateDrivenTermRequest = {
  */
 export type UpdateDepositLineRequest = {
   transactionLineId: string;
-  paymentLineMod?: DepositPaymentLineRequest;
-  manualLineMod?: DepositManualLineRequest;
+  /**
+   * (Optional) Modification details for a payment line (PaymentTxnID, OverrideMemo, etc.).
+   * Mutually exclusive with ManualLineMod.
+   */
+  paymentLineMod?: DepositPaymentLineRequest | null;
+  /**
+   * (Optional) Modification details for a manual line (EntityId, AccountId, Amount, etc.).
+   * Mutually exclusive with PaymentLineMod.
+   */
+  manualLineMod?: DepositManualLineRequest | null;
 };
 
 /**
@@ -10395,7 +10656,7 @@ export type UpdateDepositRequest = {
    * (Optional) New general memo about the Deposit. (Max 4095 characters)
    */
   memo?: string | null;
-  cashBackInfo?: CashBackInfoRequest;
+  cashBackInfo?: CashBackInfoRequest | null;
   /**
    * (Optional) The ListID or FullName of the currency for the transaction.
    * Follows the Flattened-ID Pattern for CurrencyRef.
@@ -10426,7 +10687,7 @@ export type UpdateEmployeeRequest = {
   supervisorId?: string | null;
   department?: string | null;
   description?: string | null;
-  employeeAddress?: EmployeeAddress;
+  employeeAddress?: EmployeeAddress | null;
   printAs?: string | null;
   phone?: string | null;
   mobile?: string | null;
@@ -10440,7 +10701,10 @@ export type UpdateEmployeeRequest = {
    * Additional contact references (may repeat, v12.0+).
    */
   additionalContacts?: Array<AdditionalContact> | null;
-  emergencyContacts?: EmergencyContact;
+  /**
+   * Emergency contacts for the employee (QBD only, v13.0+).
+   */
+  emergencyContacts?: EmergencyContact | null;
   employeeType?: string | null;
   partOrFullTime?: string | null;
   gender?: string | null;
@@ -10471,7 +10735,7 @@ export type UpdateEmployeeRequest = {
   workAuthExpireDate?: string | null;
   usVeteran?: string | null;
   militaryStatus?: string | null;
-  employeePayrollInfo?: EmployeePayrollInfo;
+  employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
 };
 
@@ -10566,8 +10830,8 @@ export type UpdateEstimateRequest = {
    * (Optional) The sequential reference number for the Estimate (e.g., Estimate Number). (STRTYPE)
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Whether the Estimate is active. Cannot be cleared. (BOOLTYPE)
    */
@@ -10730,7 +10994,7 @@ export type UpdateInventoryAdjustmentRequest = {
  */
 export type UpdateInventoryItemRequest = {
   name: string;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   classId?: string | null;
   parentId?: string | null;
   sku?: string | null;
@@ -10765,7 +11029,7 @@ export type UpdateInventorySiteRequest = {
   phone?: string | null;
   fax?: string | null;
   email?: string | null;
-  address?: AddressRequest;
+  address?: AddressRequest | null;
 };
 
 /**
@@ -10792,8 +11056,8 @@ export type UpdateInvoiceRequest = {
    * Reference number for the invoice.
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   isPending?: boolean | null;
   purchaseOrderNumber?: string | null;
   /**
@@ -10902,7 +11166,7 @@ export type UpdateItemGroupLineRequest = {
  */
 export type UpdateItemGroupRequest = {
   name?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   description?: string | null;
   unitOfMeasureSetId?: string | null;
@@ -10933,7 +11197,7 @@ export type UpdateItemInventoryAssemblyLineRequest = {
 export type UpdateItemInventoryAssemblyRequest = {
   revisionNumber: string;
   name?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -11035,7 +11299,7 @@ export type UpdateItemLineRequest = {
 export type UpdateItemNonInventoryRequest = {
   revisionNumber: string;
   name?: string | null;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -11043,8 +11307,8 @@ export type UpdateItemNonInventoryRequest = {
   unitOfMeasureSetId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
-  salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest;
-  salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest;
+  salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest | null;
+  salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest | null;
 };
 
 /**
@@ -11053,14 +11317,14 @@ export type UpdateItemNonInventoryRequest = {
 export type UpdateItemOtherChargeRequest = {
   revisionNumber: string;
   name?: string | null;
-  barcode?: BarCodeRequest;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
-  salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest;
-  salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest;
+  salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest | null;
+  salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest | null;
 };
 
 /**
@@ -11137,7 +11401,7 @@ export type UpdateItemReceiptRequest = {
 export type UpdateItemSalesTaxGroupRequest = {
   revisionNumber: string;
   name?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   description?: string | null;
   itemSalesTaxIds?: Array<string> | null;
@@ -11153,7 +11417,10 @@ export type UpdateItemSalesTaxRequest = {
    * (Optional) The name or identifier for the sales tax item.
    */
   name?: string | null;
-  barcode?: BarCodeRequest;
+  /**
+   * (Optional) BarCode information.
+   */
+  barcode?: BarCodeRequest | null;
   /**
    * (Optional) Indicates whether the sales tax item is active.
    */
@@ -11195,7 +11462,7 @@ export type UpdateItemSubtotalRequest = {
   name: string;
   isActive?: boolean | null;
   barCodeValue?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   externalId?: string | null;
 };
 
@@ -11274,8 +11541,8 @@ export type UpdateOtherNameRequest = {
   firstName?: string | null;
   middleName?: string | null;
   lastName?: string | null;
-  address?: Address;
-  addressBlock?: AddressBlock;
+  address?: Address | null;
+  addressBlock?: AddressBlock | null;
   phone?: string | null;
   alternatePhone?: string | null;
   fax?: string | null;
@@ -11455,8 +11722,14 @@ export type UpdatePurchaseOrderRequest = {
    * (Optional) The document number. (Max 11 characters)
    */
   refNumber?: string | null;
-  vendorAddress?: AddressRequest;
-  shipAddress?: AddressRequest;
+  /**
+   * (Optional) The primary address for the Vendor on this Purchase Order.
+   */
+  vendorAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address for the Purchase Order.
+   */
+  shipAddress?: AddressRequest | null;
   /**
    * (Optional) The ListID or FullName of the payment terms.
    * Follows the Flattened-ID Pattern for TermsRef.
@@ -11554,7 +11827,10 @@ export type UpdateReceivePaymentRequest = {
    * Account to deposit the payment into.
    */
   depositToAccountId?: string | null;
-  creditCardTxnInfo?: CreditCardTxnInfoRequest;
+  /**
+   * Credit card transaction information (v7.0+ for mod).
+   */
+  creditCardTxnInfo?: CreditCardTxnInfoRequest | null;
   appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
@@ -11693,8 +11969,8 @@ export type UpdateSalesReceiptRequest = {
    * (Optional) The new document number (e.g., receipt number). (Max 11 characters)
    */
   refNumber?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   /**
    * (Optional) New check number if payment method is check. (Max 25 characters)
    */
@@ -11738,7 +12014,7 @@ export type UpdateSalesReceiptRequest = {
    */
   exchangeRate?: number | null;
   otherCustomField?: string | null;
-  creditCardTransaction?: UpdateCreditCardTransactionInfoRequest;
+  creditCardTransaction?: UpdateCreditCardTransactionInfoRequest | null;
   lines?: Array<UpdateSalesReceiptLineRequest> | null;
   lineGroups?: Array<UpdateSalesReceiptLineGroupRequest> | null;
 };
@@ -11799,13 +12075,16 @@ export type UpdateSalesTaxPaymentCheckRequest = {
    * (Optional) A memo for the transaction. Max 4095 chars.
    */
   memo?: string | null;
-  address?: AddressRequest;
+  /**
+   * (Optional) The address of the payee.
+   */
+  address?: AddressRequest | null;
 };
 
 export type UpdateServiceItemRequest = {
   revisionNumber: string;
   name?: string | null;
-  barCode?: BarCodeRequest;
+  barCode?: BarCodeRequest | null;
   isActive?: boolean | null;
   parentId?: string | null;
   salesTaxCodeId?: string | null;
@@ -11815,8 +12094,8 @@ export type UpdateServiceItemRequest = {
   applyAccountToExistingTransactions?: boolean | null;
   applyIncomeAccountToExistingTransactions?: boolean | null;
   applyExpenseAccountToExistingTransactions?: boolean | null;
-  salesOrPurchaseMod?: UpdateSalesOrPurchaseRequest;
-  salesAndPurchaseMod?: UpdateSalesAndPurchaseRequest;
+  salesOrPurchaseMod?: UpdateSalesOrPurchaseRequest | null;
+  salesAndPurchaseMod?: UpdateSalesAndPurchaseRequest | null;
   includeRetElement?: Array<string> | null;
 };
 
@@ -11966,8 +12245,8 @@ export type UpdateVendorRequest = {
   middleName?: string | null;
   lastName?: string | null;
   jobTitle?: string | null;
-  billingAddress?: AddressRequest;
-  shippingAddress?: AddressRequest;
+  billingAddress?: AddressRequest | null;
+  shippingAddress?: AddressRequest | null;
   phone?: string | null;
   alternatePhone?: string | null;
   fax?: string | null;
@@ -12134,18 +12413,39 @@ export type Vendor = {
    */
   accountNumber?: string | null;
   note?: string | null;
-  class?: QbdRef;
-  vendorType?: QbdRef;
-  terms?: QbdRef;
-  billingRate?: QbdRef;
-  salesTaxCode?: QbdRef;
-  salesTaxReturn?: QbdRef;
-  purchaseTaxAccount?: QbdRef;
-  salesTaxAccount?: QbdRef;
-  currency?: QbdRef;
+  /**
+   * The class assigned to this vendor for departmental tracking.
+   */
+  class?: QbdRef | null;
+  /**
+   * The vendor type category assigned to this vendor.
+   */
+  vendorType?: QbdRef | null;
+  /**
+   * The default payment terms for this vendor (e.g., "Net 30").
+   */
+  terms?: QbdRef | null;
+  /**
+   * The billing rate used when tracking time for this vendor.
+   */
+  billingRate?: QbdRef | null;
+  /**
+   * The sales tax code assigned to this vendor.
+   */
+  salesTaxCode?: QbdRef | null;
+  /**
+   * The sales tax return account for this tax-agency vendor.
+   */
+  salesTaxReturn?: QbdRef | null;
+  purchaseTaxAccount?: QbdRef | null;
+  salesTaxAccount?: QbdRef | null;
+  /**
+   * The currency used for transactions with this vendor (multi-currency files only).
+   */
+  currency?: QbdRef | null;
   defaultExpenseAccounts?: Array<QbdRef> | null;
-  billingAddress?: Address;
-  shippingAddress?: Address;
+  billingAddress?: Address | null;
+  shippingAddress?: Address | null;
   /**
    * Custom contact fields (name/value pairs) defined for this vendor.
    */
@@ -12209,7 +12509,7 @@ export type VendorCredit = {
    * (Optional) The date of the transaction. Defaults to the current date.
    */
   transactionDate?: string | null;
-  currency?: QbdRef;
+  currency?: QbdRef | null;
   /**
    * (Optional) The exchange rate, if using multi-currency.
    */
@@ -12223,10 +12523,19 @@ export type VendorCredit = {
    */
   memo?: string | null;
   transactionNumber?: number | null;
-  entity?: QbdRef;
-  vendor?: QbdRef;
-  account?: QbdRef;
-  payablesAccount?: QbdRef;
+  /**
+   * Refers to the Vendor. Note: The base Entity is for PayeeEntityRef.
+   */
+  entity?: QbdRef | null;
+  /**
+   * Refers to the Vendor.
+   */
+  vendor?: QbdRef | null;
+  /**
+   * Refers to the Payables Account. Note: The base Account is for PayeeAccountRef.
+   */
+  account?: QbdRef | null;
+  payablesAccount?: QbdRef | null;
   /**
    * The total amount of the credit.
    */
@@ -12239,7 +12548,7 @@ export type VendorCredit = {
    * (Optional) If true, the amount includes sales tax.
    */
   isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef;
+  salesTaxCode?: QbdRef | null;
   /**
    * The amount of this credit that has not yet been applied.
    */
@@ -12283,7 +12592,7 @@ export type VendorType = {
    * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
    */
   fullName?: string | null;
-  parent?: QbdRef;
+  parent?: QbdRef | null;
   sublevel?: number | null;
   /**
    * (Optional) If false, this Vendor Type is inactive. Default is true.

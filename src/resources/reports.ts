@@ -85,11 +85,12 @@ export class ReportsResource {
     path: string,
     params?: ReportParams & RequestOptions,
   ): Promise<unknown> {
-    const { connectionId, headers, timeout, ...query } = params ?? {};
+    const { connectionId, headers, timeout, maxRetries, ...query } = params ?? {};
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
+    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
     return this.transport.get<unknown>(path, query, options);
   }
 }

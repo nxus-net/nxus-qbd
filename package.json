@@ -1,7 +1,7 @@
 {
   "name": "nxus-qbd",
-  "version": "0.3.1",
-  "description": "Official Node.js/TypeScript SDK for the Nxus QuickBooks Desktop API",
+  "version": "0.3.2",
+  "description": "Official TypeScript SDK for the Nxus QuickBooks Desktop API. Runs on Node.js 18+ and Bun 1.0+.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -58,14 +58,17 @@
     "qbd",
     "sdk",
     "api",
-    "accounting"
+    "accounting",
+    "node",
+    "bun"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/nxus-app/nxus-qbd.git"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "bun": ">=1.0"
   },
   "packageManager": "pnpm@10.6.2"
 }

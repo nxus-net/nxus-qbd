@@ -4,7 +4,7 @@ export * from './account_tax_line_info';
 export * from './ar_refund_credit_card';
 export * from './bar_code';
 export * from './bill';
-export * from './bill_to_pay';
+export * from './bill_payment_or_credit';
 export * from './billing_rate';
 export * from './build_assembly';
 export * from './charge';

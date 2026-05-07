@@ -1,6 +1,5 @@
 # Temporary files
 .tmp/
-REWRITE_PROMPT.md
 
 # Dependencies
 node_modules/
@@ -46,3 +45,10 @@ coverage/
 *.log
 tmp/
 temp/
+
+
+# AI
+.omx/*
+.claude/*
+.CLAUDE.md
+.AGENT.md

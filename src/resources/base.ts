@@ -141,12 +141,13 @@ class TransportPaginationPromise<TItem> implements AutoPaginationPromise<TItem> 
 function extractOptions<T extends Record<string, unknown>>(
   params: T,
 ): { body: Record<string, unknown>; options: RequestOptions } {
-  const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params;
+  const { connectionId, headers, timeout, serverTimeoutSeconds, maxRetries, ...body } = params;
   const options: RequestOptions = {};
   if (connectionId !== undefined) options.connectionId = connectionId as string;
   if (headers !== undefined) options.headers = headers as Record<string, string>;
   if (timeout !== undefined) options.timeout = timeout as number;
   if (serverTimeoutSeconds !== undefined) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
+  if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
   return { body, options };
 }
 
@@ -191,10 +192,11 @@ export class Resource<T, TCreate = Record<string, unknown>, TUpdate = Record<str
    * ```
    */
   list(params?: ListParams & RequestOptions): AutoPaginationPromise<T> {
-    const { connectionId, headers, timeout, timeoutSeconds, serverTimeoutSeconds, ...query } = params ?? {};
+    const { connectionId, headers, timeout, timeoutSeconds, serverTimeoutSeconds, maxRetries, ...query } = params ?? {};
     const reqOptions: RequestOptions = {};
     if (connectionId !== undefined) reqOptions.connectionId = connectionId;
     if (timeout !== undefined) reqOptions.timeout = timeout as number;
+    if (maxRetries !== undefined) reqOptions.maxRetries = maxRetries as number;
 
     const requestHeaders = headers
       ? { ...(headers as Record<string, string>) }
@@ -391,12 +393,13 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
   }
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, maxRetries, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
     if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
+    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
     return this.transport.post<T>(this.getCreatePath(), body, options);
   }
 }
@@ -427,12 +430,13 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
   }
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, maxRetries, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
     if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
+    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
     return this.transport.post<T>(this.getCreatePath(), body, options);
   }
 
@@ -449,12 +453,13 @@ export class CreateOnlyResource<T, TCreate = Record<string, unknown>> {
   ) {}
 
   async create(params: TCreate & RequestOptions): Promise<T> {
-    const { connectionId, headers, timeout, serverTimeoutSeconds, ...body } = params as Record<string, unknown> & RequestOptions;
+    const { connectionId, headers, timeout, serverTimeoutSeconds, maxRetries, ...body } = params as Record<string, unknown> & RequestOptions;
     const options: RequestOptions = {};
     if (connectionId) options.connectionId = connectionId;
     if (headers) options.headers = headers as Record<string, string>;
     if (timeout) options.timeout = timeout as number;
     if (serverTimeoutSeconds) options.serverTimeoutSeconds = serverTimeoutSeconds as number;
+    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
     return this.transport.post<T>(this.createPath, body, options);
   }
 }

@@ -271,6 +271,18 @@ export interface NxusClientOptions {
    * for list/report operations. Omit to let the server apply its own default.
    */
   serverTimeoutSeconds?: number;
+  /**
+   * Maximum number of automatic retry attempts on transient failures.
+   * Defaults to `2` (3 total attempts). Set to `0` to disable retries.
+   *
+   * Retries are attempted on network errors and HTTP 408, 429, and 5xx
+   * responses. HTTP 409 is retried only when the API emits
+   * `x-should-retry: true`, because 409 can represent either transient lock
+   * contention or terminal business-rule conflicts. Local timeouts (the SDK's
+   * abort timer) are not retried. Per-request override is available via
+   * `maxRetries` on the request options.
+   */
+  maxRetries?: number;
 }
 
 // Re-export RequestOptions for consumers
@@ -309,6 +321,7 @@ export class NxusClient {
       headers,
       timeout = DEFAULT_TIMEOUT_MS,
       serverTimeoutSeconds,
+      maxRetries,
     } = options;
 
     this.transport = new NxusHttpTransport({
@@ -320,6 +333,7 @@ export class NxusClient {
       headers,
       timeout,
       serverTimeoutSeconds,
+      maxRetries,
     });
   }
 
@@ -720,13 +734,21 @@ export class NxusClient {
     );
   }
 
-  /** Bills to Pay — list, retrieve only */
-  get billToPay() {
+  /** Bill Payments or Credits — list, retrieve only */
+  get billPaymentsOrCredits() {
     return new ReadOnlyResource<BillPaymentOrCredit>(
       this.transport,
-      "/api/v1/bills-to-pay",
-      "/api/v1/bill-to-pay",
+      "/api/v1/bill-payment-or-credits",
+      "/api/v1/bill-payment-or-credit",
     );
+  }
+
+  /**
+   * @deprecated Renamed to `billPaymentsOrCredits` to match the backend's
+   * intuitive naming. Will be removed in a future release.
+   */
+  get billToPay() {
+    return this.billPaymentsOrCredits;
   }
 
   // =========================================================================

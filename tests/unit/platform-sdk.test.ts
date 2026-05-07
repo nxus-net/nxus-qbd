@@ -400,7 +400,7 @@ describe('platform SDK surface', () => {
     expect((fetchMock.mock.calls[1]?.[1] as RequestInit | undefined)?.method).toBe('DELETE');
   });
 
-  it('exposes bill-to-pay while omitting removed internal resources', async () => {
+  it('exposes bill-payment-or-credits while omitting removed internal resources', async () => {
     const fetchMock = installFetchMock(
       jsonResponse({
         data: [{ id: 'bill_123', refNumber: 'BILL-123' }],
@@ -408,6 +408,7 @@ describe('platform SDK surface', () => {
         nextCursor: null,
       }),
       jsonResponse({ id: 'bill_123', refNumber: 'BILL-123' }),
+      jsonResponse({ data: [], hasMore: false, nextCursor: null }),
     );
 
     const client = new NxusClient({
@@ -418,15 +419,22 @@ describe('platform SDK surface', () => {
     expect('apiKeys' in client).toBe(false);
     expect('leads' in client).toBe(false);
 
-    const page = await client.billToPay.list();
-    const retrieved = await client.billToPay.retrieve('bill_123');
+    const page = await client.billPaymentsOrCredits.list();
+    const retrieved = await client.billPaymentsOrCredits.retrieve('bill_123');
 
-    expect(String(fetchMock.mock.calls[0]?.[0])).toBe('https://api.example.test/api/v1/bills-to-pay');
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://api.example.test/api/v1/bill-payment-or-credits',
+    );
     expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
-      'https://api.example.test/api/v1/bill-to-pay/bill_123',
+      'https://api.example.test/api/v1/bill-payment-or-credit/bill_123',
     );
     expect(page.data).toHaveLength(1);
     expect(retrieved.id).toBe('bill_123');
+
+    await client.billToPay.list();
+    expect(String(fetchMock.mock.calls[2]?.[0])).toBe(
+      'https://api.example.test/api/v1/bill-payment-or-credits',
+    );
   });
 
   it('uses plural auth-session routes', async () => {
