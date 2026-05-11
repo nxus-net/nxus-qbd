@@ -25,6 +25,7 @@ import {
   NxusHttpTransport,
   DEFAULT_TIMEOUT_MS,
   type TransportOptions,
+  type NxusLogger,
 } from "./transport";
 import type { RequestOptions } from "./transport";
 import { type NxusEnvironment, resolveBaseUrl } from "./config";
@@ -283,10 +284,34 @@ export interface NxusClientOptions {
    * `maxRetries` on the request options.
    */
   maxRetries?: number;
+  /**
+   * Emit debug logs for every request, response, retry, and error. Sensitive
+   * headers (Authorization, cookies, x-api-key) are redacted in the logs.
+   * Defaults to `false`. Providing `logger` implies `verbose: true`.
+   */
+  verbose?: boolean;
+  /**
+   * Custom structured logger. Plug in winston, pino, or any object that
+   * implements `{ debug, info, warn, error }`. When omitted and `verbose` is
+   * `true`, the SDK logs to `console`.
+   */
+  logger?: NxusLogger;
+  /**
+   * Outbound HTTP/HTTPS proxy URL (e.g. `"http://proxy.corp:8080"`). On Node,
+   * the SDK lazily loads `undici.ProxyAgent`. On Bun, the URL is passed
+   * through as the native `proxy` fetch option. No-op in browsers and Deno.
+   */
+  proxy?: string;
+  /**
+   * Extra options merged into every `fetch()` call. Escape hatch for
+   * runtime-specific features (e.g. custom `dispatcher` on Node/undici, `tls`
+   * on Bun).
+   */
+  fetchOptions?: Record<string, unknown>;
 }
 
-// Re-export RequestOptions for consumers
-export type { RequestOptions };
+// Re-export RequestOptions and the logger contract for consumers
+export type { RequestOptions, NxusLogger };
 
 // ---------------------------------------------------------------------------
 // NxusClient
@@ -322,6 +347,10 @@ export class NxusClient {
       timeout = DEFAULT_TIMEOUT_MS,
       serverTimeoutSeconds,
       maxRetries,
+      verbose,
+      logger,
+      proxy,
+      fetchOptions,
     } = options;
 
     this.transport = new NxusHttpTransport({
@@ -334,6 +363,10 @@ export class NxusClient {
       timeout,
       serverTimeoutSeconds,
       maxRetries,
+      verbose,
+      logger,
+      proxy,
+      fetchOptions,
     });
   }
 
