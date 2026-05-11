@@ -117,6 +117,94 @@ const created = await nxus.invoices.create({
 });
 ```
 
+## Verbose Logging
+
+Set `verbose: true` to emit structured logs for every request, response, retry,
+and error. Sensitive headers (`Authorization`, `Cookie`, `Set-Cookie`,
+`X-Api-Key`, `Proxy-Authorization`) are automatically redacted.
+
+```ts
+const nxus = new NxusClient({
+  apiKey: "sk_live_...",
+  verbose: true,                     // logs to console
+});
+```
+
+Plug in your own logger (winston, pino, etc.) by providing any object that
+implements `{ debug, info, warn, error }`:
+
+```ts
+import type { NxusLogger } from "nxus-qbd";
+
+const logger: NxusLogger = {
+  debug: (m, c) => myLogger.debug({ event: m, ...c }),
+  info:  (m, c) => myLogger.info({ event: m, ...c }),
+  warn:  (m, c) => myLogger.warn({ event: m, ...c }),
+  error: (m, c) => myLogger.error({ event: m, ...c }),
+};
+
+const nxus = new NxusClient({ apiKey: "sk_live_...", logger });
+```
+
+Providing a `logger` implies `verbose: true`. You can also opt-in on a single
+call via `{ verbose: true }` in request options.
+
+## Proxy Support
+
+Route traffic through an outbound HTTP/HTTPS proxy by passing `proxy`:
+
+```ts
+const nxus = new NxusClient({
+  apiKey: "sk_live_...",
+  proxy: "http://proxy.corp:8080",
+});
+```
+
+On Node, the SDK lazily loads `undici.ProxyAgent` (shipped with Node 18+) and
+wires it via `fetchOptions.dispatcher`. On Bun, the URL is passed through as
+the native `proxy` fetch option. For advanced cases — custom TLS, mTLS,
+per-request dispatchers — use the `fetchOptions` escape hatch:
+
+```ts
+import { ProxyAgent } from "undici";
+
+const nxus = new NxusClient({
+  apiKey: "sk_live_...",
+  fetchOptions: {
+    dispatcher: new ProxyAgent({
+      uri: "http://proxy.corp:8080",
+      token: `Basic ${Buffer.from("user:pass").toString("base64")}`,
+    }),
+  },
+});
+```
+
+`fetchOptions` may also be supplied per request to override the client default.
+
+## Raw HTTP Access
+
+When you need direct access to the underlying `Response` — headers, streaming
+bodies, custom status handling — use `transport.raw()`. Authentication, default
+headers, the timeout, and retries are still applied; only JSON parsing and the
+typed error mapping are bypassed.
+
+```ts
+import { NxusClient } from "nxus-qbd";
+
+const nxus = new NxusClient({ apiKey: "sk_live_..." });
+
+const res = await (nxus as unknown as { transport: { raw: (path: string, init?: RequestInit) => Promise<Response> } })
+  .transport.raw("/api/v1/vendors", { method: "GET" });
+
+console.log(res.status, res.headers.get("x-request-id"));
+const stream = res.body; // ReadableStream for large downloads
+```
+
+Non-2xx responses are returned, not thrown — the caller is responsible for
+checking `response.ok`. Use this only for cases the typed resource methods
+can't model (binary downloads, response-header inspection, custom error
+semantics).
+
 ## Quick Start
 
 ```ts
