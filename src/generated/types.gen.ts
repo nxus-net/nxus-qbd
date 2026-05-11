@@ -75,7 +75,7 @@ export type Account = {
    * Whether the account is active (default: true)
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -90,7 +90,7 @@ export type AccountTaxLineInfo = {
   updatedAt: string;
   revisionNumber: string;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -254,11 +254,11 @@ export type ApplicableCredit = {
   account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -440,11 +440,11 @@ export type ArRefundCreditCard = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -509,7 +509,7 @@ export type BarCode = {
    */
   listType?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -1962,19 +1962,19 @@ export type Bill = {
   account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
   /**
    * Expense line items for the bill.
    * At least one expense line or item line is required.
    */
-  expenseLines?: Array<ExpenseLine> | null;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * Item line items for the bill (for inventory items).
    */
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
   openAmount?: number | null;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2004,7 +2004,7 @@ export type BillingRate = {
    */
   billingRatePerItems?: Array<BillingRatePerItem> | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2065,7 +2065,7 @@ export type BillPaymentOrCredit = {
   revisionNumber: string;
   bill?: PayableBill | null;
   credit?: ApplicableCredit | null;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2128,11 +2128,11 @@ export type BuildAssembly = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2234,11 +2234,11 @@ export type Charge = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2284,20 +2284,20 @@ export type Check = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
   /**
    * Expense lines for the check (at least one line item required)
    */
-  expenseLines?: Array<ExpenseLine> | null;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * Item lines for the check
    */
-  itemLines?: Array<ItemLine> | null;
+  itemLines?: Array<ItemLine>;
   /**
    * Item group lines for the check
    */
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2369,11 +2369,11 @@ export type CheckBill = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2405,7 +2405,7 @@ export type Class = {
    * (Optional) Whether the class is active. Defaults to true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -2551,7 +2551,7 @@ export type Contact = {
    */
   customContactFields?: Array<CustomContactField> | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -5474,11 +5474,11 @@ export type CreditCardBill = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -5504,11 +5504,11 @@ export type CreditCardCharge = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -5551,22 +5551,22 @@ export type CreditCardCredit = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
   /**
    * Expense line items for the credit card credit.
    * At least one expense line or item line is required.
    */
-  expenseLines?: Array<ExpenseLine> | null;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * Item line items for the credit card credit (for inventory items).
    * At least one expense line or item line is required.
    */
-  itemLines?: Array<ItemLine> | null;
+  itemLines?: Array<ItemLine>;
   /**
    * Item group line items for the credit card credit.
    */
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -5739,11 +5739,11 @@ export type CreditMemo = {
   account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -5858,7 +5858,7 @@ export type Currency = {
    * (Optional) If false, this Currency is inactive. Default is true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6105,7 +6105,7 @@ export type Customer = {
   taxRegistrationNumber?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6132,7 +6132,7 @@ export type CustomerType = {
    * (Optional) If false, this Customer Type is inactive. Default is true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6169,7 +6169,7 @@ export type DateDrivenTerm = {
   discountDayOfMonth?: number | null;
   discountPercntage?: number | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6262,11 +6262,11 @@ export type Deposit = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6433,7 +6433,7 @@ export type Employee = {
    * The employee's name (required). This is the display name in QuickBooks.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6621,8 +6621,8 @@ export type Estimate = {
   account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  expenseLines?: Array<ExpenseLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6753,11 +6753,11 @@ export type InventoryAdjustment = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6818,7 +6818,7 @@ export type InventoryItem = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6842,7 +6842,7 @@ export type InventorySite = {
   siteAddress?: Address | null;
   siteAddressBlock?: AddressBlock | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -6931,17 +6931,17 @@ export type Invoice = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * Item line items for the invoice.
    */
-  itemLines?: Array<ItemLine> | null;
+  itemLines?: Array<ItemLine>;
   /**
    * Item group line items for the invoice.
    */
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7012,7 +7012,7 @@ export type ItemDiscount = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7101,7 +7101,7 @@ export type ItemFixedAsset = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7127,7 +7127,7 @@ export type ItemGroup = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7210,7 +7210,7 @@ export type ItemInventoryAssembly = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 export type ItemInventoryAssemblyLine = {
@@ -7260,7 +7260,7 @@ export type ItemInventoryItem = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7296,7 +7296,7 @@ export type ItemItemDiscount = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7346,7 +7346,7 @@ export type ItemItemFixedAsset = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7381,7 +7381,7 @@ export type ItemItemGroup = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7433,7 +7433,7 @@ export type ItemItemInventoryAssembly = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7479,7 +7479,7 @@ export type ItemItemNonInventory = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7526,7 +7526,7 @@ export type ItemItemOtherCharge = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7561,7 +7561,7 @@ export type ItemItemPayment = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7597,7 +7597,7 @@ export type ItemItemSalesTax = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7633,7 +7633,7 @@ export type ItemItemSalesTaxGroup = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7675,7 +7675,7 @@ export type ItemItemSubtotal = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7779,7 +7779,7 @@ export type ItemNonInventory = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 export type ItemNonInventorySalesAndPurchaseDetailsRequest = {
@@ -7839,7 +7839,7 @@ export type ItemOtherCharge = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 export type ItemOtherChargeSalesAndPurchaseDetailsRequest = {
@@ -7883,7 +7883,7 @@ export type ItemPayment = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7934,20 +7934,20 @@ export type ItemReceipt = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
   /**
    * Expense line items for the item receipt.
    */
-  expenseLines?: Array<ExpenseLine> | null;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * Item line items for the item receipt.
    */
-  itemLines?: Array<ItemLine> | null;
+  itemLines?: Array<ItemLine>;
   /**
    * Item group line items for the item receipt.
    */
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -7989,7 +7989,7 @@ export type ItemSalesTax = {
    * (Optional) Indicates whether the sales tax item is active.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8024,7 +8024,7 @@ export type ItemSalesTaxGroup = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8060,7 +8060,7 @@ export type ItemServiceItem = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8101,7 +8101,7 @@ export type ItemSubtotal = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8142,11 +8142,11 @@ export type JournalEntry = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8344,7 +8344,7 @@ export type OtherName = {
   accountNumber?: string | null;
   notes?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8374,11 +8374,11 @@ export type PayableBill = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8403,7 +8403,7 @@ export type PaymentMethod = {
    * Defaults to true if not specified.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 export enum PaymentStatus {
@@ -8442,7 +8442,7 @@ export type PayrollItemNonWage = {
    * (Optional) Indicates whether the payroll item is active.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8471,7 +8471,7 @@ export type PayrollItemWage = {
    * (Optional) Indicates whether the payroll item is active.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8508,7 +8508,7 @@ export type PriceLevel = {
    * (Optional) Whether the price level is active. Defaults to true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8632,11 +8632,11 @@ export type PurchaseOrder = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8818,11 +8818,11 @@ export type ReceivePayment = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -8925,7 +8925,7 @@ export type Report = {
   headerRowCount?: number | null;
   columns?: Array<ReportColumnDescription> | null;
   data?: ReportData | null;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9114,11 +9114,11 @@ export type SalesReceipt = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9224,7 +9224,7 @@ export type SalesTaxCode = {
    * (Optional) If false, this Sales Tax Code is inactive. Default is true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9265,11 +9265,11 @@ export type SalesTaxPaymentCheck = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9327,7 +9327,7 @@ export type ServiceItem = {
   description?: string | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9378,7 +9378,7 @@ export type ShipMethod = {
    * (Optional) If false, this Shipping Method is inactive. Default is true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9476,7 +9476,7 @@ export type SpecialItem = {
    */
   specialItemType?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9538,7 +9538,7 @@ export type Term = {
   discountDayOfMonth?: number | null;
   discountPercentage?: number | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9584,11 +9584,11 @@ export type TimeTracking = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9617,11 +9617,11 @@ export type Transaction = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  expenseLines?: Array<ExpenseLine> | null;
-  itemLines?: Array<ItemLine> | null;
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
+  expenseLines?: Array<ExpenseLine>;
+  itemLines?: Array<ItemLine>;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -9658,7 +9658,7 @@ export type UnitOfMeasureSet = {
    * (Optional) Whether the UOM set is active. Defaults to true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -12493,7 +12493,7 @@ export type Vendor = {
   isCompoundingTax?: boolean | null;
   externalId?: string | null;
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -12556,22 +12556,22 @@ export type VendorCredit = {
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
+  linkedTransactions?: Array<LinkedTransaction>;
   /**
    * (Optional) A list of expense lines to add to the vendor credit.
    */
-  expenseLines?: Array<ExpenseLine> | null;
+  expenseLines?: Array<ExpenseLine>;
   /**
    * (Optional) A list of item lines to add to the vendor credit.
    * Note: You can have either ItemLines or ItemGroupLines, but not both.
    */
-  itemLines?: Array<ItemLine> | null;
+  itemLines?: Array<ItemLine>;
   /**
    * (Optional) A list of item group lines to add to the vendor credit.
    * Note: You can have either ItemLines or ItemGroupLines, but not both.
    */
-  itemGroupLines?: Array<ItemGroupLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  itemGroupLines?: Array<ItemGroupLine>;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -12598,7 +12598,7 @@ export type VendorType = {
    * (Optional) If false, this Vendor Type is inactive. Default is true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 /**
@@ -12643,7 +12643,7 @@ export type WorkersCompCode = {
    * (Optional) Indicates if the code is active. Defaults to true.
    */
   isActive?: boolean;
-  customFields?: Array<QbdDataExt> | null;
+  customFields?: Array<QbdDataExt>;
 };
 
 export type ListArRefundCreditCardsData = {

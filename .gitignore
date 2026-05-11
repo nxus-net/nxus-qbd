@@ -51,4 +51,6 @@ temp/
 .omx/*
 .claude/*
 .CLAUDE.md
-.AGENT.md
+.AGENTS.md
+
+spec/openapi_old.json
