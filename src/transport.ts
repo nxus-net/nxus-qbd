@@ -20,6 +20,49 @@ const RETRY_MAX_DELAY_MS = 8_000;
 const RETRYABLE_STATUSES = new Set([408, 429]);
 
 // ---------------------------------------------------------------------------
+// Logging
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured logger interface. Pass a custom logger via {@link TransportOptions.logger}
+ * to integrate with your application's logging stack (winston, pino, etc.).
+ * If `verbose` is true and no logger is provided, the SDK uses `console`.
+ */
+export interface NxusLogger {
+  debug(message: string, context?: Record<string, unknown>): void;
+  info(message: string, context?: Record<string, unknown>): void;
+  warn(message: string, context?: Record<string, unknown>): void;
+  error(message: string, context?: Record<string, unknown>): void;
+}
+
+const REDACTED = '[REDACTED]';
+const SENSITIVE_HEADER_NAMES = new Set([
+  'authorization',
+  'proxy-authorization',
+  'x-api-key',
+  'cookie',
+  'set-cookie',
+]);
+
+function redactHeaders(headers: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(headers)) {
+    out[k] = SENSITIVE_HEADER_NAMES.has(k.toLowerCase()) ? REDACTED : v;
+  }
+  return out;
+}
+
+function defaultLogger(): NxusLogger {
+  // Bind to console so callers can swap the logger without losing context.
+  return {
+    debug: (m, c) => console.debug(`[nxus-qbd] ${m}`, c ?? ''),
+    info: (m, c) => console.info(`[nxus-qbd] ${m}`, c ?? ''),
+    warn: (m, c) => console.warn(`[nxus-qbd] ${m}`, c ?? ''),
+    error: (m, c) => console.error(`[nxus-qbd] ${m}`, c ?? ''),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -66,6 +109,32 @@ export interface TransportOptions {
    * cancellation.
    */
   maxRetries?: number;
+  /**
+   * Emit debug logs for every request, response, retry, and error.
+   * Authorization and other sensitive headers are redacted.
+   * Defaults to `false`.
+   */
+  verbose?: boolean;
+  /**
+   * Custom structured logger. If omitted and `verbose` is true, the SDK
+   * logs to `console`. Providing a logger implies `verbose: true`.
+   */
+  logger?: NxusLogger;
+  /**
+   * Outbound HTTP/HTTPS proxy URL (e.g. "http://proxy.corp:8080").
+   *
+   * On Node, the SDK lazily loads `undici.ProxyAgent` and wires it via
+   * `fetchOptions.dispatcher`. On Bun, it is passed through as the `proxy`
+   * field of `fetch` init. Deno is not supported here — set
+   * `DENO_PROXY`/`HTTP_PROXY` env vars instead.
+   */
+  proxy?: string;
+  /**
+   * Extra options merged into every `fetch()` call. Escape hatch for
+   * runtime-specific features (e.g. `dispatcher` on Node/undici, `tls` on Bun).
+   * Per-call values in `init` win over these defaults.
+   */
+  fetchOptions?: Record<string, unknown>;
 }
 
 export interface RequestOptions {
@@ -85,6 +154,16 @@ export interface RequestOptions {
    * See {@link TransportOptions.maxRetries}.
    */
   maxRetries?: number;
+  /**
+   * Per-request override for verbose logging. When `true`, debug logs are
+   * emitted for this request even if the client-level default is `false`.
+   */
+  verbose?: boolean;
+  /**
+   * Per-request `fetch()` option overrides (e.g. one-off `signal`, `cache`).
+   * Merged on top of {@link TransportOptions.fetchOptions}.
+   */
+  fetchOptions?: Record<string, unknown>;
 }
 
 function normalizeErrorPayload(
@@ -131,6 +210,12 @@ export class NxusHttpTransport {
   private readonly defaultTimeout: number;
   private readonly defaultServerTimeoutSeconds?: number;
   private readonly defaultMaxRetries: number;
+  private readonly verbose: boolean;
+  private readonly logger: NxusLogger;
+  private readonly proxyUrl?: string;
+  private readonly fetchOptions: Record<string, unknown>;
+  // Lazily resolved undici dispatcher for Node proxy support.
+  private dispatcherPromise?: Promise<unknown>;
 
   constructor(options: TransportOptions) {
     // Ensure trailing slash for consistent URL joining
@@ -140,6 +225,10 @@ export class NxusHttpTransport {
     this.defaultTimeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.defaultServerTimeoutSeconds = options.serverTimeoutSeconds;
     this.defaultMaxRetries = Math.max(0, options.maxRetries ?? DEFAULT_MAX_RETRIES);
+    this.verbose = options.verbose ?? options.logger != null;
+    this.logger = options.logger ?? defaultLogger();
+    this.proxyUrl = options.proxy;
+    this.fetchOptions = options.fetchOptions ?? {};
   }
 
   async get<T>(
@@ -173,6 +262,32 @@ export class NxusHttpTransport {
   ): Promise<T> {
     const url = this.buildUrl(path);
     return this.request<T>(url, { method: 'DELETE' }, options);
+  }
+
+  /**
+   * Issue a raw HTTP request and return the unparsed `Response`.
+   *
+   * Use this when you need direct access to status, headers, or the response
+   * body as a stream/blob/text. Bypasses JSON parsing and the typed error
+   * mapping, but still applies authentication, the default headers, the
+   * timeout, and retries. Non-2xx responses are returned, not thrown — the
+   * caller is responsible for `response.ok` handling.
+   *
+   * @example
+   * ```ts
+   * const res = await client.transport.raw('/api/v1/vendors', { method: 'GET' });
+   * console.log(res.status, res.headers.get('x-request-id'));
+   * const blob = await res.blob();
+   * ```
+   */
+  async raw(
+    path: string,
+    init: RequestInit & { query?: Record<string, unknown> } = {},
+    options?: RequestOptions,
+  ): Promise<Response> {
+    const { query, ...rest } = init;
+    const url = this.buildUrl(path, query);
+    return this.requestRaw(url, rest, options);
   }
 
   // -------------------------------------------------------------------------
@@ -212,6 +327,110 @@ export class NxusHttpTransport {
     init: RequestInit,
     options?: RequestOptions,
   ): Promise<T> {
+    const headers = this.buildHeaders(options);
+    const timeout = options?.timeout ?? this.defaultTimeout;
+    const maxRetries = Math.max(
+      0,
+      options?.maxRetries ?? this.defaultMaxRetries,
+    );
+    const verbose = options?.verbose ?? this.verbose;
+    const extraFetchOptions = { ...this.fetchOptions, ...(options?.fetchOptions ?? {}) };
+
+    let attempt = 0;
+    while (true) {
+      if (verbose) {
+        this.logger.debug('request', {
+          method: init.method,
+          url,
+          headers: redactHeaders(headers),
+          attempt,
+          maxRetries,
+        });
+      }
+      const outcome = await this.attempt<T>(url, init, headers, timeout, extraFetchOptions);
+      if (verbose) {
+        this.logOutcome(outcome, { method: init.method, url, attempt });
+      }
+      if (outcome.kind === 'success') {
+        return outcome.value;
+      }
+
+      if (
+        attempt >= maxRetries ||
+        !shouldRetry(outcome)
+      ) {
+        throw outcome.error;
+      }
+
+      const delayMs = computeRetryDelay(attempt, outcome);
+      if (verbose) {
+        this.logger.debug('retry-scheduled', {
+          url,
+          attempt: attempt + 1,
+          delayMs,
+        });
+      }
+      attempt += 1;
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
+    }
+  }
+
+  private async requestRaw(
+    url: string,
+    init: RequestInit,
+    options?: RequestOptions,
+  ): Promise<Response> {
+    const headers = this.buildHeaders(options);
+    const timeout = options?.timeout ?? this.defaultTimeout;
+    const maxRetries = Math.max(
+      0,
+      options?.maxRetries ?? this.defaultMaxRetries,
+    );
+    const verbose = options?.verbose ?? this.verbose;
+    const extraFetchOptions = { ...this.fetchOptions, ...(options?.fetchOptions ?? {}) };
+
+    let attempt = 0;
+    while (true) {
+      if (verbose) {
+        this.logger.debug('request', {
+          method: init.method ?? 'GET',
+          url,
+          headers: redactHeaders(headers),
+          attempt,
+          maxRetries,
+          raw: true,
+        });
+      }
+      const outcome = await this.attemptRaw(url, init, headers, timeout, extraFetchOptions);
+      if (verbose) {
+        this.logRawOutcome(outcome, { method: init.method ?? 'GET', url, attempt });
+      }
+      if (outcome.kind === 'response') {
+        return outcome.response;
+      }
+
+      if (attempt >= maxRetries || !shouldRetry(outcome)) {
+        throw outcome.error;
+      }
+
+      const delayMs = computeRetryDelay(attempt, outcome);
+      if (verbose) {
+        this.logger.debug('retry-scheduled', {
+          url,
+          attempt: attempt + 1,
+          delayMs,
+        });
+      }
+      attempt += 1;
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
+    }
+  }
+
+  private buildHeaders(options?: RequestOptions): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${this.apiKey}`,
@@ -229,31 +448,113 @@ export class NxusHttpTransport {
       headers['X-Nxus-Timeout-Seconds'] = String(serverTimeoutSeconds);
     }
 
-    const timeout = options?.timeout ?? this.defaultTimeout;
-    const maxRetries = Math.max(
-      0,
-      options?.maxRetries ?? this.defaultMaxRetries,
-    );
+    return headers;
+  }
 
-    let attempt = 0;
-    while (true) {
-      const outcome = await this.attempt<T>(url, init, headers, timeout);
-      if (outcome.kind === 'success') {
-        return outcome.value;
-      }
+  private async resolveDispatcher(): Promise<unknown | undefined> {
+    if (!this.proxyUrl) return undefined;
+    if (!this.dispatcherPromise) {
+      this.dispatcherPromise = (async () => {
+        // Lazy/optional dependency: undici ships with Node 18+. If the import
+        // fails (Bun, Deno, browser), fall back to the runtime's native proxy
+        // handling without throwing.
+        try {
+          // @ts-expect-error - undici is an optional runtime peer
+          const mod = await import('undici');
+          const Agent = (mod as { ProxyAgent?: new (url: string) => unknown }).ProxyAgent;
+          if (!Agent) return undefined;
+          return new Agent(this.proxyUrl as string);
+        } catch (err) {
+          if (this.verbose) {
+            this.logger.warn('proxy-agent-unavailable', {
+              proxy: this.proxyUrl,
+              reason: err instanceof Error ? err.message : String(err),
+            });
+          }
+          return undefined;
+        }
+      })();
+    }
+    return this.dispatcherPromise;
+  }
 
-      if (
-        attempt >= maxRetries ||
-        !shouldRetry(outcome)
-      ) {
-        throw outcome.error;
-      }
+  private async resolveFetchInit(
+    init: RequestInit,
+    headers: Record<string, string>,
+    signal: AbortSignal,
+    extraFetchOptions: Record<string, unknown>,
+  ): Promise<RequestInit> {
+    const merged: Record<string, unknown> = {
+      ...extraFetchOptions,
+      ...init,
+      headers,
+      signal,
+    };
 
-      const delayMs = computeRetryDelay(attempt, outcome);
-      attempt += 1;
-      if (delayMs > 0) {
-        await sleep(delayMs);
+    if (this.proxyUrl) {
+      const dispatcher = await this.resolveDispatcher();
+      if (dispatcher && merged.dispatcher == null) {
+        merged.dispatcher = dispatcher;
       }
+      // Bun supports a top-level `proxy` field. Setting it is harmless on
+      // runtimes that ignore unknown init keys.
+      if (merged.proxy == null) {
+        merged.proxy = this.proxyUrl;
+      }
+    }
+
+    return merged as RequestInit;
+  }
+
+  private logOutcome<T>(
+    outcome: AttemptOutcome<T>,
+    ctx: { method?: string; url: string; attempt: number },
+  ): void {
+    switch (outcome.kind) {
+      case 'success':
+        this.logger.debug('response', { ...ctx, ok: true });
+        return;
+      case 'http-error':
+        this.logger.warn('response', {
+          ...ctx,
+          status: outcome.status,
+          retryAfter: outcome.retryAfter,
+          shouldRetry: outcome.shouldRetry,
+        });
+        return;
+      case 'timeout':
+        this.logger.warn('timeout', ctx);
+        return;
+      case 'network-error':
+        this.logger.warn('network-error', {
+          ...ctx,
+          reason: outcome.error.message,
+        });
+        return;
+    }
+  }
+
+  private logRawOutcome(
+    outcome: RawAttemptOutcome,
+    ctx: { method?: string; url: string; attempt: number },
+  ): void {
+    switch (outcome.kind) {
+      case 'response':
+        this.logger.debug('response', {
+          ...ctx,
+          status: outcome.response.status,
+          raw: true,
+        });
+        return;
+      case 'timeout':
+        this.logger.warn('timeout', ctx);
+        return;
+      case 'network-error':
+        this.logger.warn('network-error', {
+          ...ctx,
+          reason: outcome.error.message,
+        });
+        return;
     }
   }
 
@@ -262,16 +563,19 @@ export class NxusHttpTransport {
     init: RequestInit,
     headers: Record<string, string>,
     timeout: number,
+    extraFetchOptions: Record<string, unknown>,
   ): Promise<AttemptOutcome<T>> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
     try {
-      const response = await fetch(url, {
-        ...init,
+      const fetchInit = await this.resolveFetchInit(
+        init,
         headers,
-        signal: controller.signal,
-      });
+        controller.signal,
+        extraFetchOptions,
+      );
+      const response = await fetch(url, fetchInit);
 
       if (!response.ok) {
         let errorBody: unknown;
@@ -337,6 +641,52 @@ export class NxusHttpTransport {
       clearTimeout(timer);
     }
   }
+
+  private async attemptRaw(
+    url: string,
+    init: RequestInit,
+    headers: Record<string, string>,
+    timeout: number,
+    extraFetchOptions: Record<string, unknown>,
+  ): Promise<RawAttemptOutcome> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const fetchInit = await this.resolveFetchInit(
+        init,
+        headers,
+        controller.signal,
+        extraFetchOptions,
+      );
+      const response = await fetch(url, fetchInit);
+      return { kind: 'response', response };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return {
+          kind: 'timeout',
+          error: new NxusApiError({
+            message: `Request timed out after ${timeout}ms`,
+            userMessage: 'The request timed out. Please try again.',
+            status: 0,
+          }),
+        };
+      }
+      return {
+        kind: 'network-error',
+        error: new NxusApiError({
+          message:
+            error instanceof Error ? error.message : 'Network request failed',
+          userMessage:
+            'A network error occurred. Please check your connection and try again.',
+          status: 0,
+          raw: error,
+        }),
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +705,12 @@ type AttemptOutcome<T> =
   | { kind: 'network-error'; error: NxusApiError }
   | { kind: 'timeout'; error: NxusApiError };
 
-function shouldRetry<T>(outcome: AttemptOutcome<T>): boolean {
+type RawAttemptOutcome =
+  | { kind: 'response'; response: Response }
+  | { kind: 'network-error'; error: NxusApiError }
+  | { kind: 'timeout'; error: NxusApiError };
+
+function shouldRetry<T>(outcome: AttemptOutcome<T> | RawAttemptOutcome): boolean {
   if (outcome.kind === 'network-error') return true;
   if (outcome.kind === 'timeout') return false;
   if (outcome.kind === 'http-error') {
@@ -369,7 +724,7 @@ function shouldRetry<T>(outcome: AttemptOutcome<T>): boolean {
 
 function computeRetryDelay<T>(
   attempt: number,
-  outcome: AttemptOutcome<T>,
+  outcome: AttemptOutcome<T> | RawAttemptOutcome,
 ): number {
   if (outcome.kind === 'http-error' && outcome.retryAfter != null) {
     return Math.min(outcome.retryAfter, RETRY_MAX_DELAY_MS);
