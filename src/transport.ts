@@ -412,6 +412,11 @@ export class NxusHttpTransport {
       }
 
       if (attempt >= maxRetries || !shouldRetry(outcome)) {
+        // Non-2xx that we won't retry: return the Response so the caller can
+        // inspect status/headers/body, matching the documented contract.
+        if (outcome.kind === 'http-error') {
+          return outcome.response;
+        }
         throw outcome.error;
       }
 
@@ -546,6 +551,15 @@ export class NxusHttpTransport {
           raw: true,
         });
         return;
+      case 'http-error':
+        this.logger.warn('response', {
+          ...ctx,
+          status: outcome.status,
+          retryAfter: outcome.retryAfter,
+          shouldRetry: outcome.shouldRetry,
+          raw: true,
+        });
+        return;
       case 'timeout':
         this.logger.warn('timeout', ctx);
         return;
@@ -660,6 +674,21 @@ export class NxusHttpTransport {
         extraFetchOptions,
       );
       const response = await fetch(url, fetchInit);
+
+      if (!response.ok) {
+        // Classify retryable failures by status + headers only — never read
+        // the body, since the caller owns the stream.
+        const retryAfter =
+          parseRetryAfter(response.headers.get('retry-after')) ?? undefined;
+        return {
+          kind: 'http-error',
+          status: response.status,
+          retryAfter,
+          shouldRetry: parseShouldRetry(response.headers.get('x-should-retry')),
+          response,
+        };
+      }
+
       return { kind: 'response', response };
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
@@ -707,6 +736,13 @@ type AttemptOutcome<T> =
 
 type RawAttemptOutcome =
   | { kind: 'response'; response: Response }
+  | {
+      kind: 'http-error';
+      status: number;
+      retryAfter?: number;
+      shouldRetry?: boolean;
+      response: Response;
+    }
   | { kind: 'network-error'; error: NxusApiError }
   | { kind: 'timeout'; error: NxusApiError };
 
