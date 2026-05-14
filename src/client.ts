@@ -31,6 +31,7 @@ import type { RequestOptions } from "./transport";
 import { type NxusEnvironment, resolveBaseUrl } from "./config";
 import {
   Resource,
+  VoidableResource,
   ReadOnlyResource,
   ListDeleteResource,
   ListRetrieveDeleteResource,
@@ -374,61 +375,61 @@ export class NxusClient {
   // Transactions
   // =========================================================================
 
-  /** AR Refund Credit Cards — full CRUD */
+  /** AR Refund Credit Cards — full CRUD + void */
   get arRefundCreditCards() {
-    return new Resource<
+    return new VoidableResource<
       ArRefundCreditCard,
       CreateArRefundCreditCardRequest,
       UpdateArRefundCreditCardRequest
     >(this.transport, "/api/v1/ar-refund-credit-cards");
   }
 
-  /** Bills — full CRUD */
+  /** Bills — full CRUD + void */
   get bills() {
-    return new Resource<Bill, CreateBillRequest, UpdateBillRequest>(
+    return new VoidableResource<Bill, CreateBillRequest, UpdateBillRequest>(
       this.transport,
       "/api/v1/bills",
     );
   }
 
-  /** Check Bills — full CRUD */
+  /** Check Bills — full CRUD + void */
   get checkBills() {
-    return new Resource<
+    return new VoidableResource<
       CheckBill,
       CreateCheckBillRequest,
       UpdateCheckBillRequest
     >(this.transport, "/api/v1/check-bills");
   }
 
-  /** Checks — full CRUD */
+  /** Checks — full CRUD + void */
   get checks() {
-    return new Resource<Check, CreateCheckRequest, UpdateCheckRequest>(
+    return new VoidableResource<Check, CreateCheckRequest, UpdateCheckRequest>(
       this.transport,
       "/api/v1/checks",
     );
   }
 
-  /** Credit Card Bills — full CRUD */
+  /** Credit Card Bills — full CRUD + void */
   get creditCardBills() {
-    return new Resource<
+    return new VoidableResource<
       CreditCardBill,
       CreateCreditCardBillRequest,
       UpdateCreditCardBillRequest
     >(this.transport, "/api/v1/credit-card-bills");
   }
 
-  /** Credit Card Credits — full CRUD */
+  /** Credit Card Credits — full CRUD + void */
   get creditCardCredits() {
-    return new Resource<
+    return new VoidableResource<
       CreditCardCredit,
       CreateCreditCardCreditRequest,
       UpdateCreditCardCreditRequest
     >(this.transport, "/api/v1/credit-card-credits");
   }
 
-  /** Deposits — full CRUD */
+  /** Deposits — full CRUD + void */
   get deposits() {
-    return new Resource<Deposit, CreateDepositRequest, UpdateDepositRequest>(
+    return new VoidableResource<Deposit, CreateDepositRequest, UpdateDepositRequest>(
       this.transport,
       "/api/v1/deposits",
     );
@@ -442,18 +443,18 @@ export class NxusClient {
     );
   }
 
-  /** Item Receipts — full CRUD */
+  /** Item Receipts — full CRUD + void */
   get itemReceipts() {
-    return new Resource<
+    return new VoidableResource<
       ItemReceipt,
       CreateItemReceiptRequest,
       UpdateItemReceiptRequest
     >(this.transport, "/api/v1/item-receipts");
   }
 
-  /** Journal Entries — full CRUD */
+  /** Journal Entries — full CRUD + void */
   get journalEntries() {
-    return new Resource<
+    return new VoidableResource<
       JournalEntry,
       CreateJournalEntryRequest,
       UpdateJournalEntryRequest
@@ -469,9 +470,9 @@ export class NxusClient {
     >(this.transport, "/api/v1/purchase-orders");
   }
 
-  /** Sales Receipts — full CRUD */
+  /** Sales Receipts — full CRUD + void */
   get salesReceipts() {
-    return new Resource<
+    return new VoidableResource<
       SalesReceipt,
       CreateSalesReceiptRequest,
       UpdateSalesReceiptRequest
@@ -508,9 +509,9 @@ export class NxusClient {
     );
   }
 
-  /** Vendor Credits — full CRUD */
+  /** Vendor Credits — full CRUD + void */
   get vendorCredits() {
-    return new Resource<
+    return new VoidableResource<
       VendorCredit,
       CreateVendorCreditRequest,
       UpdateVendorCreditRequest
@@ -526,44 +527,44 @@ export class NxusClient {
     >(this.transport, "/api/v1/build-assemblies", "/api/v1/build-assembly");
   }
 
-  /** Charges — full CRUD */
+  /** Charges — full CRUD + void */
   get charges() {
-    return new Resource<Charge, CreateChargeRequest, UpdateChargeRequest>(
+    return new VoidableResource<Charge, CreateChargeRequest, UpdateChargeRequest>(
       this.transport,
       "/api/v1/charges",
     );
   }
 
-  /** Credit Card Charges — full CRUD */
+  /** Credit Card Charges — full CRUD + void */
   get creditCardCharges() {
-    return new Resource<
+    return new VoidableResource<
       CreditCardCharge,
       CreateCreditCardRequest,
       UpdateCreditCardRequest
     >(this.transport, "/api/v1/credit-card-charges");
   }
 
-  /** Credit Memos — full CRUD */
+  /** Credit Memos — full CRUD + void */
   get creditMemos() {
-    return new Resource<
+    return new VoidableResource<
       CreditMemo,
       CreateCreditMemoRequest,
       UpdateCreditMemoRequest
     >(this.transport, "/api/v1/credit-memos");
   }
 
-  /** Inventory Adjustments — full CRUD */
+  /** Inventory Adjustments — full CRUD + void */
   get inventoryAdjustments() {
-    return new Resource<
+    return new VoidableResource<
       InventoryAdjustment,
       CreateInventoryAdjustmentRequest,
       UpdateInventoryAdjustmentRequest
     >(this.transport, "/api/v1/inventory-adjustments");
   }
 
-  /** Invoices — full CRUD */
+  /** Invoices — full CRUD + void */
   get invoices() {
-    return new Resource<Invoice, CreateInvoiceRequest, UpdateInvoiceRequest>(
+    return new VoidableResource<Invoice, CreateInvoiceRequest, UpdateInvoiceRequest>(
       this.transport,
       "/api/v1/invoices",
     );

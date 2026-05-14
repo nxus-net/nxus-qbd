@@ -13,6 +13,7 @@ import type {
   AutoPaginationPromise,
 } from '../helpers/pagination';
 import { PaginationError } from '../helpers/pagination';
+import type { VoidResponse } from '../models';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -274,6 +275,36 @@ export class Resource<T, TCreate = Record<string, unknown>, TUpdate = Record<str
    */
   async delete(id: string, options?: RequestOptions): Promise<void> {
     await this.transport.delete<void>(this.getSingularPath(id), options);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// VoidableResource<T> — full CRUD plus void()
+// ---------------------------------------------------------------------------
+
+/**
+ * Full CRUD plus `.void(id)` — for transaction resources that the backend
+ * exposes a `POST /{resource}/{id}/void` endpoint on. The record is retained
+ * but marked as voided with a zero amount.
+ */
+export class VoidableResource<
+  T,
+  TCreate = Record<string, unknown>,
+  TUpdate = Record<string, unknown>,
+> extends Resource<T, TCreate, TUpdate> {
+  /**
+   * Void a transaction by ID.
+   *
+   * ```ts
+   * const result = await client.invoices.void("80000001-1234567890", { connectionId: "..." });
+   * ```
+   */
+  async void(id: string, options?: RequestOptions): Promise<VoidResponse> {
+    return this.transport.post<VoidResponse>(
+      `${this.getSingularPath(id)}/void`,
+      undefined,
+      options,
+    );
   }
 }
 
