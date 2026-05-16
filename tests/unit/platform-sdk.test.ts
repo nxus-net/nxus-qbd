@@ -41,6 +41,32 @@ function getRequestHeaders(callIndex: number, fetchMock: ReturnType<typeof vi.fn
   return new Headers((fetchMock.mock.calls[callIndex]?.[1] as RequestInit | undefined)?.headers);
 }
 
+const VOIDABLE_RESOURCE_CASES = [
+  ['arRefundCreditCards', '/api/v1/ar-refund-credit-card/txn_123/void'],
+  ['bills', '/api/v1/bill/txn_123/void'],
+  ['checkBillPayments', '/api/v1/check-bill-payment/txn_123/void'],
+  ['checks', '/api/v1/check/txn_123/void'],
+  ['creditCardBillPayments', '/api/v1/credit-card-bill-payment/txn_123/void'],
+  ['creditCardCredits', '/api/v1/credit-card-credit/txn_123/void'],
+  ['deposits', '/api/v1/deposit/txn_123/void'],
+  ['itemReceipts', '/api/v1/item-receipt/txn_123/void'],
+  ['journalEntries', '/api/v1/journal-entry/txn_123/void'],
+  ['salesReceipts', '/api/v1/sales-receipt/txn_123/void'],
+  ['vendorCredits', '/api/v1/vendor-credit/txn_123/void'],
+  ['charges', '/api/v1/charge/txn_123/void'],
+  ['creditCardCharges', '/api/v1/credit-card-charge/txn_123/void'],
+  ['creditMemos', '/api/v1/credit-memo/txn_123/void'],
+  ['inventoryAdjustments', '/api/v1/inventory-adjustment/txn_123/void'],
+  ['invoices', '/api/v1/invoice/txn_123/void'],
+] as const;
+
+const NON_VOID_TRANSACTION_RESOURCES = [
+  'estimates',
+  'purchaseOrders',
+  'salesTaxPaymentChecks',
+  'timeTrackings',
+] as const;
+
 describe('platform SDK surface', () => {
   afterEach(() => {
     Object.defineProperty(globalThis, 'fetch', {
@@ -90,6 +116,61 @@ describe('platform SDK surface', () => {
       expect(apiError.requiresPayment).toBe(true);
       expect(apiError.checkoutUrl).toBe('https://billing.example.test/checkout');
       expect(apiError.restrictionReason).toBe('subscription_required');
+    }
+  });
+
+  it('exposes the 16 public voidable resources and posts to singular void endpoints', async () => {
+    const fetchMock = installFetchMock(
+      ...VOIDABLE_RESOURCE_CASES.map(([resourceName]) =>
+        jsonResponse({
+          id: 'txn_123',
+          objectType: resourceName,
+          status: 'voided',
+          voided: true,
+          refNumber: 'REF-123',
+        }),
+      ),
+    );
+
+    const client = new NxusClient({
+      apiKey: 'sk_test_123',
+      baseUrl: 'https://api.example.test',
+    });
+
+    for (const [index, [resourceName, expectedPath]] of VOIDABLE_RESOURCE_CASES.entries()) {
+      const resource = client[resourceName] as {
+        void: (
+          id: string,
+          options?: { connectionId?: string; serverTimeoutSeconds?: number },
+        ) => Promise<{
+          id: string;
+          objectType: string;
+          status: string;
+          voided: boolean;
+        }>;
+      };
+
+      const result = await resource.void('txn_123', {
+        connectionId: 'conn_123',
+        serverTimeoutSeconds: 75,
+      });
+
+      expect(result).toMatchObject({
+        id: 'txn_123',
+        objectType: resourceName,
+        status: 'voided',
+        voided: true,
+      });
+      expect(String(fetchMock.mock.calls[index]?.[0])).toBe(
+        `https://api.example.test${expectedPath}`,
+      );
+      expect((fetchMock.mock.calls[index]?.[1] as RequestInit | undefined)?.method).toBe('POST');
+      expect(getRequestHeaders(index, fetchMock).get('X-Connection-Id')).toBe('conn_123');
+      expect(getRequestHeaders(index, fetchMock).get('X-Nxus-Timeout-Seconds')).toBe('75');
+    }
+
+    for (const resourceName of NON_VOID_TRANSACTION_RESOURCES) {
+      expect('void' in client[resourceName]).toBe(false);
     }
   });
 

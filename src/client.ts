@@ -62,9 +62,9 @@ import type {
   // Transactions — response types
   ArRefundCreditCard,
   Bill,
-  CheckBill,
+  CheckBillPayment,
   Check,
-  CreditCardBill,
+  CreditCardBillPayment,
   CreditCardCredit,
   Deposit,
   Estimate,
@@ -86,9 +86,9 @@ import type {
   // Transactions — create request types
   CreateArRefundCreditCardRequest,
   CreateBillRequest,
-  CreateCheckBillRequest,
+  CreateCheckBillPaymentRequest,
   CreateCheckRequest,
-  CreateCreditCardBillRequest,
+  CreateCreditCardBillPaymentRequest,
   CreateCreditCardCreditRequest,
   CreateDepositRequest,
   CreateEstimateRequest,
@@ -109,9 +109,9 @@ import type {
   // Transactions — update request types
   UpdateArRefundCreditCardRequest,
   UpdateBillRequest,
-  UpdateCheckBillRequest,
+  UpdateCheckBillPaymentRequest,
   UpdateCheckRequest,
-  UpdateCreditCardBillRequest,
+  UpdateCreditCardBillPaymentRequest,
   UpdateCreditCardCreditRequest,
   UpdateDepositRequest,
   UpdateEstimateRequest,
@@ -392,13 +392,13 @@ export class NxusClient {
     );
   }
 
-  /** Check Bills — full CRUD + void */
-  get checkBills() {
+  /** Check Bill Payments — full CRUD + void */
+  get checkBillPayments() {
     return new VoidableResource<
-      CheckBill,
-      CreateCheckBillRequest,
-      UpdateCheckBillRequest
-    >(this.transport, "/api/v1/check-bills");
+      CheckBillPayment,
+      CreateCheckBillPaymentRequest,
+      UpdateCheckBillPaymentRequest
+    >(this.transport, "/api/v1/check-bill-payments");
   }
 
   /** Checks — full CRUD + void */
@@ -409,13 +409,13 @@ export class NxusClient {
     );
   }
 
-  /** Credit Card Bills — full CRUD + void */
-  get creditCardBills() {
+  /** Credit Card Bill Payments — full CRUD + void */
+  get creditCardBillPayments() {
     return new VoidableResource<
-      CreditCardBill,
-      CreateCreditCardBillRequest,
-      UpdateCreditCardBillRequest
-    >(this.transport, "/api/v1/credit-card-bills");
+      CreditCardBillPayment,
+      CreateCreditCardBillPaymentRequest,
+      UpdateCreditCardBillPaymentRequest
+    >(this.transport, "/api/v1/credit-card-bill-payments");
   }
 
   /** Credit Card Credits — full CRUD + void */

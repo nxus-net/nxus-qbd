@@ -11,68 +11,29 @@ export type Account = {
   id: string;
   objectType?: string;
   /**
-   * Account name (required)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive. Parent:Child:SubChild
-   */
   fullname?: string | null;
-  /**
-   * The short name of the account as it appears in the QuickBooks UI.
-   */
   parent?: QbdRef | null;
-  /**
-   * Depth level of the account in the hierarchy (0 for top level).
-   */
   sublevel?: number;
-  /**
-   * The specific type of the account.
-   */
   accountType?: NullableAccountType | null;
-  /**
-   * Special sub-classification for the account.
-   */
   specialAccountType?: NullableSpecialAccountType | null;
-  /**
-   * Whether the account is a tax account (optional, default: false)
-   * Only set to true for accounts that track tax liabilities/expenses
-   */
   isTaxAccount?: boolean | null;
-  /**
-   * Account number (optional)
-   */
   accountNumber?: string | null;
-  /**
-   * Bank account number (for bank accounts only)
-   */
   bankNumber?: string | null;
-  /**
-   * Description of the account. Maps to 'Desc' in XML.
-   */
   description?: string | null;
   balance?: number | null;
   totalBalance?: number | null;
-  /**
-   * Reference to the associated Sales Tax Code.
-   * Derived from SalesTaxCodeRef.
-   */
   salesTaxCode?: QbdRef | null;
   taxLineDetails?: TaxLineInfo | null;
-  /**
-   * Cash flow classification for the account.
-   */
   cashFlowClassification?: NullableCashFlowClassification | null;
-  /**
-   * Reference to the currency associated with the account.
-   * Derived from CurrencyRef.
-   */
   currency?: QbdRef | null;
   /**
-   * Whether the account is active (default: true)
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -85,10 +46,16 @@ export type Account = {
 export type AccountTaxLineInfo = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -130,14 +97,8 @@ export type AdditionalContact = {
  * Per DTD: AdditionalNotes just has Note element.
  */
 export type AdditionalNote = {
-  /**
-   * The ID of the note to modify (required for updates).
-   */
   noteId?: number | null;
   date?: string | null;
-  /**
-   * The note text (max 4095 characters).
-   */
   note?: string | null;
 };
 
@@ -155,25 +116,10 @@ export type Address = {
   line3?: string | null;
   line4?: string | null;
   line5?: string | null;
-  /**
-   * City name.
-   */
   city?: string | null;
-  /**
-   * State or province code (e.g., "CA", "NY").
-   */
   state?: string | null;
-  /**
-   * ZIP or postal code.
-   */
   postalCode?: string | null;
-  /**
-   * Country name.
-   */
   country?: string | null;
-  /**
-   * Optional note about this address.
-   */
   note?: string | null;
 };
 
@@ -243,6 +189,9 @@ export type ApplicableCredit = {
   transactionDate?: string | null;
   currency?: QbdRef | null;
   exchangeRate?: number | null;
+  /**
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   */
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
@@ -267,38 +216,18 @@ export type ApplicableCredit = {
  */
 export type AppliedToTransactionRequest = {
   id: string;
-  /**
-   * Monetary amount of the payment in the transaction's currency.
-   *
-   * Uses decimal for financial precision. Null indicates the amount is unspecified.
-   */
   paymentAmount?: number | null;
-  /**
-   * Collection of requests to set credits.
-   *
-   * May be null. Initialized at object creation (init-only). Serialized as
-   * "setCredits".
-   */
   setCredits?: Array<SetCreditRequest> | null;
   /**
-   * Monetary amount of any discount applied to the item or transaction.
-   *
-   * Null when no discount is applied. Use the same currency and scale as other monetary values in
-   * the model.
+   * Discount amount to apply.
    */
   discountAmount?: number | null;
   /**
-   * Identifier of the account used for discounts.
-   *
-   * Nullable; null indicates no discount account is assigned. When present, it should correspond
-   * to an account identifier in the accounting system.
+   * Account to post the discount to.
    */
   discountAccountId?: string | null;
   /**
-   * Identifier of the discount class.
-   *
-   * Corresponds to the JSON property "discountClassId". May be null when no discount class is
-   * assigned.
+   * Class for the discount (if using class tracking).
    */
   discountClassId?: string | null;
 };
@@ -337,9 +266,6 @@ export type AppliedToTxn = {
    */
   discountClass?: QbdRef | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
-  /**
-   * Credits applied to this transaction.
-   */
   appliedCredits?: Array<SetCredit> | null;
 };
 
@@ -413,23 +339,14 @@ export type ArRefundCreditCard = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) The exchange rate for the transaction.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number for the refund.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the transaction.
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   receivablesAccount?: QbdRef | null;
-  /**
-   * (Optional) Address details for the refund.
-   */
   address?: Address | null;
   addressBlock?: AddressBlock | null;
   paymentMethod?: QbdRef | null;
@@ -501,14 +418,20 @@ export type AuthSessionResponse = {
 export type BarCode = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * ListType may have one of the following values: Account, Class, Customer, CustomerMsg, CustomerType, DateDrivenTerms, Employee, ItemDiscount, ItemFixedAsset, ItemGroup, ItemInventory, ItemInventoryAssembly, ItemNonInventory, ItemOtherCharge, ItemPayment, ItemSalesTax, ItemSalesTaxGroup, ItemService, ItemSubtotal, JobType, OtherName, PaymentMethod, PriceLevel, SalesRep, SalesTaxCode, ShipMethod, StandardTerms, ToDo, Vendor, VendorType
+   * The type of list object associated with the barcode (e.g., ItemInventory, Employee).
    */
   listType?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -540,9 +463,6 @@ export type BasePageResponseAccount = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -562,9 +482,6 @@ export type BasePageResponseAccountTaxLineInfo = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -584,9 +501,6 @@ export type BasePageResponseArRefundCreditCard = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -606,9 +520,6 @@ export type BasePageResponseBarCode = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -628,9 +539,6 @@ export type BasePageResponseBill = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -650,9 +558,6 @@ export type BasePageResponseBillingRate = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -672,9 +577,6 @@ export type BasePageResponseBillPaymentOrCredit = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -694,9 +596,6 @@ export type BasePageResponseBuildAssembly = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -716,9 +615,6 @@ export type BasePageResponseCharge = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -738,9 +634,6 @@ export type BasePageResponseCheck = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -753,16 +646,13 @@ export type BasePageResponseCheck = {
  * Simple paginated response designed for SDK consumption
  * Clean, predictable structure perfect for automated pagination handling
  */
-export type BasePageResponseCheckBill = {
+export type BasePageResponseCheckBillPayment = {
   requestId?: string | null;
   success?: boolean;
-  data?: Array<CheckBill>;
+  data?: Array<CheckBillPayment>;
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -782,9 +672,6 @@ export type BasePageResponseClass = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -797,16 +684,13 @@ export type BasePageResponseClass = {
  * Simple paginated response designed for SDK consumption
  * Clean, predictable structure perfect for automated pagination handling
  */
-export type BasePageResponseCreditCardBill = {
+export type BasePageResponseCreditCardBillPayment = {
   requestId?: string | null;
   success?: boolean;
-  data?: Array<CreditCardBill>;
+  data?: Array<CreditCardBillPayment>;
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -826,9 +710,6 @@ export type BasePageResponseCreditCardCharge = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -848,9 +729,6 @@ export type BasePageResponseCreditCardCredit = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -870,9 +748,6 @@ export type BasePageResponseCreditMemo = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -892,9 +767,6 @@ export type BasePageResponseCurrency = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -914,9 +786,6 @@ export type BasePageResponseCustomer = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -936,9 +805,6 @@ export type BasePageResponseCustomerType = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -958,9 +824,6 @@ export type BasePageResponseDateDrivenTerm = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -980,9 +843,6 @@ export type BasePageResponseDeposit = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1002,9 +862,6 @@ export type BasePageResponseEmployee = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1024,9 +881,6 @@ export type BasePageResponseEstimate = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1046,9 +900,6 @@ export type BasePageResponseInventoryAdjustment = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1068,9 +919,6 @@ export type BasePageResponseInventoryItem = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1090,9 +938,6 @@ export type BasePageResponseInventorySite = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1112,9 +957,6 @@ export type BasePageResponseInvoice = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1134,9 +976,6 @@ export type BasePageResponseItem = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1156,9 +995,6 @@ export type BasePageResponseItemDiscount = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1178,9 +1014,6 @@ export type BasePageResponseItemFixedAsset = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1200,9 +1033,6 @@ export type BasePageResponseItemGroup = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1222,9 +1052,6 @@ export type BasePageResponseItemInventoryAssembly = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1244,9 +1071,6 @@ export type BasePageResponseItemNonInventory = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1266,9 +1090,6 @@ export type BasePageResponseItemOtherCharge = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1288,9 +1109,6 @@ export type BasePageResponseItemPayment = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1310,9 +1128,6 @@ export type BasePageResponseItemReceipt = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1332,9 +1147,6 @@ export type BasePageResponseItemSalesTax = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1354,9 +1166,6 @@ export type BasePageResponseItemSalesTaxGroup = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1376,9 +1185,6 @@ export type BasePageResponseItemSubtotal = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1398,9 +1204,6 @@ export type BasePageResponseJournalEntry = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1420,9 +1223,6 @@ export type BasePageResponseOtherName = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1442,9 +1242,6 @@ export type BasePageResponsePaymentMethod = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1464,9 +1261,6 @@ export type BasePageResponsePayrollItemNonWage = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1486,9 +1280,6 @@ export type BasePageResponsePayrollItemWage = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1508,9 +1299,6 @@ export type BasePageResponsePriceLevel = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1530,9 +1318,6 @@ export type BasePageResponsePurchaseOrder = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1552,9 +1337,6 @@ export type BasePageResponseReceivePayment = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1574,9 +1356,6 @@ export type BasePageResponseSalesReceipt = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1596,9 +1375,6 @@ export type BasePageResponseSalesTaxCode = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1618,9 +1394,6 @@ export type BasePageResponseSalesTaxPaymentCheck = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1640,9 +1413,6 @@ export type BasePageResponseServiceItem = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1662,9 +1432,6 @@ export type BasePageResponseShipMethod = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1684,9 +1451,6 @@ export type BasePageResponseTerm = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1706,9 +1470,6 @@ export type BasePageResponseTimeTracking = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1728,9 +1489,6 @@ export type BasePageResponseTransaction = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1750,9 +1508,6 @@ export type BasePageResponseUnitOfMeasureSet = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1772,9 +1527,6 @@ export type BasePageResponseVendor = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1794,9 +1546,6 @@ export type BasePageResponseVendorCredit = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1816,9 +1565,6 @@ export type BasePageResponseVendorType = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1838,9 +1584,6 @@ export type BasePageResponseWorkersCompCode = {
   nextCursor?: string;
   page?: number;
   count?: number;
-  /**
-   * The maximum number of items to return in a single response.
-   */
   limit?: number;
   totalCount?: number;
   pageCount?: number;
@@ -1853,13 +1596,7 @@ export type BasePageResponseWorkersCompCode = {
  * DTO for the base unit of a UnitOfMeasureSet.
  */
 export type BaseUnit = {
-  /**
-   * The case-insensitive unique name of this base unit, unique across all base units. **NOTE**: Base units do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents. Maximum length: 31 characters.
-   */
   name: string;
-  /**
-   * The base unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
-   */
   abbreviation: string;
 };
 
@@ -1897,81 +1634,32 @@ export type Bill = {
   updatedAt: string;
   revisionNumber: string;
   transactionNumber?: number | null;
-  /**
-   * The vendor who issued the bill. When linking to a Purchase Order, this vendor
-   * must match the vendor on the Purchase Order.
-   */
   vendor?: QbdRef | null;
-  /**
-   * The billing address of the vendor.
-   */
   vendorAddress?: Address | null;
   payablesAccount?: QbdRef | null;
   transactionDate?: string | null;
-  /**
-   * The date by which the bill must be paid.
-   */
   dueDate?: string | null;
-  /**
-   * The total monetary amount of the bill.
-   */
   amountDue?: number;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate for multi-currency transactions (v8.0).
-   */
   exchangeRate?: number | null;
-  /**
-   * The total amount due expressed in the company's home currency.
-   * This is calculated and returned by QuickBooks when the multicurrency feature is enabled.
-   */
   amountDueInHomeCurrency?: string | null;
   /**
-   * Reference number for the bill.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Indicates whether the bill is currently marked as pending.
-   */
   isPending?: boolean | null;
-  /**
-   * The payment terms associated with the bill (e.g., Net 30), which calculate the DueDate.
-   */
   terms?: QbdRef | null;
-  /**
-   * The class associated with the bill, used for categorizing expenses and reporting
-   * (requires class tracking to be enabled in QuickBooks).
-   */
   class?: QbdRef | null;
-  /**
-   * Memo/description for the bill.
-   */
   memo?: string | null;
-  /**
-   * The sales tax code indicating the general taxability of the bill (e.g., Tax, Non).
-   */
   salesTaxCode?: QbdRef | null;
-  /**
-   * Indicates whether the bill has been paid in full and closed.
-   */
   isPaid?: boolean | null;
   amount?: number | null;
-  /**
-   * Indicates whether the amounts in the bill already include sales tax.
-   */
   isTaxIncluded?: boolean | null;
   account?: QbdRef | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
-  /**
-   * Expense line items for the bill.
-   * At least one expense line or item line is required.
-   */
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * Item line items for the bill (for inventory items).
-   */
   itemLines?: Array<ItemLine>;
   itemGroupLines?: Array<ItemGroupLine>;
   openAmount?: number | null;
@@ -1986,24 +1674,27 @@ export type BillingRate = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the billing rate.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * Indicates whether the billing rate applies a fixed rate to all service items or custom rates per individual service item [2-4].
+   * The type of billing rate (e.g., FixedRate, PerItem).
    */
   billingRateType?: string | null;
   /**
-   * A simple fixed rate that will override all the standard rates for service items performed by the entity assigned this billing rate [2, 3].
+   * The fixed rate amount if the BillingRateType is FixedRate.
    */
   fixedBillingRate?: number | null;
   /**
-   * A list of specific service items that are being overridden by a fixed custom rate or percentage [2, 4].
+   * A list of item-specific rates if the BillingRateType is PerItem.
    */
   billingRatePerItems?: Array<BillingRatePerItem> | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -2040,17 +1731,13 @@ export type BillingRateItemRequest = {
  * Represents a custom rate or percentage adjustment applied to a specific service item within a billing rate [2, 4].
  */
 export type BillingRatePerItem = {
-  /**
-   * A reference to the specific service item this custom rate applies to [4, 5].
-   */
   item?: QbdRef | null;
   /**
-   * A fixed hourly rate for this specific service item that overrides the item's standard rate [6].
+   * The custom rate amount for this item.
    */
   customRate?: number | null;
   /**
-   * A percentage adjustment higher or lower than the item's standard rate [6, 7].
-   * A positive value indicates a higher rate, and a negative value indicates a lower rate discount (e.g., -50.0 means 50% lower than the standard rate) [7, 8].
+   * The custom rate percentage for this item.
    */
   customRatePercent?: number | null;
 };
@@ -2082,12 +1769,9 @@ export type BuildAssembly = {
   currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number for the build.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the transaction.
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   /**
@@ -2096,25 +1780,13 @@ export type BuildAssembly = {
   itemInventoryAssembly?: QbdRef | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
-  /**
-   * (Optional) Serial number for the built assembly.
-   */
   serialNumber?: string | null;
-  /**
-   * (Optional) Lot number for the built assembly.
-   */
   lotNumber?: string | null;
-  /**
-   * (Optional) Expiration date for the serial/lot number.
-   */
   expirationDateForSerialLotNumber?: string | null;
   /**
    * Indicates if the build is pending.
    */
   isPending?: boolean | null;
-  /**
-   * (Required) The quantity of the assembly to build.
-   */
   quantityToBuild?: number | null;
   quantityCanBuild?: number | null;
   quantityOnHand?: number | null;
@@ -2140,13 +1812,7 @@ export type BuildAssembly = {
 export type CashBackInfo = {
   transactionLineId?: string | null;
   account?: QbdRef | null;
-  /**
-   * (Optional) Memo about the cash back line. (Max 4095 characters)
-   */
   memo?: string | null;
-  /**
-   * (Optional) The amount of cash back requested.
-   */
   amount?: number | null;
 };
 
@@ -2171,8 +1837,7 @@ export type CashBackInfoRequest = {
 };
 
 /**
- * Represents a Charge transaction.
- * A ChargeQuery request returns information about statement charges.
+ * Represents a Statement Charge applied to a customer's account.
  */
 export type Charge = {
   id: string;
@@ -2184,7 +1849,7 @@ export type Charge = {
   currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
   memo?: string | null;
@@ -2193,39 +1858,18 @@ export type Charge = {
   item?: QbdRef | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
-  /**
-   * (Optional) Quantity of the item.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Unit of measure.
-   */
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
   overrideItemAccount?: QbdRef | null;
-  /**
-   * (Optional) The rate or price per unit.
-   */
   rate?: number | null;
   balanceRemaining?: number | null;
-  /**
-   * (Optional) Description of the charge.
-   */
   description?: string | null;
   receivablesAccount?: QbdRef | null;
   class?: QbdRef | null;
-  /**
-   * (Optional) The date the charge was billed.
-   */
   billedDate?: string | null;
-  /**
-   * (Optional) The due date for the charge.
-   */
   dueDate?: string | null;
   isPaid?: boolean | null;
-  /**
-   * (Optional) The total amount of the charge.
-   */
   amount?: number | null;
   entity?: QbdRef | null;
   account?: QbdRef | null;
@@ -2251,27 +1895,15 @@ export type Check = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate (for multi-currency)
-   */
   exchangeRate?: number | null;
   /**
-   * Check number (optional - QB can auto-generate)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo/description for the check
-   */
   memo?: string | null;
-  /**
-   * Payee address (optional)
-   */
   address?: Address | null;
   isPending?: boolean | null;
   isQueuedForPrint?: boolean;
-  /**
-   * If true, the amount includes sales tax.
-   */
   isTaxIncluded?: boolean | null;
   salesTaxCode?: QbdRef | null;
   isVoid?: boolean;
@@ -2283,17 +1915,8 @@ export type Check = {
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
-  /**
-   * Expense lines for the check (at least one line item required)
-   */
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * Item lines for the check
-   */
   itemLines?: Array<ItemLine>;
-  /**
-   * Item group lines for the check
-   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -2301,22 +1924,8 @@ export type Check = {
 /**
  * Request model for creating a new Check transaction to pay bills.
  * Based on the CheckAddRq QBXML type.
- *
- * QBXML Schema Constraints (from qbxmlops170.xml):
- * - PayeeEntityRef: Optional, FullName max length = 209
- * - AccountRef: Required (BankAccount), FullName max length = 159
- * - TxnDate: Optional
- * - RefNumber: Optional, max length = 11 (OR IsToBePrinted)
- * - APAccountRef: Optional, FullName max length = 159
- * - Amount: Optional
- * - CurrencyRef: Optional, FullName max length = 64
- * - ExchangeRate: Optional
- * - AmountInHomeCurrency: Optional
- * - Memo: Optional, max length = 4095
- * - IsToBePrinted: Optional (OR RefNumber)
- * - ExternalGUID: Optional
  */
-export type CheckBill = {
+export type CheckBillPayment = {
   id: string;
   objectType?: string;
   createdAt: string;
@@ -2324,46 +1933,27 @@ export type CheckBill = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) The currency exchange rate.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number (e.g., Check #).
-   * Max length: 11 characters.
-   * Note: Cannot be specified with IsToBePrinted=true.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the check.
-   * Max length: 4095 characters.
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   payablesAccount?: QbdRef | null;
   /**
-   * The payee's full address.
+   * The total amount of the check.
    */
   address?: Address | null;
   /**
-   * The address block formatted for printing on the check.
+   * The payee's address formatted as a 5-line block.
    */
   addressBlock?: AddressBlock | null;
   isQueuedForPrint?: boolean | null;
-  /**
-   * (Required) List of transactions (bills) to apply this check to.
-   * QBD requiring at least one AppliedToTransactionAddRequest for BillPaymentCheckAdd.
-   */
   appliedToTransactions?: Array<AppliedToTxn> | null;
-  /**
-   * (Optional) The total amount of the check.
-   */
   amount?: number | null;
   entity?: QbdRef | null;
   account?: QbdRef | null;
-  /**
-   * (Optional) The amount in the home currency.
-   */
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
@@ -2382,9 +1972,9 @@ export type Class = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the class (up to 31 characters).
-   * Note: If the class is going to be a sub-class, this property should only contain the
-   * child's name, not the full hierarchical name of its ancestors.
+   * The primary, user-defined display name for the list object (e.g., Customer Name, Vendor Name, Item Name).
+   *
+   * This value is often used by QuickBooks to construct the fully qualified hierarchical name (e.g., `Parent:Child`).
    */
   name?: string | null;
   createdAt: string;
@@ -2400,7 +1990,9 @@ export type Class = {
    */
   sublevel?: number | null;
   /**
-   * (Optional) Whether the class is active. Defaults to true.
+   * Indicates whether the list item is currently active.
+   *
+   * **Soft Delete Behavior:** QuickBooks rarely allows hard deletions of records that have been used in transactions. Instead, they are marked as inactive (hidden from standard drop-downs and UI lists) to preserve historical data integrity.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -2412,9 +2004,6 @@ export type Class = {
  */
 export type ComponentItemLine = {
   objectType?: string;
-  /**
-   * The Inventory Assembly item being created.
-   */
   item?: QbdRef | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
@@ -2531,7 +2120,7 @@ export type Contact = {
   id: string;
   objectType?: string;
   /**
-   * Submitter's full name (max 100 chars).
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
@@ -2548,6 +2137,9 @@ export type Contact = {
    * Maps to AdditionalContactRef in QbXML (0-5 allowed per contact).
    */
   customContactFields?: Array<CustomContactField> | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -2726,12 +2318,11 @@ export type CreateBillPaymentOrCreditRequest = {
 };
 
 /**
- * Request model for creating a new bill in QuickBooks.
- * DTD Reference: qbxmlops170.xml - BillAdd (lines 13260-13543)
+ * Model used to create a new vendor Bill in QuickBooks Desktop.
  */
 export type CreateBillRequest = {
   /**
-   * Filter by Vendor ID.
+   * The vendor for this bill (required).
    */
   vendorId: string;
   /**
@@ -2835,7 +2426,6 @@ export type CreateBuildAssemblyRequest = {
 
 /**
  * Request model for creating a new Charge transaction.
- * Based on the ChargeAddRq QBXML type.
  */
 export type CreateChargeRequest = {
   externalId?: string | null;
@@ -2906,22 +2496,8 @@ export type CreateChargeRequest = {
 /**
  * Request model for creating a new Check transaction to pay bills.
  * Based on the CheckAddRq QBXML type.
- *
- * QBXML Schema Constraints (from qbxmlops170.xml):
- * - PayeeEntityRef: Optional, FullName max length = 209
- * - AccountRef: Required (BankAccount), FullName max length = 159
- * - TxnDate: Optional
- * - RefNumber: Optional, max length = 11 (OR IsToBePrinted)
- * - APAccountRef: Optional, FullName max length = 159
- * - Amount: Optional
- * - CurrencyRef: Optional, FullName max length = 64
- * - ExchangeRate: Optional
- * - AmountInHomeCurrency: Optional
- * - Memo: Optional, max length = 4095
- * - IsToBePrinted: Optional (OR RefNumber)
- * - ExternalGUID: Optional
  */
-export type CreateCheckBillRequest = {
+export type CreateCheckBillPaymentRequest = {
   payeeId: string;
   /**
    * (Required) The ListID of the bank account from which the check is drawn.
@@ -3083,7 +2659,7 @@ export type CreateConnectionRequest = {
  * This is for paying existing vendor bills via credit card
  * Note: Only create and read operations are supported for bill payments
  */
-export type CreateCreditCardBillRequest = {
+export type CreateCreditCardBillPaymentRequest = {
   transactionDate?: string | null;
   /**
    * Transaction reference number (optional) autogenerates if not specified
@@ -3755,23 +3331,77 @@ export type CreateEstimateLineGroupRequest = {
 export type CreateEstimateLineRequest = {
   id?: string | null;
   objectType?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
+   */
   itemId?: string | null;
+  /**
+   * (Optional) Description for the line item. Max 4000 chars.
+   */
   description?: string | null;
+  /**
+   * (Optional) Quantity of the item.
+   */
   quantity?: number | null;
+  /**
+   * (Optional) Unit of measure for the quantity. Max 31 chars.
+   */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) The rate/price per item. Mutually exclusive with RatePercent, MarkupRate, MarkupRatePercent, and PriceLevelId. (PRICETYPE)
+   */
   rate?: number | null;
+  /**
+   * (Optional) The percentage rate applied. Mutually exclusive with Rate, MarkupRate, MarkupRatePercent, and PriceLevelId. (PERCENTTYPE)
+   */
   ratePercent?: number | null;
+  /**
+   * (Optional) The ListID or FullName of the class associated with this line item. (ClassRef, Flattened-ID Pattern)
+   */
   classId?: string | null;
+  /**
+   * (Optional) The total amount for the line item. Required if Rate/RatePercent is not specified. (AMTTYPE)
+   */
   amount?: number | null;
+  /**
+   * (Optional) How QuickBooks should handle a price rule conflict. Valid values: Zero, BasePrice.
+   */
   optionForPriceRuleConflict?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Inventory Site. (InventorySiteRef, Flattened-ID Pattern)
+   */
   inventorySiteId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Inventory Site Location. (InventorySiteLocationRef, Flattened-ID Pattern)
+   */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Sales Tax Code. (SalesTaxCodeRef, Flattened-ID Pattern)
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * (Optional) A fixed markup rate. Mutually exclusive with MarkupRatePercent, Rate/RatePercent, and PriceLevelId. (PRICETYPE)
+   */
   markupRate?: number | null;
+  /**
+   * (Optional) A percentage markup rate. Mutually exclusive with MarkupRate, Rate/RatePercent, and PriceLevelId. (PERCENTTYPE)
+   */
   markupRatePercent?: number | null;
+  /**
+   * (Optional) The ListID or FullName of the Price Level. Mutually exclusive with Markup fields and Rate fields. (PriceLevelRef, Flattened-ID Pattern)
+   */
   priceLevelId?: string | null;
+  /**
+   * (Optional, Add only) The ListID or FullName of the overriding Item Account. (OverrideItemAccountRef, Flattened-ID Pattern)
+   */
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) Custom field 1. Max 29 chars.
+   */
   other1?: string | null;
+  /**
+   * (Optional) Custom field 2. Max 29 chars.
+   */
   other2?: string | null;
   customFields?: Array<DataExtRequest> | null;
 };
@@ -3888,7 +3518,7 @@ export type CreateExpenseLineRequest = {
    */
   classId?: string | null;
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
   /**
@@ -3904,12 +3534,11 @@ export type CreateExpenseLineRequest = {
 };
 
 /**
- * Represents a single line item for an Inventory Adjustment add operation.
+ * Represents a single line item for an Inventory Adjustment operation.
  * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
  */
 export type CreateInventoryAdjustmentLineRequest = {
   itemId: string;
-  memo?: string | null;
   quantityAdjustment?: QuantityAdjustmentRequest | null;
   valueAdjustment?: ValueAdjustmentRequest | null;
   serialNumberAdjustment?: SerialNumberAdjustmentRequest | null;
@@ -4322,9 +3951,6 @@ export type CreateItemPaymentRequest = {
  * Request model for creating a new ItemReceipt transaction.
  */
 export type CreateItemReceiptRequest = {
-  /**
-   * Filter by Vendor ID.
-   */
   vendorId: string;
   payablesAccountId?: string | null;
   /**
@@ -4437,8 +4063,19 @@ export type CreateItemSubtotalRequest = {
    * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
    */
   specialItemType?: string | null;
+  /**
+   * The name of the item.
+   * Max Length: 31 characters.
+   */
   name: string;
+  /**
+   * Whether the item is active.
+   */
   isActive?: boolean | null;
+  /**
+   * The barcode value of the item.
+   * Max Length: 50 characters.
+   */
   barCodeValue?: string | null;
   barCode?: BarCodeRequest | null;
   externalId?: string | null;
@@ -4699,7 +4336,8 @@ export type CreatePurchaseOrderLineRequest = {
  */
 export type CreatePurchaseOrderRequest = {
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the Vendor for this Purchase Order.
+   * Follows the Flattened-ID Pattern for VendorRef.
    */
   vendorId?: string | null;
   /**
@@ -5279,7 +4917,7 @@ export type CreateUnitOfMeasureSetRequest = {
  */
 export type CreateVendorCreditRequest = {
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
   payablesAccountId?: string | null;
@@ -5430,12 +5068,9 @@ export type CreateWorkersCompCodeRequest = {
 };
 
 /**
- * Represents a transaction where a credit card is used to settle one or more outstanding vendor bills.
- * In accounting terms, this shifts a liability from the Accounts Payable (A/P) account to the credit card's balance.
- * A key feature is the explicit link created between this payment and the specific bills it covers,
- * which is essential for accurate payment tracking and maintaining correct vendor balances within QuickBooks.
+ * Represents a payment made against one or more vendor bills using a Credit Card.
  */
-export type CreditCardBill = {
+export type CreditCardBillPayment = {
   id: string;
   objectType?: string;
   createdAt: string;
@@ -5443,29 +5078,14 @@ export type CreditCardBill = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate (required if currency is specified)
-   */
   exchangeRate?: number | null;
   /**
-   * Reference number for the payment
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo/description for the payment
-   */
   memo?: string | null;
-  /**
-   * Credit card account being charged (required)
-   * The credit card account to which this bill credit card payment is being charged.
-   * This bill credit card payment will decrease the balance of this account.
-   */
-  creditCardAccount?: QbdRef | null;
   payablesAccount?: QbdRef | null;
   appliedToTransactions?: Array<AppliedToTxn> | null;
-  /**
-   * Total amount of the payment
-   */
   amount?: number | null;
   entity?: QbdRef | null;
   account?: QbdRef | null;
@@ -5476,6 +5096,7 @@ export type CreditCardBill = {
   expenseLines?: Array<ExpenseLine>;
   itemLines?: Array<ItemLine>;
   itemGroupLines?: Array<ItemGroupLine>;
+  creditCardAccount: QbdRef | null;
   customFields?: Array<QbdDataExt>;
 };
 
@@ -5489,22 +5110,67 @@ export type CreditCardCharge = {
   updatedAt: string;
   revisionNumber: string;
   transactionDate?: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
   currency?: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
   exchangeRate?: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
   refNumber?: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
   memo?: string | null;
   transactionNumber?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCode?: QbdRef | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
   amount?: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
   entity?: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
   account?: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
   amountInHomeCurrency?: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
   expenseLines?: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
   itemLines?: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -5521,22 +5187,15 @@ export type CreditCardCredit = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate for multi-currency transactions (Optional).
-   */
   exchangeRate?: number | null;
   /**
-   * Reference number for the transaction (Optional).
-   * MaxLength of 11 characters is based on QuickBooks Desktop's limit for RefNumber fields.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo for the transaction (Optional).
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   /**
-   * Indicates if tax is included in the line items.
+   * The total amount of the credit.
    */
   isTaxIncluded?: boolean | null;
   /**
@@ -5550,19 +5209,8 @@ export type CreditCardCredit = {
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
-  /**
-   * Expense line items for the credit card credit.
-   * At least one expense line or item line is required.
-   */
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * Item line items for the credit card credit (for inventory items).
-   * At least one expense line or item line is required.
-   */
   itemLines?: Array<ItemLine>;
-  /**
-   * Item group line items for the credit card credit.
-   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -5593,24 +5241,12 @@ export type CreditCardTransactionInfo = {
  */
 export type CreditCardTransactionInputInfo = {
   number: string;
-  /**
-   * (Optional) The credit card's new expiration month (1-12).
-   */
   expirationMonth: number | null;
-  /**
-   * (Optional) The credit card's new expiration year (e.g., 2025).
-   */
   expirationYear: number | null;
   name: string;
   sddress?: string | null;
   postalCode?: string | null;
-  /**
-   * (Optional) New commercial card code. (Max 4 characters)
-   */
   commercialCardCode?: string | null;
-  /**
-   * (Optional) New transaction mode (0 for CardNotPresent [DEFAULT], 1 for CardPresent).
-   */
   transactionMode?: NullableTransactionMode | null;
   transactionType?: NullableCreditCardTransactionType | null;
 };
@@ -5661,17 +5297,11 @@ export type CreditMemo = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) The exchange rate for the transaction.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number (e.g., Credit Memo #).
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the transaction.
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   customer?: QbdRef | null;
@@ -5682,24 +5312,12 @@ export type CreditMemo = {
   billingAddressBlock?: AddressBlock | null;
   shippingAddress?: Address | null;
   shippingAddressBlock?: AddressBlock | null;
-  /**
-   * (Optional) Indicates if the credit memo is pending.
-   */
   isPending?: boolean | null;
   poNumber?: string | null;
   terms?: QbdRef | null;
-  /**
-   * (Optional) The due date.
-   */
   dueDate?: string | null;
   salesRepresentative?: QbdRef | null;
-  /**
-   * (Optional) Free On Board (FOB) terms. (Max 13 characters)
-   */
   fob?: string | null;
-  /**
-   * (Optional) The date of shipment.
-   */
   shipDate?: string | null;
   shipMethod?: QbdRef | null;
   subtotal?: number | null;
@@ -5710,26 +5328,11 @@ export type CreditMemo = {
   creditRemaining?: number | null;
   creditRemainingInHomeCurrency?: number | null;
   customerMsg?: QbdRef | null;
-  /**
-   * (Optional) Indicates if the transaction is to be printed.
-   */
   isToBePrinted?: boolean | null;
-  /**
-   * (Optional) Indicates if the transaction is to be emailed.
-   */
   isToBeEmailed?: boolean | null;
-  /**
-   * (Optional) Indicates if tax is included in the amounts.
-   */
   isTaxIncluded?: boolean | null;
   customerSalesTaxCode?: QbdRef | null;
-  /**
-   * (Optional) Other custom field. (Max 29 characters)
-   */
   other?: string | null;
-  /**
-   * (Optional) Standard item lines for the credit memo.
-   */
   lines?: Array<CreditMemoLine> | null;
   lineGroups?: Array<CreditMemoLineGroup> | null;
   amount?: number | null;
@@ -5752,46 +5355,19 @@ export type CreditMemoLine = {
   objectType?: string;
   id: string;
   item?: QbdRef | null;
-  /**
-   * (Optional) Description of the line item.
-   */
   description?: string | null;
-  /**
-   * (Optional) Quantity of the item.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Unit of measure.
-   */
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
-  /**
-   * (Optional) Rate or price per unit.
-   */
   rate?: number | null;
-  /**
-   * (Optional) Rate expressed as a percentage.
-   */
   ratePercent?: number | null;
   class?: QbdRef | null;
-  /**
-   * (Optional) Total amount for the line.
-   */
   amount?: number | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
-  /**
-   * (Optional) Serial number for the item.
-   */
   serialNumber?: string | null;
-  /**
-   * (Optional) Lot number for the item.
-   */
   lotNumber?: string | null;
   expirationDate?: string | null;
-  /**
-   * (Optional) Service date for the item.
-   */
   serviceDate?: string | null;
   salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
@@ -5809,20 +5385,11 @@ export type CreditMemoLineGroup = {
   objectType?: string;
   itemGroup?: QbdRef | null;
   description?: string | null;
-  /**
-   * (Optional) Quantity of the group.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Unit of measure.
-   */
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
   shouldPrintItemsInGroup?: boolean | null;
   totalAmount?: number | null;
-  /**
-   * (Optional) List of modifications for the individual items within this group.
-   */
   lines?: Array<CreditMemoLine> | null;
   customFields?: Array<QbdDataExt> | null;
 };
@@ -5835,25 +5402,19 @@ export type Currency = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the currency, displayed to the user. (Max 64 characters)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Required) The three-letter currency code (e.g., USD, EUR). Values are normalized to trimmed uppercase. (Max 3 characters)
-   */
   currencyCode?: string | null;
-  /**
-   * (Optional) Specifies the formatting rules for the currency.
-   */
   currencyFormat?: CurrencyFormat | null;
   isUserDefinedCurrency?: boolean | null;
   exchangeRate?: number | null;
   asOfDate?: string | null;
   /**
-   * (Optional) If false, this Currency is inactive. Default is true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -5863,21 +5424,9 @@ export type Currency = {
  * Represents the formatting rules for a currency.
  */
 export type CurrencyFormat = {
-  /**
-   * Controls the thousands separator when displaying currency values (for example, "1,000,000"). Defaults to comma.
-   */
   thousandSeparator?: string | null;
-  /**
-   * Controls how digits are grouped for thousands when displaying currency values (for example, "10,000,000").
-   */
   thousandSeparatorGrouping?: string | null;
-  /**
-   * Controls the number of decimal places displayed for currency values. Use `0` to hide decimals or `2` to display cents.
-   */
   decimalPlaces?: string | null;
-  /**
-   * Controls the decimal separator when displaying currency values (for example, "1.00" vs "1,00"). Defaults to period.
-   */
   decimalSeparator?: string | null;
 };
 
@@ -5925,65 +5474,29 @@ export type CustomContactField = {
 export type Customer = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
-   */
   fullname?: string | null;
-  /**
-   * The nesting depth of this customer (0 = top-level, 1 = sub-customer, etc.).
-   */
   sublevel?: number | null;
-  /**
-   * The company or business name of the customer.
-   */
   companyName?: string | null;
-  /**
-   * Salutation/title for the customer's contact person (e.g., "Mr.", "Dr.").
-   */
   salutation?: string | null;
-  /**
-   * First name of the customer's contact person.
-   */
   firstName?: string | null;
-  /**
-   * Middle name of the customer's contact person.
-   */
   middleName?: string | null;
-  /**
-   * Last name of the customer's contact person.
-   */
   lastName?: string | null;
-  /**
-   * Job title of the customer's primary contact.
-   */
   jobTitle?: string | null;
   billingAddress?: Address | null;
   shippingAddress?: Address | null;
   alternateShippingAddresses?: Array<ShipToAddress> | null;
-  /**
-   * Primary phone number for the customer.
-   */
   phone?: string | null;
   alternatePhone?: string | null;
-  /**
-   * Fax number for the customer.
-   */
   fax?: string | null;
-  /**
-   * Primary email address for the customer.
-   */
   email?: string | null;
-  /**
-   * CC email address — copied on all emails sent to this customer.
-   */
   ccEmail?: string | null;
-  /**
-   * Name of the primary contact at the customer's company.
-   */
   contact?: string | null;
   alternateContact?: string | null;
   /**
@@ -5996,112 +5509,37 @@ export type Customer = {
    * Maps to Contacts in QbXML.
    */
   additionalContacts?: Array<Contact> | null;
-  /**
-   * The class assigned to this customer for departmental tracking.
-   */
   class?: QbdRef | null;
-  /**
-   * The parent customer or job this record belongs to (for sub-customers/jobs).
-   */
   parent?: QbdRef | null;
-  /**
-   * The customer type category assigned to this customer.
-   */
   customerType?: QbdRef | null;
-  /**
-   * The default payment terms for this customer (e.g., "Net 30").
-   */
   terms?: QbdRef | null;
-  /**
-   * The sales representative assigned to this customer.
-   */
   salesRep?: QbdRef | null;
-  /**
-   * The sales tax code that determines whether sales to this customer are taxable.
-   */
   salesTaxCode?: QbdRef | null;
-  /**
-   * The default sales tax item applied to taxable sales for this customer.
-   */
   itemSalesTax?: QbdRef | null;
-  /**
-   * The customer's preferred payment method.
-   */
   preferredPaymentMethod?: QbdRef | null;
-  /**
-   * The type of job (used when this record represents a job under a customer).
-   */
   jobType?: QbdRef | null;
-  /**
-   * The custom price level applied to sales for this customer.
-   */
   priceLevel?: QbdRef | null;
-  /**
-   * The currency used for transactions with this customer (multi-currency files only).
-   */
   currency?: QbdRef | null;
-  /**
-   * Current outstanding balance owed by this customer.
-   */
   balance?: number | null;
-  /**
-   * Combined balance across this customer and all sub-customers/jobs.
-   */
   totalBalance?: number | null;
-  /**
-   * The country to which sales tax is remitted for this customer.
-   */
   salesTaxCountry?: string | null;
-  /**
-   * The customer's resale certificate number (used for tax-exempt sales).
-   */
   resaleNumber?: string | null;
-  /**
-   * Your account number for this customer (as assigned in QuickBooks).
-   */
   accountNumber?: string | null;
-  /**
-   * Maximum credit limit extended to this customer.
-   */
   creditLimit?: number | null;
   creditCard?: CreditCardInfo | null;
-  /**
-   * Current status of the job (e.g., "InProgress", "Awarded", "Closed"). Applies when this record is a job.
-   */
   jobStatus?: string | null;
-  /**
-   * Date the job started. Applies when this record is a job.
-   */
   jobStartDate?: string | null;
-  /**
-   * Projected completion date for the job.
-   */
   jobProjectedEndDate?: string | null;
-  /**
-   * Actual end date of the job.
-   */
   jobEndDate?: string | null;
-  /**
-   * Description of the job or project.
-   */
   jobDescription?: string | null;
-  /**
-   * Free-form notes about the customer.
-   */
   notes?: string | null;
-  /**
-   * Additional notes attached to this customer record.
-   */
   additionalNotes?: Array<AdditionalNote> | null;
-  /**
-   * The preferred method for delivering invoices and statements (e.g., "Email", "Mail", "None").
-   */
   preferredDeliveryMethod?: string | null;
-  /**
-   * The customer's tax registration number (used for international tax compliance).
-   */
   taxRegistrationNumber?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -6114,20 +5552,17 @@ export type CustomerType = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the customer type. (Max 31 characters)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
-   */
   fullname?: string | null;
   parent?: QbdRef | null;
   sublevel?: number | null;
   /**
-   * (Optional) If false, this Customer Type is inactive. Default is true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -6155,17 +5590,20 @@ export type DataExtRequest = {
 export type DateDrivenTerm = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   dueDayOfMonth?: number | null;
   gracePeriod?: number | null;
-  /**
-   * The day of the month within which payment must be received to qualify for the discount specified by `discountPercentage`.
-   */
   discountDayOfMonth?: number | null;
   discountPercntage?: number | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -6175,12 +5613,9 @@ export type DateDrivenTerm = {
  */
 export type DefaultUnit = {
   /**
-   * Where this default unit is used as the default: purchase line items, sales line items, or shipping lines.
+   * Context for the default unit (Purchase, Sales, Shipping).
    */
   unitUsedFor: string;
-  /**
-   * The unit name for this default unit, as displayed in the U/M field. If the company file is enabled for multiple units per item, this appears as an available unit for the item. Must correspond to the base unit or a related unit defined in this set. Maximum length: 31 characters.
-   */
   unit: string;
 };
 
@@ -6214,6 +5649,10 @@ export type DeleteResponse = {
   objectType: string;
   refNumber?: string | null;
   status: string;
+  /**
+   * The unique identifier for this request. Include this ID when contacting
+   * support so the request can be located in server-side logs.
+   */
   requestId?: string | null;
   errorMessage?: string | null;
   errorCode?: string | null;
@@ -6233,26 +5672,17 @@ export type Deposit = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) Exchange rate if this is a foreign currency Deposit.
-   */
   exchangeRate?: number | null;
-  refNumber?: string | null;
   /**
-   * (Optional) General memo about the Deposit. (Max 4095 characters)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
+  refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: number | null;
   depositToAccount?: QbdRef | null;
   depositTotal?: number | null;
   depositTotalInHomeCurrency?: number | null;
-  /**
-   * (Optional) Information about cash back requested from the deposit total.
-   */
   cashBackInfo?: CashBackInfo | null;
-  /**
-   * (Optional) A list of payment and manual lines making up the total deposit amount.
-   */
   depositLines?: Array<DepositLine> | null;
   amount?: number | null;
   entity?: QbdRef | null;
@@ -6352,13 +5782,7 @@ export type DictionaryStringString = {
 };
 
 export type EmergencyContact = {
-  /**
-   * The employee's primary emergency contact.
-   */
   primaryContact?: AdditionalContact | null;
-  /**
-   * The employee's secondary emergency contact.
-   */
   secondaryContact?: AdditionalContact | null;
 };
 
@@ -6369,6 +5793,9 @@ export type EmergencyContact = {
 export type Employee = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -6392,17 +5819,8 @@ export type Employee = {
   fax?: string | null;
   ssn?: string | null;
   email?: string | null;
-  /**
-   * Emergency contacts for the employee (QBD only, v13.0+).
-   */
   emergencyContacts?: EmergencyContact | null;
-  /**
-   * Additional contact references (may repeat, v12.0+).
-   */
   additionalContacts?: Array<CustomContactField> | null;
-  /**
-   * Additional notes (may repeat, v12.0+).
-   */
   additionalNotes?: Array<AdditionalNote> | null;
   employeeType?: string | null;
   partOrFullTime?: string | null;
@@ -6428,7 +5846,7 @@ export type Employee = {
   employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
   /**
-   * The employee's name (required). This is the display name in QuickBooks.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -6551,22 +5969,13 @@ export type Estimate = {
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Optional) The date of the transaction. Cannot be cleared. (DATETYPE)
-   */
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) The exchange rate for multi-currency transactions. (FLOATTYPE)
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The sequential reference number for the Estimate (e.g., Estimate Number). (STRTYPE)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the entire transaction. (STRTYPE)
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   customer?: QbdRef | null;
@@ -6574,23 +5983,11 @@ export type Estimate = {
   template?: QbdRef | null;
   billingAddress?: Address | null;
   shippingAddress?: Address | null;
-  /**
-   * (Optional) Whether the Estimate is active. (BOOLTYPE)
-   */
   isActive?: boolean | null;
-  /**
-   * (Optional) Customer's Purchase Order number. (STRTYPE)
-   */
   poNumber?: string | null;
   terms?: QbdRef | null;
-  /**
-   * (Optional) The due date calculated from the terms. (DATETYPE)
-   */
   dueDate?: string | null;
   salesRepresentative?: QbdRef | null;
-  /**
-   * (Optional) Freight on Board term. (STRTYPE)
-   */
   fob?: string | null;
   subtotal?: number | null;
   itemSalesTax?: QbdRef | null;
@@ -6598,21 +5995,12 @@ export type Estimate = {
   salesTaxTotal?: number | null;
   totalAmountInHomeCurrency?: number | null;
   customerMsg?: QbdRef | null;
-  /**
-   * (Optional) Whether the Estimate should be flagged to be emailed. (BOOLTYPE)
-   */
   isToBeEmailed?: boolean | null;
-  /**
-   * (Optional) Whether tax is included in the line item amounts. (BOOLTYPE)
-   */
   isTaxIncluded?: boolean | null;
   customerSalesTaxCode?: QbdRef | null;
   linkedTransactions?: Array<LinkedTransaction> | null;
   itemLines?: Array<EstimateItemLine> | null;
   itemGroupLines?: Array<EstimateItemGroupLine> | null;
-  /**
-   * (Optional) The Other field for the transaction. (STRTYPE)
-   */
   other?: string | null;
   amount?: number | null;
   entity?: QbdRef | null;
@@ -6671,17 +6059,8 @@ export type EstimateItemLine = {
 export type ExpenseLine = {
   id: string;
   objectType?: string;
-  /**
-   * Expense account (e.g., "Office Supplies")
-   */
   account?: QbdRef | null;
-  /**
-   * (Optional) The amount of the expense line.
-   */
   amount?: number | null;
-  /**
-   * (Optional) A memo specific to this line item.
-   */
   memo?: string | null;
   class?: QbdRef | null;
   customer?: QbdRef | null;
@@ -6689,9 +6068,6 @@ export type ExpenseLine = {
   salesTaxCode?: QbdRef | null;
   taxAmount?: number | null;
   vendor?: QbdRef | null;
-  /**
-   * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
-   */
   billableStatus?: NullableBillableStatus | null;
   customFields?: Array<QbdDataExt> | null;
 };
@@ -6702,19 +6078,19 @@ export type ExpenseLine = {
  */
 export type FixedAssetSalesInfo = {
   /**
-   * A description of the sales transaction or the reason for the asset's disposal.
+   * Description of the sale.
    */
   salesDesc?: string | null;
   /**
-   * The date on which the asset was sold or disposed of.
+   * Date the fixed asset was sold.
    */
   salesDate?: string | null;
   /**
-   * The final price for which the asset was sold.
+   * Sale price of the fixed asset.
    */
   salesPrice?: number | null;
   /**
-   * Any expenses directly incurred in order to sell the asset (e.g., broker fees, delivery costs).
+   * Expenses associated with the sale.
    */
   salesExpense?: number | null;
 };
@@ -6733,12 +6109,9 @@ export type InventoryAdjustment = {
   currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
-   * (Optional) The document number. (Max 11 characters)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) General memo about the Inventory Adjustment. (Max 4095 characters)
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   account?: QbdRef | null;
@@ -6759,7 +6132,7 @@ export type InventoryAdjustment = {
 };
 
 /**
- * Represents a single line item for an Inventory Adjustment add operation.
+ * Represents a single line item for an Inventory Adjustment operation.
  * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
  */
 export type InventoryAdjustmentLine = {
@@ -6785,11 +6158,17 @@ export type InventoryAdjustmentLine = {
 export type InventoryItem = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   manufacturerPartNumber?: string | null;
+  /**
+   * Indicates if sales tax is included in the item price.
+   */
   isTaxIncluded?: boolean | null;
   salesDesc?: string | null;
   salesPrice?: number | null;
@@ -6806,15 +6185,39 @@ export type InventoryItem = {
   averageCost?: number | null;
   quantityOnOrder?: number | null;
   quantityOnSalesOrder?: number | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -6826,6 +6229,9 @@ export type InventoryItem = {
 export type InventorySite = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -6839,6 +6245,9 @@ export type InventorySite = {
   email?: string | null;
   siteAddress?: Address | null;
   siteAddressBlock?: AddressBlock | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -6859,24 +6268,18 @@ export type Invoice = {
   currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
-   * Reference number for the invoice.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo/description for the invoice.
-   */
   memo?: string | null;
   /**
-   * The customer to whom the invoice is addressed.
+   * Reference to the Customer.
    */
   customer?: QbdRef | null;
-  /**
-   * Class Reference.
-   */
   class?: QbdRef | null;
   receivablesAccount?: QbdRef | null;
   /**
-   * Reference to the visual template (e.g., "Custom Invoice") used in QuickBooks.
+   * Reference to the visual template for the invoice.
    */
   template?: QbdRef | null;
   /**
@@ -6889,7 +6292,7 @@ export type Invoice = {
   isFinanceCharge?: boolean | null;
   purchaseOrderNumber?: string | null;
   /**
-   * Reference to the payment terms (e.g., "Net 30") applied to this invoice.
+   * Reference to the payment terms (e.g., "Net 30").
    */
   terms?: QbdRef | null;
   salesRepresentative?: QbdRef | null;
@@ -6904,40 +6307,31 @@ export type Invoice = {
   customerSalesTaxCode?: QbdRef | null;
   otherCustomField?: string | null;
   /**
-   * The total of all line items, before sales tax.
-   * The 'Amount' property (from BaseTransactionDto) represents the grand total.
+   * The total of all line items before sales tax.
    */
   subtotal?: number | null;
   /**
-   * The total amount of sales tax calculated for the invoice.
+   * The total amount of sales tax.
    */
   salesTaxTotal?: number | null;
   /**
-   * The remaining balance to be paid.
+   * The remaining balance due on the invoice.
    */
   balanceRemaining?: number | null;
   /**
    * Indicates if the invoice has been paid in full.
+   * Changed to 'set' to allow state to change after creation.
    */
   isPaid?: boolean | null;
   amount?: number | null;
   entity?: QbdRef | null;
-  /**
-   * The Accounts Receivable (A/R) account associated with this invoice.
-   */
   account?: QbdRef | null;
   amountInHomeCurrency?: string | null;
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * Item line items for the invoice.
-   */
   itemLines?: Array<ItemLine>;
-  /**
-   * Item group line items for the invoice.
-   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -6992,6 +6386,9 @@ export type Item =
 export type ItemDiscount = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -7000,15 +6397,39 @@ export type ItemDiscount = {
   discountRate?: number | null;
   discountRatePercent?: number | null;
   account?: QbdRef | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7020,84 +6441,63 @@ export type ItemDiscount = {
 export type ItemFixedAsset = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * Indicates the condition of the asset at the time of acquisition (e.g., "New" or "Used").
-   */
   acquiredAs?: string | null;
-  /**
-   * A description of the asset specifically related to its purchase.
-   */
   purchaseDesc?: string | null;
-  /**
-   * The date on which the business purchased or acquired the asset.
-   */
   purchaseDate?: string | null;
-  /**
-   * The date on which the business purchased or acquired the asset.
-   */
   purchaseCost?: number | null;
-  /**
-   * The original purchase price or cost of acquiring the asset.
-   */
   vendorOrPayeeName?: string | null;
-  /**
-   * A reference to the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
-   */
   assetAccount?: QbdRef | null;
   salesInfo?: FixedAssetSalesInfo | null;
-  /**
-   * A general description of the fixed asset.
-   */
   assetDesc?: string | null;
-  /**
-   * The physical location or department where the asset is currently kept.
-   */
   location?: string | null;
-  /**
-   * The Purchase Order number associated with the acquisition of the asset.
-   */
   poNumber?: string | null;
-  /**
-   * The serial number or vehicle identification number (VIN) of the asset.
-   */
   serialNumber?: string | null;
-  /**
-   * The date on which the manufacturer's or vendor's warranty for the asset expires.
-   */
   warrantyExpDate?: string | null;
-  /**
-   * Additional free-form notes or comments regarding the asset.
-   */
   notes?: string | null;
-  /**
-   * A unique, company-assigned tracking number or barcode number for the asset.
-   */
   assetNumber?: string | null;
-  /**
-   * The cost basis of the asset used for calculating tax and depreciation (often includes purchase price plus freight, installation, etc.).
-   */
   costBasis?: number | null;
-  /**
-   * The total amount of depreciation accumulated for this asset up to the end of the most recent fiscal year.
-   */
   yearEndAccumulatedDepreciation?: number | null;
-  /**
-   * The net book value of the asset at the end of the fiscal year (typically Cost Basis minus Accumulated Depreciation).
-   */
   yearEndBookValue?: number | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7108,6 +6508,9 @@ export type ItemFixedAsset = {
 export type ItemGroup = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -7115,15 +6518,39 @@ export type ItemGroup = {
   shouldPrintItemsInGroup?: boolean | null;
   specialItemType?: string | null;
   lines?: Array<ItemGroupLineDetail> | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7136,14 +6563,8 @@ export type ItemGroupLine = {
   objectType?: string;
   itemGroup?: QbdRef | null;
   description?: string | null;
-  /**
-   * (Optional) Quantity of the group. QuickBooks will multiply this by the group's internal quantities.
-   */
   quantity?: number;
   totalAmount?: number;
-  /**
-   * (Optional) Unit of measure.
-   */
   unitOfMeasure?: string | null;
   isPrintItemsInGroup?: boolean | null;
   lines?: Array<ItemLine> | null;
@@ -7175,11 +6596,17 @@ export type ItemGroupLineDetailRequest = {
 export type ItemInventoryAssembly = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   sku?: string | null;
+  /**
+   * Indicates if sales tax is included in the item price.
+   */
   isTaxIncluded?: boolean | null;
   salesDescription?: string | null;
   salesPrice?: number | null;
@@ -7198,15 +6625,39 @@ export type ItemInventoryAssembly = {
   quantityOnOrder?: number | null;
   quantityOnSalesOrder?: number | null;
   lines?: Array<ItemInventoryAssemblyLine> | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7693,48 +7144,21 @@ export type ItemLine = {
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
   item?: QbdRef | null;
-  /**
-   * (Optional) Description for the line item.
-   */
   description?: string | null;
-  /**
-   * (Optional) Quantity of the item.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Cost per item (used in purchases).
-   */
   cost?: number | null;
-  /**
-   * (Optional) Total amount for the line.
-   */
   amount?: number | null;
   customer?: QbdRef | null;
   class?: QbdRef | null;
   overrideItemAccount?: QbdRef | null;
-  /**
-   * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
-   */
   billableStatus?: NullableBillableStatus | null;
   itemGroup?: QbdRef | null;
-  /**
-   * (Optional) Unit of measure.
-   */
   unitOfMeasure?: string | null;
-  /**
-   * (Optional) Price per item (used in sales).
-   */
   rate?: number | null;
   salesTaxCode?: QbdRef | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
-  /**
-   * (Optional) Serial number for the item.
-   */
   serialNumber?: string | null;
-  /**
-   * (Optional) Lot number for the item.
-   */
   lotNumber?: string | null;
   serviceDate?: string | null;
   customFields?: Array<QbdDataExt> | null;
@@ -7746,6 +7170,9 @@ export type ItemLine = {
 export type ItemNonInventory = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -7754,6 +7181,9 @@ export type ItemNonInventory = {
    * Manufacturer part number for the item.
    */
   manufacturerPartNumber?: string | null;
+  /**
+   * Indicates if sales tax is included in the item price.
+   */
   isTaxIncluded?: boolean | null;
   desc?: string | null;
   price?: number | null;
@@ -7767,15 +7197,39 @@ export type ItemNonInventory = {
   purchaseTaxCode?: QbdRef | null;
   expenseAccount?: QbdRef | null;
   preferredVendor?: QbdRef | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7805,10 +7259,16 @@ export type ItemNonInventorySalesOrPurchaseDetailsRequest = {
 export type ItemOtherCharge = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
+  /**
+   * Indicates if sales tax is included in the item price.
+   */
   isTaxIncluded?: boolean | null;
   /**
    * Special item type designation.
@@ -7827,15 +7287,39 @@ export type ItemOtherCharge = {
   purchaseTaxCode?: QbdRef | null;
   expenseAccount?: QbdRef | null;
   preferredVendor?: QbdRef | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7864,6 +7348,9 @@ export type ItemOtherChargeSalesOrPurchaseDetailsRequest = {
 export type ItemPayment = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -7871,15 +7358,39 @@ export type ItemPayment = {
   itemDesc?: string | null;
   depositToAccount?: QbdRef | null;
   paymentMethod?: QbdRef | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -7903,27 +7414,15 @@ export type ItemReceipt = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate for multi-currency transactions (Optional).
-   */
   exchangeRate?: number | null;
   /**
-   * Reference number for the transaction (Optional).
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo for the transaction (Optional).
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   payablesAccount?: QbdRef | null;
-  /**
-   * The Liability account (e.g., for items received without a bill).
-   */
   liabilityAccount?: QbdRef | null;
-  /**
-   * Indicates if tax is included in line items (Optional).
-   */
   isTaxIncluded?: boolean | null;
   salesTaxCode?: QbdRef | null;
   amount?: number | null;
@@ -7933,17 +7432,8 @@ export type ItemReceipt = {
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
-  /**
-   * Expense line items for the item receipt.
-   */
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * Item line items for the item receipt.
-   */
   itemLines?: Array<ItemLine>;
-  /**
-   * Item group line items for the item receipt.
-   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -7955,36 +7445,48 @@ export type ItemSalesTax = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name or identifier for the new sales tax item.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Optional) A description for the sales tax item.
-   */
   itemDesc?: string | null;
-  /**
-   * (Optional) The tax rate as a percentage (e.g., 7.5 for 7.5%).
-   */
   taxRate?: number | null;
   taxVendor?: QbdRef | null;
   salesTaxReturnLine?: QbdRef | null;
-  fullname?: string | null;
   /**
-   * (Optional) BarCode information.
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
    */
+  fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
   /**
-   * (Optional) Indicates whether the sales tax item is active.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -8006,21 +7508,48 @@ export type ItemSalesTax = {
 export type ItemSalesTaxGroup = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   itemDesc?: string | null;
   itemSalesTax?: Array<QbdRef> | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -8075,29 +7604,48 @@ export enum ItemServiceItemItemType {
 export type ItemSubtotal = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * Description of the item.
-   * Max Length: 4095 characters.
-   */
   itemDesc?: string | null;
-  /**
-   * Special Item Type.
-   * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
-   */
   specialItemType?: string | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -8115,22 +7663,13 @@ export type JournalEntry = {
   currency?: QbdRef | null;
   exchangeRate?: number | null;
   /**
-   * Reference number for the journal entry. (Max 20 characters)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: number | null;
-  /**
-   * Memo/description for the journal entry. (Max 4095 characters)
-   */
   isAdjustment?: boolean | null;
-  /**
-   * Indicates if this is a home currency adjustment.
-   */
   isHomeCurrencyAdjustment?: boolean | null;
-  /**
-   * Indicates if amounts are entered in home currency.
-   */
   isAmountsEnteredInHomeCurrency?: boolean | null;
   debitLines?: Array<JournalLine> | null;
   creditLines?: Array<JournalLine> | null;
@@ -8154,20 +7693,11 @@ export type JournalLine = {
   objectType?: string;
   id: string;
   account?: QbdRef | null;
-  /**
-   * (Required) Amount for the line.
-   */
   amount?: number | null;
-  /**
-   * Memo for the line. (Max 4095 characters)
-   */
   memo?: string | null;
   entity?: QbdRef | null;
   class?: QbdRef | null;
   itemSalesTax?: QbdRef | null;
-  /**
-   * Billable status of the line (Billable, NotBillable, HasBeenBilled).
-   */
   billableStatus?: string | null;
 };
 
@@ -8316,6 +7846,9 @@ export enum NullableTransactionMode {
 export type OtherName = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -8341,6 +7874,9 @@ export type OtherName = {
   alternateContact?: string | null;
   accountNumber?: string | null;
   notes?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -8362,6 +7898,9 @@ export type PayableBill = {
    * Amount due in home currency. This is a direct property for now.
    */
   amountDueInHomeCurrency?: string | null;
+  /**
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   */
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
@@ -8386,7 +7925,7 @@ export type PaymentMethod = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the payment method.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
@@ -8397,8 +7936,7 @@ export type PaymentMethod = {
    */
   paymentMethodType?: string | null;
   /**
-   * (Optional) Whether the payment method is active.
-   * Defaults to true if not specified.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -8417,15 +7955,14 @@ export type PayrollItemNonWage = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the non-wage payroll item.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * (Required) The non-wage item type.
-   * Possible values: Addition, CompanyContribution, Deduction, DirectDeposit, Tax
+   * The specific type of non-wage item (e.g., Addition, CompanyContribution, Deduction, DirectDeposit, Tax).
    */
   nonWageType: string;
   /**
@@ -8437,7 +7974,7 @@ export type PayrollItemNonWage = {
    */
   liabilityAccount?: QbdRef | null;
   /**
-   * (Optional) Indicates whether the payroll item is active.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -8450,15 +7987,14 @@ export type PayrollItemWage = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the wage payroll item.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * (Required) The wage item type.
-   * Possible values: Bonus, Commission, HourlyOvertime, HourlyRegular, HourlySick, HourlyVacation, SalaryRegular, SalarySick, SalaryVacation.
+   * The type of wage (e.g., Bonus, Commission, HourlyOvertime, HourlyRegular, etc.).
    */
   wageType: string;
   /**
@@ -8466,7 +8002,7 @@ export type PayrollItemWage = {
    */
   expenseAccount: QbdRef;
   /**
-   * (Optional) Indicates whether the payroll item is active.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -8480,30 +8016,18 @@ export type PriceLevel = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the new price level. Max length: 31 characters.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The type of price level: "FixedPercentage" or "PerItem".
-   */
   priceLevelType?: string | null;
-  /**
-   * The fixed percentage adjustment (only for FixedPercentage type).
-   */
   fixedPercentage?: number | null;
-  /**
-   * List of per-item price level rules (only for PerItem type).
-   */
   perItemPriceLevels?: Array<PriceLevelPerItem> | null;
-  /**
-   * The currency associated with this price level.
-   */
   currency?: QbdRef | null;
   /**
-   * (Optional) Whether the price level is active. Defaults to true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -8514,17 +8038,8 @@ export type PriceLevel = {
  * Maps to PriceLevelPerItemRet in QBXML.
  */
 export type PriceLevelPerItem = {
-  /**
-   * The item this pricing rule applies to.
-   */
   item?: QbdRef | null;
-  /**
-   * The custom price for this item (mutually exclusive with CustomPricePercent).
-   */
   customPrice?: number | null;
-  /**
-   * The custom price as a percentage (mutually exclusive with CustomPrice).
-   */
   customPricePercent?: number | null;
 };
 
@@ -8567,17 +8082,11 @@ export type PurchaseOrder = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) Exchange rate if this is a foreign currency Purchase Order.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The document number. (Max 11 characters)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) Memo about the transaction. (Max 4095 characters)
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   vendor?: QbdRef | null;
@@ -8585,39 +8094,21 @@ export type PurchaseOrder = {
   inventorySite?: QbdRef | null;
   shipToEntity?: QbdRef | null;
   template?: QbdRef | null;
-  /**
-   * (Optional) The primary address for the Vendor on this Purchase Order.
-   */
   vendorAddress?: Address | null;
   vendorAddressBlock?: AddressBlock | null;
-  /**
-   * (Optional) The shipping address for the Purchase Order.
-   */
   shipAddress?: Address | null;
   shipAddressBlock?: AddressBlock | null;
   terms?: QbdRef | null;
-  /**
-   * (Optional) The date the payment is due based on terms.
-   */
   dueDate?: string | null;
-  /**
-   * (Optional) The date the vendor is expected to deliver the item.
-   */
   expectedDate?: string | null;
   shipmentMethod?: QbdRef | null;
   shipmentOrigin?: string | null;
   totalAmount?: number | null;
-  /**
-   * (Optional) If true, the Purchase Order is considered manually closed (Cannot be cleared if modifying existing value).
-   */
   isManuallyClosed?: boolean | null;
   isFullyReceived?: boolean | null;
   vendorMessage?: string | null;
   isQueuedForPrint?: boolean | null;
   isQueuedForEmailed?: boolean | null;
-  /**
-   * (Optional) If true, the line item rates/amounts are inclusive of sales tax.
-   */
   isTaxIncluded?: boolean | null;
   salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
@@ -8643,42 +8134,21 @@ export type PurchaseOrder = {
 export type PurchaseOrderLine = {
   id: string;
   item?: QbdRef | null;
-  /**
-   * (Optional) The manufacturer's part number for the item. (Max 31 characters)
-   */
   manufacturerPartNumber?: string | null;
-  /**
-   * (Optional) Description for the line item. (Max 4095 characters)
-   */
   description?: string | null;
-  /**
-   * (Optional) Quantity of the item to purchase.
-   */
   quantity?: number | null;
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
-  /**
-   * (Optional) Cost/Rate per item unit.
-   */
   rate?: number | null;
   class?: QbdRef | null;
-  /**
-   * (Optional) Total amount for the line.
-   */
   amount?: number | null;
   inventorySiteLocation?: QbdRef | null;
   customer?: QbdRef | null;
-  /**
-   * (Optional) The date the service was performed (if this is a service item).
-   */
   serviceDate?: string | null;
   salesTaxCode?: QbdRef | null;
   receivedQuantity?: number | null;
   unbilledQuantity?: number | null;
   isBilled?: boolean | null;
-  /**
-   * (Optional) If true, manually closes this line item.
-   */
   isManuallyClosed?: boolean | null;
   otherCustomField1?: string | null;
   otherCustomField2?: string | null;
@@ -8693,9 +8163,6 @@ export type PurchaseOrderLineGroup = {
   objectType?: string;
   itemGroup?: QbdRef | null;
   description?: string | null;
-  /**
-   * (Optional) Quantity of the group to purchase.
-   */
   quantity?: number | null;
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
@@ -8706,12 +8173,10 @@ export type PurchaseOrderLineGroup = {
 };
 
 /**
- * Represents a custom data extension, which can be either a public custom field (viewable and printable in the QuickBooks UI)
- * or private data (visible only to the application that owns the specific GUID) .
- * Note that private data is limited to a total of 4096 bytes per object across all applications .
+ * Represents a custom data extension (Custom Field) in QuickBooks.
  */
 export type QbdDataExt = {
-  OwnerId?: string | null;
+  ownerId?: string | null;
   name?: string | null;
   type?: string | null;
   value?: string | null;
@@ -8728,17 +8193,11 @@ export type QbdDataExt = {
  */
 export type QbdRef = {
   id: string;
-  /**
-   * The fully-qualified name of the referenced object, including any parent names separated by colons. Case-sensitive.
-   *
-   * Includes the entire parent hierarchy, with each level separated by colons, ending in the object's own name. For nested sub-items, it would be "Grandparent:Parent:Child"
-   */
   fullname?: string | null;
 };
 
 /**
  * Details for a Quantity Adjustment (changes item quantity without changing cost).
- * QuickBooks requires integer values for quantity fields.
  */
 export type QuantityAdjustmentRequest = {
   newQuantity?: number | null;
@@ -8793,17 +8252,11 @@ export type ReceivePayment = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * Exchange rate for multi-currency transactions (v8.0+).
-   */
   exchangeRate?: number | null;
   /**
-   * Reference number for the payment (max 20 chars).
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * Memo/description for the payment (max 4095 chars).
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   customer?: QbdRef | null;
@@ -8837,9 +8290,6 @@ export type RefundAppliedToTransaction = {
   transactionDate?: string | null;
   refNumber?: string | null;
   creditRemaining?: number | null;
-  /**
-   * (Required) The amount of the refund applied to this specific transaction.
-   */
   refundAmount?: number | null;
   creditRemainingInHomeCurrency?: number | null;
   refundAmountInHomeCurrency?: number | null;
@@ -8860,17 +8310,8 @@ export type RefundAppliedToTransactionRequest = {
  * DTO for a related unit with conversion ratio.
  */
 export type RelatedUnit = {
-  /**
-   * The case-insensitive unique name of this related unit, unique across all related units. **NOTE**: Related units do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents. Maximum length: 31 characters.
-   */
   name: string;
-  /**
-   * The related unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
-   */
   abbreviation: string;
-  /**
-   * The number of base units in this related unit, represented as a decimal string. For example, if the base unit is "box" and this related unit is "case" with `conversionRatio` = "10", that means there are 10 boxes in one case.
-   */
   conversionRatio?: number;
 };
 
@@ -8936,15 +8377,15 @@ export type Report = {
 export type ReportColData = {
   columnId?: string | null;
   /**
-   * The value of the column.
+   * The data value for this cell (can be string, number, etc.).
    */
   value?: string | null;
   /**
-   * The data type of the column.
+   * Data type of the value (e.g., "string", "number", "date").
    */
   dataType?: string | null;
   /**
-   * The attributes of the column.
+   * Optional additional attributes (e.g., formatting hints, negative indicators).
    */
   attributes?: DictionaryStringString | null;
 };
@@ -8955,12 +8396,12 @@ export type ReportColData = {
 export type ReportColumnDescription = {
   id: string;
   /**
-   * The data type of the column.
+   * Data type of the column (e.g., "string", "number", "date").
    */
   dataType?: string | null;
   type?: string | null;
   /**
-   * The column titles for the report.
+   * Hierarchical titles for this column (can be nested for grouped headers).
    */
   columnTitles?: Array<ReportColumnTitle> | null;
 };
@@ -8971,15 +8412,15 @@ export type ReportColumnDescription = {
  */
 export type ReportColumnTitle = {
   /**
-   * The title row of the column.
+   * The title row number (for multi-row headers).
    */
   titleRow?: number | null;
   /**
-   * The value of the column title.
+   * The title text for this column or column group.
    */
   value?: string | null;
   /**
-   * The sub-titles for the column.
+   * Nested column titles for hierarchical headers (e.g., "Q1" under "2024").
    */
   subTitles?: Array<ReportColumnTitle> | null;
 };
@@ -8989,7 +8430,8 @@ export type ReportColumnTitle = {
  */
 export type ReportData = {
   /**
-   * The rows in the report.
+   * All rows in the report in their original sequence.
+   * Includes TextRow, DataRow, SubtotalRow, and TotalRow.
    */
   rows?: Array<ReportRow> | null;
 };
@@ -8999,15 +8441,15 @@ export type ReportData = {
  */
 export type ReportRow = {
   /**
-   * The type of the row.
+   * The type of row: "TextRow", "DataRow", "SubtotalRow", or "TotalRow".
    */
   type?: string;
   /**
-   * The row number of the row.
+   * Optional row number for positioning.
    */
   rowNumber?: number | null;
   /**
-   * The value of the row.
+   * For TextRow: The text content of the row.
    */
   value?: string | null;
   info?: ReportRowData | null;
@@ -9021,11 +8463,11 @@ export type ReportRow = {
 export type ReportRowData = {
   type?: string | null;
   /**
-   * The value of the row.
+   * Optional row value or label.
    */
   value?: string | null;
   /**
-   * The row number of the row.
+   * Row number (optional, for reference).
    */
   rowNumber?: number | null;
 };
@@ -9054,17 +8496,11 @@ export type SalesReceipt = {
   revisionNumber: string;
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The document number (e.g., receipt number). (Max 11 characters)
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) General memo about the Sales Receipt. (Max 4095 characters)
-   */
   memo?: string | null;
   transactionNumber?: number | null;
   customer?: QbdRef | null;
@@ -9074,18 +8510,9 @@ export type SalesReceipt = {
   billingAddressBlock?: AddressBlock | null;
   shippingAddress?: Address | null;
   shippingAddressBlock?: AddressBlock | null;
-  /**
-   * (Optional) Indicates if the transaction is pending.
-   */
   isPending?: boolean | null;
-  /**
-   * (Optional) Check number if payment method is check. (Max 25 characters)
-   */
   checkNumber?: string | null;
   paymentMethod?: QbdRef | null;
-  /**
-   * (Optional) The date the payment is due (if applicable).
-   */
   dueDate?: string | null;
   salesRepresentative?: QbdRef | null;
   shipDate?: string | null;
@@ -9100,9 +8527,6 @@ export type SalesReceipt = {
   customerMessage?: QbdRef | null;
   isQueuedForPrint?: boolean | null;
   isQueuedForEmail?: boolean | null;
-  /**
-   * (Optional) If true, tax is included in the item amounts (tax-inclusive pricing).
-   */
   isTaxIncluded?: boolean | null;
   customerSalesTaxCode?: QbdRef | null;
   depositToAccount?: QbdRef | null;
@@ -9130,46 +8554,19 @@ export type SalesReceiptLine = {
   id: string;
   objectType?: string | null;
   item?: QbdRef | null;
-  /**
-   * (Optional) Description for the line item. (Max 4095 characters)
-   */
   description?: string | null;
-  /**
-   * (Optional) Quantity of the item.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Unit of measure override. (Max 31 characters)
-   */
   unitOfMeasure?: string | null;
   overrideUOMSet?: QbdRef | null;
-  /**
-   * (Optional) The direct rate per unit. Use either Rate, RatePercent, or PriceLevelId.
-   */
   rate?: number | null;
-  /**
-   * (Optional) The percentage rate based on item price. Use either Rate, RatePercent, or PriceLevelId.
-   */
   ratePercent?: number | null;
   class?: QbdRef | null;
-  /**
-   * (Optional) Total amount for the line. Overrides calculation if Rate/RatePercent not set.
-   */
   amount?: number | null;
   inventorySite?: QbdRef | null;
   inventorySiteLocation?: QbdRef | null;
-  /**
-   * (Optional) Serial number for the item. Mutually exclusive with LotNumber. (Max 4095 characters)
-   */
   serialNumber?: string | null;
-  /**
-   * (Optional) Lot number for the item. Mutually exclusive with SerialNumber. (Max 40 characters)
-   */
   lotNumber?: string | null;
   expirationDate?: string | null;
-  /**
-   * (Optional) The date the service was performed.
-   */
   serviceDate?: string | null;
   salesTaxCode?: QbdRef | null;
   otherCustomField1?: string | null;
@@ -9186,13 +8583,7 @@ export type SalesReceiptLineGroup = {
   objectType?: string | null;
   itemGroup?: QbdRef | null;
   description?: string | null;
-  /**
-   * (Optional) Quantity of the group.
-   */
   quantity?: number | null;
-  /**
-   * (Optional) Unit of measure override. (Max 31 characters)
-   */
   unitOfMeasure?: string | null;
   overrideUnitOfMeasureSet?: QbdRef | null;
   shouldPrintItemsInGroup?: boolean | null;
@@ -9209,21 +8600,18 @@ export type SalesTaxCode = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the sales tax code. (Max 3 characters)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Required) Indicates whether the sales tax code represents a taxable (true) or non-taxable (false) item.
-   */
   isTaxable?: boolean;
   desc?: string | null;
   itemPurchaseTax?: QbdRef | null;
   itemSalesTax?: QbdRef | null;
   /**
-   * (Optional) If false, this Sales Tax Code is inactive. Default is true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -9239,27 +8627,18 @@ export type SalesTaxPaymentCheck = {
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Required) The date of the transaction.
-   */
   transactionDate?: string | null;
   currency?: QbdRef | null;
   exchangeRate?: number | null;
-  refNumber?: string | null;
   /**
-   * (Optional) A memo for the transaction. Max 4095 chars.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
+  refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: number | null;
-  /**
-   * (Optional) The address of the payee.
-   */
   address?: Address | null;
   addressBlock?: AddressBlock | null;
   isQueuedForPrint?: boolean | null;
-  /**
-   * (Required) A list of sales tax items and the amounts being paid.
-   */
   lines?: Array<SalesTaxPaymentCheckLine> | null;
   amount?: number | null;
   entity?: QbdRef | null;
@@ -9281,9 +8660,6 @@ export type SalesTaxPaymentCheckLine = {
   objectType?: string;
   id: string;
   itemSalesTax?: QbdRef | null;
-  /**
-   * (Required) The amount of the payment for this line.
-   */
   amount?: number | null;
 };
 
@@ -9303,6 +8679,9 @@ export type SerialNumberAdjustmentRequest = {
 export type ServiceItem = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -9319,15 +8698,39 @@ export type ServiceItem = {
   purchaseTaxCode?: QbdRef | null;
   expenseAccount?: QbdRef | null;
   preferredVendor?: QbdRef | null;
+  /**
+   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   */
   fullname?: string | null;
   barcode?: string | null;
+  /**
+   * Class reference for categorization/departmental tracking.
+   */
   class?: QbdRef | null;
+  /**
+   * Parent item reference for hierarchical items.
+   */
   parent?: QbdRef | null;
+  /**
+   * Level in the item hierarchy (0 for top-level).
+   */
   sublevel?: number | null;
+  /**
+   * Unit of measure set reference.
+   */
   unitOfMeasureSet?: QbdRef | null;
+  /**
+   * Sales tax code reference.
+   */
   salesTaxCode?: QbdRef | null;
+  /**
+   * General item description.
+   */
   description?: string | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -9339,10 +8742,6 @@ export type ServiceItem = {
 export type SetCredit = {
   id: string;
   amount: number;
-  /**
-   * If true, overrides default logic for applying credits.
-   * (Optional)
-   */
   override?: boolean | null;
 };
 
@@ -9370,14 +8769,14 @@ export type ShipMethod = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the shipping method. (Max 15 characters)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * (Optional) If false, this Shipping Method is inactive. Default is true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -9397,10 +8796,6 @@ export type ShipToAddress = {
   postalCode?: string | null;
   country?: string | null;
   note?: string | null;
-  /**
-   * Name identifier for this shipping address (e.g., "Warehouse", "Store #1").
-   * Required for ShipToAddress. Maps to line1 in Conductor API.
-   */
   name: string;
   isDefaultShippingAddress?: boolean | null;
 };
@@ -9427,36 +8822,36 @@ export type ShipToAddressRequest = {
   line3?: string | null;
   line4?: string | null;
   line5?: string | null;
+  /**
+   * (Optional) City.
+   */
   city?: string | null;
+  /**
+   * (Optional) State.
+   */
   state?: string | null;
+  /**
+   * (Optional) Postal code.
+   */
   postalCode?: string | null;
+  /**
+   * (Optional) Country.
+   */
   country?: string | null;
+  /**
+   * (Optional) A note associated with the address.
+   */
   note?: string | null;
 };
 
 export type SickHours = {
-  /**
-   * The total number of sick hours currently available for the employee to use, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M. Defaults to 0.
-   */
   hoursAvailable?: string | null;
-  /**
-   * How frequently the employee's sick hours are accrued.
-   */
   accrualPeriod?: string | null;
   hoursAccrued?: string | null;
-  /**
-   * The maximum number of sick hours the employee can accrue, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
-   */
   maximumHours?: string | null;
   isResettingHoursEachNewYear?: boolean | null;
-  /**
-   * The number of sick hours the employee has used, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
-   */
   hoursUsed?: string | null;
   yearBeginsDate?: string | null;
-  /**
-   * The date the employee's sick hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
-   */
   accrualStartDate?: string | null;
 };
 
@@ -9469,6 +8864,9 @@ export type SickHours = {
 export type SpecialItem = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -9477,6 +8875,9 @@ export type SpecialItem = {
    * The type of special item: "FinanceCharge", "ReimbursableExpenseGroup", or "ReimbursableExpenseSubtotal".
    */
   specialItemType?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -9526,6 +8927,9 @@ export type TenantMeResponse = {
 export type Term = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -9534,11 +8938,11 @@ export type Term = {
   discountDays?: number | null;
   dueDayOfMonth?: number | null;
   gracePeriodDays?: number | null;
-  /**
-   * Day of the month for discount eligibility (Date Driven Terms).
-   */
   discountDayOfMonth?: number | null;
   discountPercentage?: number | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -9556,28 +8960,19 @@ export type TimeTracking = {
   transactionDate?: string | null;
   currency?: QbdRef | null;
   exchangeRate?: number | null;
+  /**
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   */
   refNumber?: string | null;
   memo?: string | null;
   transactionNumber?: number | null;
   customer?: QbdRef | null;
   itemService?: QbdRef | null;
-  /**
-   * (Required) The duration of the work performed, formatted as an XML TimeIntervalType string (e.g., "PT8H0M0S" for 8 hours).
-   */
   duration?: string | null;
   class?: QbdRef | null;
   payrollItemWage?: QbdRef | null;
-  /**
-   * (Optional) General notes about the time entry. Max 4095 chars.
-   */
   notes?: string | null;
-  /**
-   * (Optional) Status indicating if the time is billable (Billable, NotBillable, HasBeenBilled).
-   */
   billableStatus?: string | null;
-  /**
-   * (Optional) Legacy flag to set time as billable. Use BillableStatus instead if possible.
-   */
   isBillable?: boolean | null;
   isBilled?: boolean | null;
   amount?: number | null;
@@ -9606,13 +9001,13 @@ export type Transaction = {
   transactionDate?: string | null;
   currency?: QbdRef | null;
   exchangeRate?: number | null;
+  /**
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   */
   refNumber?: string | null;
   memo?: string | null;
   transactionType?: string | null;
   transactionLineId?: string | null;
-  /**
-   * The entity associated with this transaction (Customer, Vendor, Employee, etc.)
-   */
   entity?: QbdRef | null;
   amount?: number | null;
   account?: QbdRef | null;
@@ -9634,30 +9029,30 @@ export type UnitOfMeasureSet = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the unit of measure set. Max length: 31.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
   /**
-   * The type of measurement: "Area", "Count", "Length", "Other", "Time", "Volume", "Weight".
+   * The type of measurement (e.g., Area, Count, Length, Other, Time, Volume, Weight).
    */
   unitOfMeasureType?: string | null;
   /**
-   * The base unit definition for this set.
+   * The fundamental unit for this set (e.g., "Inch").
    */
   baseUnit?: BaseUnit | null;
   /**
-   * List of related units with conversion ratios.
+   * Other units related to the base unit by a conversion ratio (e.g., "Foot" = 12 * "Inch").
    */
   relatedUnits?: Array<RelatedUnit> | null;
   /**
-   * List of default units for specific purposes (Purchase, Sales, Shipping).
+   * Specifies which unit to use by default for specific actions (Purchase, Sales, Shipping).
    */
   defaultUnits?: Array<DefaultUnit> | null;
   /**
-   * (Optional) Whether the UOM set is active. Defaults to true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -9796,15 +9191,10 @@ export type UpdateBillPaymentOrCreditRequest = {
 };
 
 /**
- * Defines the request model for updating an existing Bill.
- * DTD Reference: qbxmlops170.xml - BillMod
- * Qbd requires Id and EditSequence to identify the record to update.
+ * Request model for modifying an existing Bill.
  */
 export type UpdateBillRequest = {
   revisionNumber: string;
-  /**
-   * Filter by Vendor ID.
-   */
   vendorId?: string | null;
   vendorAddress?: AddressRequest | null;
   payablesAccountId?: string | null;
@@ -9958,7 +9348,7 @@ export type UpdateChargeRequest = {
 /**
  * Request model for updating an existing Check transaction used to pay bills.
  */
-export type UpdateCheckBillRequest = {
+export type UpdateCheckBillPaymentRequest = {
   revisionNumber: string;
   payeeId?: string | null;
   transactionDate?: string | null;
@@ -10115,7 +9505,7 @@ export type UpdateConnectionRequest = {
  * Request model for updating an existing credit card bill payment
  * Note: QuickBooks typically doesn't support modifying bill payments directly
  */
-export type UpdateCreditCardBillRequest = {
+export type UpdateCreditCardBillPaymentRequest = {
   revisionNumber: string;
   /**
    * Reference number for the payment
@@ -10783,23 +10173,77 @@ export type UpdateEstimateLineRequest = {
   txnLineId: string;
   id?: string | null;
   objectType?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
+   */
   itemId?: string | null;
+  /**
+   * (Optional) Description for the line item. Max 4000 chars.
+   */
   description?: string | null;
+  /**
+   * (Optional) Quantity of the item.
+   */
   quantity?: number | null;
+  /**
+   * (Optional) Unit of measure for the quantity. Max 31 chars.
+   */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) The rate/price per item. Mutually exclusive with RatePercent, MarkupRate, MarkupRatePercent, and PriceLevelId. (PRICETYPE)
+   */
   rate?: number | null;
+  /**
+   * (Optional) The percentage rate applied. Mutually exclusive with Rate, MarkupRate, MarkupRatePercent, and PriceLevelId. (PERCENTTYPE)
+   */
   ratePercent?: number | null;
+  /**
+   * (Optional) The ListID or FullName of the class associated with this line item. (ClassRef, Flattened-ID Pattern)
+   */
   classId?: string | null;
+  /**
+   * (Optional) The total amount for the line item. Required if Rate/RatePercent is not specified. (AMTTYPE)
+   */
   amount?: number | null;
+  /**
+   * (Optional) How QuickBooks should handle a price rule conflict. Valid values: Zero, BasePrice.
+   */
   optionForPriceRuleConflict?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Inventory Site. (InventorySiteRef, Flattened-ID Pattern)
+   */
   inventorySiteId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Inventory Site Location. (InventorySiteLocationRef, Flattened-ID Pattern)
+   */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Sales Tax Code. (SalesTaxCodeRef, Flattened-ID Pattern)
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * (Optional) A fixed markup rate. Mutually exclusive with MarkupRatePercent, Rate/RatePercent, and PriceLevelId. (PRICETYPE)
+   */
   markupRate?: number | null;
+  /**
+   * (Optional) A percentage markup rate. Mutually exclusive with MarkupRate, Rate/RatePercent, and PriceLevelId. (PERCENTTYPE)
+   */
   markupRatePercent?: number | null;
+  /**
+   * (Optional) The ListID or FullName of the Price Level. Mutually exclusive with Markup fields and Rate fields. (PriceLevelRef, Flattened-ID Pattern)
+   */
   priceLevelId?: string | null;
+  /**
+   * (Optional, Add only) The ListID or FullName of the overriding Item Account. (OverrideItemAccountRef, Flattened-ID Pattern)
+   */
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) Custom field 1. Max 29 chars.
+   */
   other1?: string | null;
+  /**
+   * (Optional) Custom field 2. Max 29 chars.
+   */
   other2?: string | null;
   customFields?: Array<DataExtRequest> | null;
 };
@@ -10922,7 +10366,7 @@ export type UpdateExpenseLineRequest = {
    */
   classId?: string | null;
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
   /**
@@ -11350,7 +10794,7 @@ export type UpdateItemPaymentRequest = {
 export type UpdateItemReceiptRequest = {
   revisionNumber: string;
   /**
-   * Filter by Vendor ID.
+   * Vendor ListID (Optional for updates).
    */
   vendorId?: string | null;
   payablesAccountId?: string | null;
@@ -11461,8 +10905,19 @@ export type UpdateItemSubtotalRequest = {
    * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
    */
   specialItemType?: string | null;
+  /**
+   * The name of the item.
+   * Max Length: 31 characters.
+   */
   name: string;
+  /**
+   * Whether the item is active.
+   */
   isActive?: boolean | null;
+  /**
+   * The barcode value of the item.
+   * Max Length: 50 characters.
+   */
   barCodeValue?: string | null;
   barCode?: BarCodeRequest | null;
   externalId?: string | null;
@@ -11696,7 +11151,8 @@ export type UpdatePurchaseOrderLineRequest = {
 export type UpdatePurchaseOrderRequest = {
   revisionNumber: string;
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the Vendor for this Purchase Order.
+   * Follows the Flattened-ID Pattern for VendorRef.
    */
   vendorId?: string | null;
   /**
@@ -12180,7 +11636,7 @@ export type UpdateTimeTrackingRequest = {
 export type UpdateVendorCreditRequest = {
   revisionNumber: string;
   /**
-   * Filter by Vendor ID.
+   * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
   payablesAccountId?: string | null;
@@ -12316,28 +11772,13 @@ export type UpdateWorkersCompCodeRequest = {
 };
 
 export type VacationHours = {
-  /**
-   * The total number of vacation hours currently available for the employee to use, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M. Defaults to 0.
-   */
   hoursAvailable?: string | null;
-  /**
-   * How frequently the employee's vacation hours are accrued.
-   */
   accrualPeriod?: string | null;
   hoursAccrued?: string | null;
-  /**
-   * The maximum number of vacation hours the employee can accrue, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
-   */
   maximumHours?: string | null;
   isResettingHoursEachNewYear?: boolean | null;
-  /**
-   * The number of vacation hours the employee has used, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
-   */
   hoursUsed?: string | null;
   yearBeginsDate?: string | null;
-  /**
-   * The date the employee's vacation hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
-   */
   accrualStartDate?: string | null;
 };
 
@@ -12359,141 +11800,60 @@ export type ValueAdjustmentRequest = {
 export type Vendor = {
   id: string;
   objectType?: string;
+  /**
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The company or business name of the vendor.
-   */
   companyName?: string | null;
-  /**
-   * Salutation/title for the vendor's contact person (e.g., "Mr.", "Dr.").
-   */
   salutation?: string | null;
-  /**
-   * First name of the vendor's contact person.
-   */
   firstName?: string | null;
-  /**
-   * Middle name of the vendor's contact person.
-   */
   middleName?: string | null;
-  /**
-   * Last name of the vendor's contact person.
-   */
   lastName?: string | null;
-  /**
-   * Job title of the vendor's primary contact.
-   */
   jobTitle?: string | null;
-  /**
-   * Primary phone number for the vendor.
-   */
   phone?: string | null;
   alternatePhone?: string | null;
-  /**
-   * Fax number for the vendor.
-   */
   fax?: string | null;
-  /**
-   * Primary email address for the vendor.
-   */
   email?: string | null;
   ccEmail?: string | null;
-  /**
-   * Name of the primary contact at the vendor's company.
-   */
   contact?: string | null;
   alternateContact?: string | null;
-  /**
-   * Name printed on checks issued to this vendor.
-   */
   nameOnCheck?: string | null;
-  /**
-   * Your account number with this vendor.
-   */
   accountNumber?: string | null;
   note?: string | null;
-  /**
-   * The class assigned to this vendor for departmental tracking.
-   */
   class?: QbdRef | null;
-  /**
-   * The vendor type category assigned to this vendor.
-   */
   vendorType?: QbdRef | null;
-  /**
-   * The default payment terms for this vendor (e.g., "Net 30").
-   */
   terms?: QbdRef | null;
-  /**
-   * The billing rate used when tracking time for this vendor.
-   */
   billingRate?: QbdRef | null;
-  /**
-   * The sales tax code assigned to this vendor.
-   */
   salesTaxCode?: QbdRef | null;
-  /**
-   * The sales tax return account for this tax-agency vendor.
-   */
   salesTaxReturn?: QbdRef | null;
   purchaseTaxAccount?: QbdRef | null;
   salesTaxAccount?: QbdRef | null;
-  /**
-   * The currency used for transactions with this vendor (multi-currency files only).
-   */
   currency?: QbdRef | null;
   defaultExpenseAccounts?: Array<QbdRef> | null;
   billingAddress?: Address | null;
   shippingAddress?: Address | null;
-  /**
-   * Custom contact fields (name/value pairs) defined for this vendor.
-   */
   customContactFields?: Array<CustomContactField> | null;
-  /**
-   * Additional contacts associated with this vendor.
-   */
   additionalContacts?: Array<Contact> | null;
-  /**
-   * Additional notes attached to this vendor record.
-   */
   additionalNotes?: Array<AdditionalNote> | null;
-  /**
-   * Current outstanding balance owed to this vendor.
-   */
   balance?: number | null;
-  /**
-   * Maximum credit limit extended by this vendor.
-   */
   creditLimit?: number | null;
   taxIdentificationNumber?: string | null;
   isEligibleFor1099?: boolean | null;
-  /**
-   * Whether this vendor is a tax agency (e.g., IRS, state revenue department).
-   */
   isTaxAgency?: boolean | null;
-  /**
-   * The country to which this tax agency remits sales tax.
-   */
   salesTaxCountry?: string | null;
-  /**
-   * Whether this vendor is configured as a sales tax agency.
-   */
   isSalesTaxAgency?: boolean | null;
-  /**
-   * The vendor's tax registration number (used for international tax compliance).
-   */
   taxRegistrationNumber?: string | null;
-  /**
-   * The reporting period for sales tax remittance (e.g., "Monthly", "Quarterly").
-   */
   reportingPeriod?: string | null;
   isTrackingPurchaseTax?: boolean | null;
   isTrackingSalesTax?: boolean | null;
   isCompoundingTax?: boolean | null;
   externalId?: string | null;
+  /**
+   * Indicates whether the list item is active. Common to all list types.
+   */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
 };
@@ -12507,48 +11867,27 @@ export type VendorCredit = {
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * (Optional) The date of the transaction. Defaults to the current date.
-   */
   transactionDate?: string | null;
   currency?: QbdRef | null;
-  /**
-   * (Optional) The exchange rate, if using multi-currency.
-   */
   exchangeRate?: number | null;
   /**
-   * (Optional) The reference number (e.g., credit memo number from vendor). Max 20 chars.
+   * The primary reference number for the transaction (e.g., Invoice #, Check #).
    */
   refNumber?: string | null;
-  /**
-   * (Optional) A memo for the entire transaction. Max 4095 chars.
-   */
   memo?: string | null;
   transactionNumber?: number | null;
-  /**
-   * Refers to the Vendor. Note: The base Entity is for PayeeEntityRef.
-   */
   entity?: QbdRef | null;
   /**
    * Refers to the Vendor.
    */
   vendor?: QbdRef | null;
-  /**
-   * Refers to the Payables Account. Note: The base Account is for PayeeAccountRef.
-   */
   account?: QbdRef | null;
   payablesAccount?: QbdRef | null;
   /**
    * The total amount of the credit.
    */
   creditAmount?: number | null;
-  /**
-   * Note: The base AmountInHomeCurrency is a string. This is a decimal.
-   */
   creditAmountInHomeCurrency?: number | null;
-  /**
-   * (Optional) If true, the amount includes sales tax.
-   */
   isTaxIncluded?: boolean | null;
   salesTaxCode?: QbdRef | null;
   /**
@@ -12559,19 +11898,8 @@ export type VendorCredit = {
   hasValidLineItems?: boolean;
   externalId?: string | null;
   linkedTransactions?: Array<LinkedTransaction>;
-  /**
-   * (Optional) A list of expense lines to add to the vendor credit.
-   */
   expenseLines?: Array<ExpenseLine>;
-  /**
-   * (Optional) A list of item lines to add to the vendor credit.
-   * Note: You can have either ItemLines or ItemGroupLines, but not both.
-   */
   itemLines?: Array<ItemLine>;
-  /**
-   * (Optional) A list of item group lines to add to the vendor credit.
-   * Note: You can have either ItemLines or ItemGroupLines, but not both.
-   */
   itemGroupLines?: Array<ItemGroupLine>;
   customFields?: Array<QbdDataExt>;
 };
@@ -12584,20 +11912,17 @@ export type VendorType = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the vendor type. (Max 31 characters)
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
-   */
   fullname?: string | null;
   parent?: QbdRef | null;
   sublevel?: number | null;
   /**
-   * (Optional) If false, this Vendor Type is inactive. Default is true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -12612,6 +11937,10 @@ export type VoidResponse = {
   objectType: string;
   refNumber?: string | null;
   status: string;
+  /**
+   * The unique identifier for this request. Include this ID when contacting
+   * support so the request can be located in server-side logs.
+   */
   requestId?: string | null;
   errorMessage?: string | null;
   errorCode?: string | null;
@@ -12627,38 +11956,20 @@ export type WorkersCompCode = {
   id: string;
   objectType?: string;
   /**
-   * (Required) The name of the Workers Comp Code. Max length: 13.
+   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
   createdAt: string;
   updatedAt: string;
   revisionNumber: string;
-  /**
-   * Description of the Workers' Compensation Code.
-   */
   desc?: string | null;
-  /**
-   * The current rate being used.
-   */
   currentRate?: number | null;
-  /**
-   * The effective date of the current rate.
-   */
   currentEffectiveDate?: string | null;
-  /**
-   * The next scheduled rate (if any).
-   */
   nextRate?: number | null;
-  /**
-   * The effective date of the next rate.
-   */
   nextEffectiveDate?: string | null;
-  /**
-   * History of all rate entries for this code.
-   */
   rateHistory?: Array<RateHistory> | null;
   /**
-   * (Optional) Indicates if the code is active. Defaults to true.
+   * Indicates whether the list item is active. Common to all list types.
    */
   isActive?: boolean;
   customFields?: Array<QbdDataExt>;
@@ -14046,7 +13357,7 @@ export type VoidBillResponses = {
 
 export type VoidBillResponse = VoidBillResponses[keyof VoidBillResponses];
 
-export type ListCheckBillsData = {
+export type ListCheckBillPaymentsData = {
   body?: never;
   headers?: {
     /**
@@ -14213,10 +13524,10 @@ export type ListCheckBillsData = {
      */
     OwnerIDs?: Array<string>;
   };
-  url: "/api/v1/check-bills";
+  url: "/api/v1/check-bill-payments";
 };
 
-export type ListCheckBillsErrors = {
+export type ListCheckBillPaymentsErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14267,20 +13578,20 @@ export type ListCheckBillsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListCheckBillsError =
-  ListCheckBillsErrors[keyof ListCheckBillsErrors];
+export type ListCheckBillPaymentsError =
+  ListCheckBillPaymentsErrors[keyof ListCheckBillPaymentsErrors];
 
-export type ListCheckBillsResponses = {
+export type ListCheckBillPaymentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCheckBill;
+  200: BasePageResponseCheckBillPayment;
 };
 
-export type ListCheckBillsResponse =
-  ListCheckBillsResponses[keyof ListCheckBillsResponses];
+export type ListCheckBillPaymentsResponse =
+  ListCheckBillPaymentsResponses[keyof ListCheckBillPaymentsResponses];
 
-export type DeleteCheckBillData = {
+export type DeleteCheckBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -14307,10 +13618,10 @@ export type DeleteCheckBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/check-bill/{id}";
+  url: "/api/v1/check-bill-payment/{id}";
 };
 
-export type DeleteCheckBillErrors = {
+export type DeleteCheckBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14361,20 +13672,20 @@ export type DeleteCheckBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type DeleteCheckBillError =
-  DeleteCheckBillErrors[keyof DeleteCheckBillErrors];
+export type DeleteCheckBillPaymentError =
+  DeleteCheckBillPaymentErrors[keyof DeleteCheckBillPaymentErrors];
 
-export type DeleteCheckBillResponses = {
+export type DeleteCheckBillPaymentResponses = {
   /**
    * OK
    */
   200: DeleteResponse;
 };
 
-export type DeleteCheckBillResponse =
-  DeleteCheckBillResponses[keyof DeleteCheckBillResponses];
+export type DeleteCheckBillPaymentResponse =
+  DeleteCheckBillPaymentResponses[keyof DeleteCheckBillPaymentResponses];
 
-export type RetrieveCheckBillData = {
+export type RetrieveCheckBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -14401,10 +13712,10 @@ export type RetrieveCheckBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/check-bill/{id}";
+  url: "/api/v1/check-bill-payment/{id}";
 };
 
-export type RetrieveCheckBillErrors = {
+export type RetrieveCheckBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14455,21 +13766,21 @@ export type RetrieveCheckBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type RetrieveCheckBillError =
-  RetrieveCheckBillErrors[keyof RetrieveCheckBillErrors];
+export type RetrieveCheckBillPaymentError =
+  RetrieveCheckBillPaymentErrors[keyof RetrieveCheckBillPaymentErrors];
 
-export type RetrieveCheckBillResponses = {
+export type RetrieveCheckBillPaymentResponses = {
   /**
    * OK
    */
-  200: CheckBill;
+  200: CheckBillPayment;
 };
 
-export type RetrieveCheckBillResponse =
-  RetrieveCheckBillResponses[keyof RetrieveCheckBillResponses];
+export type RetrieveCheckBillPaymentResponse =
+  RetrieveCheckBillPaymentResponses[keyof RetrieveCheckBillPaymentResponses];
 
-export type UpdateCheckBillData = {
-  body: UpdateCheckBillRequest;
+export type UpdateCheckBillPaymentData = {
+  body: UpdateCheckBillPaymentRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -14495,10 +13806,10 @@ export type UpdateCheckBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/check-bill/{id}";
+  url: "/api/v1/check-bill-payment/{id}";
 };
 
-export type UpdateCheckBillErrors = {
+export type UpdateCheckBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14549,21 +13860,21 @@ export type UpdateCheckBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type UpdateCheckBillError =
-  UpdateCheckBillErrors[keyof UpdateCheckBillErrors];
+export type UpdateCheckBillPaymentError =
+  UpdateCheckBillPaymentErrors[keyof UpdateCheckBillPaymentErrors];
 
-export type UpdateCheckBillResponses = {
+export type UpdateCheckBillPaymentResponses = {
   /**
    * OK
    */
-  200: CheckBill;
+  200: CheckBillPayment;
 };
 
-export type UpdateCheckBillResponse =
-  UpdateCheckBillResponses[keyof UpdateCheckBillResponses];
+export type UpdateCheckBillPaymentResponse =
+  UpdateCheckBillPaymentResponses[keyof UpdateCheckBillPaymentResponses];
 
-export type CreateCheckBillData = {
-  body: CreateCheckBillRequest;
+export type CreateCheckBillPaymentData = {
+  body: CreateCheckBillPaymentRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -14587,10 +13898,10 @@ export type CreateCheckBillData = {
   };
   path?: never;
   query?: never;
-  url: "/api/v1/check-bill";
+  url: "/api/v1/check-bill-payment";
 };
 
-export type CreateCheckBillErrors = {
+export type CreateCheckBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14641,20 +13952,20 @@ export type CreateCheckBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type CreateCheckBillError =
-  CreateCheckBillErrors[keyof CreateCheckBillErrors];
+export type CreateCheckBillPaymentError =
+  CreateCheckBillPaymentErrors[keyof CreateCheckBillPaymentErrors];
 
-export type CreateCheckBillResponses = {
+export type CreateCheckBillPaymentResponses = {
   /**
    * Created
    */
-  201: CheckBill;
+  201: CheckBillPayment;
 };
 
-export type CreateCheckBillResponse =
-  CreateCheckBillResponses[keyof CreateCheckBillResponses];
+export type CreateCheckBillPaymentResponse =
+  CreateCheckBillPaymentResponses[keyof CreateCheckBillPaymentResponses];
 
-export type VoidCheckBillData = {
+export type VoidCheckBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -14681,10 +13992,10 @@ export type VoidCheckBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/check-bill/{id}/void";
+  url: "/api/v1/check-bill-payment/{id}/void";
 };
 
-export type VoidCheckBillErrors = {
+export type VoidCheckBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -14735,17 +14046,18 @@ export type VoidCheckBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type VoidCheckBillError = VoidCheckBillErrors[keyof VoidCheckBillErrors];
+export type VoidCheckBillPaymentError =
+  VoidCheckBillPaymentErrors[keyof VoidCheckBillPaymentErrors];
 
-export type VoidCheckBillResponses = {
+export type VoidCheckBillPaymentResponses = {
   /**
    * OK
    */
   200: VoidResponse;
 };
 
-export type VoidCheckBillResponse =
-  VoidCheckBillResponses[keyof VoidCheckBillResponses];
+export type VoidCheckBillPaymentResponse =
+  VoidCheckBillPaymentResponses[keyof VoidCheckBillPaymentResponses];
 
 export type ListChecksData = {
   body?: never;
@@ -15430,7 +14742,7 @@ export type VoidCheckResponses = {
 
 export type VoidCheckResponse = VoidCheckResponses[keyof VoidCheckResponses];
 
-export type ListCreditCardBillsData = {
+export type ListCreditCardBillPaymentsData = {
   body?: never;
   headers?: {
     /**
@@ -15598,10 +14910,10 @@ export type ListCreditCardBillsData = {
      */
     OwnerIDs?: Array<string>;
   };
-  url: "/api/v1/credit-card-bills";
+  url: "/api/v1/credit-card-bill-payments";
 };
 
-export type ListCreditCardBillsErrors = {
+export type ListCreditCardBillPaymentsErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -15652,20 +14964,20 @@ export type ListCreditCardBillsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListCreditCardBillsError =
-  ListCreditCardBillsErrors[keyof ListCreditCardBillsErrors];
+export type ListCreditCardBillPaymentsError =
+  ListCreditCardBillPaymentsErrors[keyof ListCreditCardBillPaymentsErrors];
 
-export type ListCreditCardBillsResponses = {
+export type ListCreditCardBillPaymentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCreditCardBill;
+  200: BasePageResponseCreditCardBillPayment;
 };
 
-export type ListCreditCardBillsResponse =
-  ListCreditCardBillsResponses[keyof ListCreditCardBillsResponses];
+export type ListCreditCardBillPaymentsResponse =
+  ListCreditCardBillPaymentsResponses[keyof ListCreditCardBillPaymentsResponses];
 
-export type DeleteCreditCardBillData = {
+export type DeleteCreditCardBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -15692,10 +15004,10 @@ export type DeleteCreditCardBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/credit-card-bill/{id}";
+  url: "/api/v1/credit-card-bill-payment/{id}";
 };
 
-export type DeleteCreditCardBillErrors = {
+export type DeleteCreditCardBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -15746,20 +15058,20 @@ export type DeleteCreditCardBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type DeleteCreditCardBillError =
-  DeleteCreditCardBillErrors[keyof DeleteCreditCardBillErrors];
+export type DeleteCreditCardBillPaymentError =
+  DeleteCreditCardBillPaymentErrors[keyof DeleteCreditCardBillPaymentErrors];
 
-export type DeleteCreditCardBillResponses = {
+export type DeleteCreditCardBillPaymentResponses = {
   /**
    * OK
    */
   200: DeleteResponse;
 };
 
-export type DeleteCreditCardBillResponse =
-  DeleteCreditCardBillResponses[keyof DeleteCreditCardBillResponses];
+export type DeleteCreditCardBillPaymentResponse =
+  DeleteCreditCardBillPaymentResponses[keyof DeleteCreditCardBillPaymentResponses];
 
-export type RetrieveCreditCardBillData = {
+export type RetrieveCreditCardBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -15786,10 +15098,10 @@ export type RetrieveCreditCardBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/credit-card-bill/{id}";
+  url: "/api/v1/credit-card-bill-payment/{id}";
 };
 
-export type RetrieveCreditCardBillErrors = {
+export type RetrieveCreditCardBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -15840,21 +15152,21 @@ export type RetrieveCreditCardBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type RetrieveCreditCardBillError =
-  RetrieveCreditCardBillErrors[keyof RetrieveCreditCardBillErrors];
+export type RetrieveCreditCardBillPaymentError =
+  RetrieveCreditCardBillPaymentErrors[keyof RetrieveCreditCardBillPaymentErrors];
 
-export type RetrieveCreditCardBillResponses = {
+export type RetrieveCreditCardBillPaymentResponses = {
   /**
    * OK
    */
-  200: CreditCardBill;
+  200: CreditCardBillPayment;
 };
 
-export type RetrieveCreditCardBillResponse =
-  RetrieveCreditCardBillResponses[keyof RetrieveCreditCardBillResponses];
+export type RetrieveCreditCardBillPaymentResponse =
+  RetrieveCreditCardBillPaymentResponses[keyof RetrieveCreditCardBillPaymentResponses];
 
-export type UpdateCreditCardBillData = {
-  body: UpdateCreditCardBillRequest;
+export type UpdateCreditCardBillPaymentData = {
+  body: UpdateCreditCardBillPaymentRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -15880,10 +15192,10 @@ export type UpdateCreditCardBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/credit-card-bill/{id}";
+  url: "/api/v1/credit-card-bill-payment/{id}";
 };
 
-export type UpdateCreditCardBillErrors = {
+export type UpdateCreditCardBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -15934,21 +15246,21 @@ export type UpdateCreditCardBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type UpdateCreditCardBillError =
-  UpdateCreditCardBillErrors[keyof UpdateCreditCardBillErrors];
+export type UpdateCreditCardBillPaymentError =
+  UpdateCreditCardBillPaymentErrors[keyof UpdateCreditCardBillPaymentErrors];
 
-export type UpdateCreditCardBillResponses = {
+export type UpdateCreditCardBillPaymentResponses = {
   /**
    * OK
    */
-  200: CreditCardBill;
+  200: CreditCardBillPayment;
 };
 
-export type UpdateCreditCardBillResponse =
-  UpdateCreditCardBillResponses[keyof UpdateCreditCardBillResponses];
+export type UpdateCreditCardBillPaymentResponse =
+  UpdateCreditCardBillPaymentResponses[keyof UpdateCreditCardBillPaymentResponses];
 
-export type CreateCreditCardBillData = {
-  body: CreateCreditCardBillRequest;
+export type CreateCreditCardBillPaymentData = {
+  body: CreateCreditCardBillPaymentRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -15972,10 +15284,10 @@ export type CreateCreditCardBillData = {
   };
   path?: never;
   query?: never;
-  url: "/api/v1/credit-card-bill";
+  url: "/api/v1/credit-card-bill-payment";
 };
 
-export type CreateCreditCardBillErrors = {
+export type CreateCreditCardBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -16026,20 +15338,20 @@ export type CreateCreditCardBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type CreateCreditCardBillError =
-  CreateCreditCardBillErrors[keyof CreateCreditCardBillErrors];
+export type CreateCreditCardBillPaymentError =
+  CreateCreditCardBillPaymentErrors[keyof CreateCreditCardBillPaymentErrors];
 
-export type CreateCreditCardBillResponses = {
+export type CreateCreditCardBillPaymentResponses = {
   /**
    * Created
    */
-  201: CreditCardBill;
+  201: CreditCardBillPayment;
 };
 
-export type CreateCreditCardBillResponse =
-  CreateCreditCardBillResponses[keyof CreateCreditCardBillResponses];
+export type CreateCreditCardBillPaymentResponse =
+  CreateCreditCardBillPaymentResponses[keyof CreateCreditCardBillPaymentResponses];
 
-export type VoidCreditCardBillData = {
+export type VoidCreditCardBillPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -16066,10 +15378,10 @@ export type VoidCreditCardBillData = {
     id: string;
   };
   query?: never;
-  url: "/api/v1/credit-card-bill/{id}/void";
+  url: "/api/v1/credit-card-bill-payment/{id}/void";
 };
 
-export type VoidCreditCardBillErrors = {
+export type VoidCreditCardBillPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -16120,18 +15432,18 @@ export type VoidCreditCardBillErrors = {
   502: StandardErrorResponse;
 };
 
-export type VoidCreditCardBillError =
-  VoidCreditCardBillErrors[keyof VoidCreditCardBillErrors];
+export type VoidCreditCardBillPaymentError =
+  VoidCreditCardBillPaymentErrors[keyof VoidCreditCardBillPaymentErrors];
 
-export type VoidCreditCardBillResponses = {
+export type VoidCreditCardBillPaymentResponses = {
   /**
    * OK
    */
   200: VoidResponse;
 };
 
-export type VoidCreditCardBillResponse =
-  VoidCreditCardBillResponses[keyof VoidCreditCardBillResponses];
+export type VoidCreditCardBillPaymentResponse =
+  VoidCreditCardBillPaymentResponses[keyof VoidCreditCardBillPaymentResponses];
 
 export type ListCreditCardCreditsData = {
   body?: never;
@@ -39181,9 +38493,6 @@ export type RetrieveGeneralDetailReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -39195,11 +38504,6 @@ export type RetrieveGeneralDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -39225,20 +38529,9 @@ export type RetrieveGeneralDetailReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -39262,9 +38555,6 @@ export type RetrieveGeneralDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -39301,14 +38591,6 @@ export type RetrieveGeneralDetailReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -39396,9 +38678,6 @@ export type RetrieveAgingReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -39413,11 +38692,6 @@ export type RetrieveAgingReportData = {
     AgingType?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -39443,20 +38717,9 @@ export type RetrieveAgingReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -39466,9 +38729,6 @@ export type RetrieveAgingReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -39505,14 +38765,6 @@ export type RetrieveAgingReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -39600,9 +38852,6 @@ export type RetrieveGeneralSummaryReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -39614,11 +38863,6 @@ export type RetrieveGeneralSummaryReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -39644,20 +38888,9 @@ export type RetrieveGeneralSummaryReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -39682,9 +38915,6 @@ export type RetrieveGeneralSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -39721,14 +38951,6 @@ export type RetrieveGeneralSummaryReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -39816,9 +39038,6 @@ export type RetrieveBudgetSummaryReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -39839,11 +39058,6 @@ export type RetrieveBudgetSummaryReportData = {
     BudgetType?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -39869,9 +39083,6 @@ export type RetrieveBudgetSummaryReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
@@ -39879,14 +39090,6 @@ export type RetrieveBudgetSummaryReportData = {
      * The fiscal year for the budget report (4-digit, e.g. 2024).
      */
     FiscalYear?: number | null;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -39898,9 +39101,6 @@ export type RetrieveBudgetSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -39945,14 +39145,6 @@ export type RetrieveBudgetSummaryReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -40040,9 +39232,6 @@ export type RetrieveJobReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -40054,11 +39243,6 @@ export type RetrieveJobReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -40084,20 +39268,9 @@ export type RetrieveJobReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -40109,9 +39282,6 @@ export type RetrieveJobReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -40154,14 +39324,6 @@ export type RetrieveJobReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -40249,9 +39411,6 @@ export type RetrieveTimeReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -40263,11 +39422,6 @@ export type RetrieveTimeReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -40293,20 +39447,9 @@ export type RetrieveTimeReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -40318,9 +39461,6 @@ export type RetrieveTimeReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -40361,14 +39501,6 @@ export type RetrieveTimeReportData = {
      * Valid values: TimeByItem, TimeByJobDetail, TimeByJobSummary, TimeByName
      */
     TimeType?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -40456,9 +39588,6 @@ export type RetrieveCustomDetailReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -40470,11 +39599,6 @@ export type RetrieveCustomDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -40504,20 +39628,9 @@ export type RetrieveCustomDetailReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -40529,9 +39642,6 @@ export type RetrieveCustomDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -40568,14 +39678,6 @@ export type RetrieveCustomDetailReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -40663,9 +39765,6 @@ export type RetrieveCustomSummaryReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -40677,11 +39776,6 @@ export type RetrieveCustomSummaryReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -40711,20 +39805,9 @@ export type RetrieveCustomSummaryReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -40736,9 +39819,6 @@ export type RetrieveCustomSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -40775,14 +39855,6 @@ export type RetrieveCustomSummaryReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -40870,9 +39942,6 @@ export type RetrievePayrollDetailReportData = {
   query?: {
     AccountFullNames?: Array<string>;
     AccountFullNameWithChildren?: string;
-    /**
-     * Filter by Account IDs
-     */
     AccountIds?: Array<string>;
     AccountIdWithChildren?: string;
     AccountType?: string;
@@ -40884,11 +39953,6 @@ export type RetrievePayrollDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    /**
-     * Filter by Class IDs
-     *
-     * Provide a list of strictly matched ClassIDs.
-     */
     ClassIds?: Array<string>;
     ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
@@ -40914,20 +39978,9 @@ export type RetrievePayrollDetailReportData = {
     DisplayReport?: boolean | null;
     EntityFullNames?: Array<string>;
     EntityFullNameWithChildren?: string;
-    /**
-     * Filter by Entity IDs (Customers, Vendors, Employees)
-     */
     EntityIds?: Array<string>;
     EntityIdWithChildren?: string;
     EntityType?: string;
-    /**
-     * Filter for records modified on or after this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
     /**
@@ -40939,9 +39992,6 @@ export type RetrievePayrollDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    /**
-     * Filter by Item IDs
-     */
     ItemIds?: Array<string>;
     ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
@@ -40983,14 +40033,6 @@ export type RetrievePayrollDetailReportData = {
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    /**
-     * Filter for records modified on or before this date.
-     *
-     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
-     *
-     *
-     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
-     */
     ToModifiedDate?: string | null;
     ToReportDate?: string | null;
     TxnType?: string;
@@ -45308,9 +44350,6 @@ export type ListItemInventoryAssemblysData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
-     */
     ActiveStatus?: string;
     NameFilter?: string;
   };
