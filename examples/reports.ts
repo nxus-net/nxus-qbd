@@ -20,7 +20,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -61,7 +61,11 @@ async function main() {
     });
     console.log("Aging report retrieved successfully.");
     console.log("  Report type: ARAgingSummary");
-    console.log("  Data:", JSON.stringify(agingReport, null, 2).slice(0, 500), "...");
+    console.log(
+      "  Data:",
+      JSON.stringify(agingReport, null, 2).slice(0, 500),
+      "...",
+    );
   } catch (err) {
     if (err instanceof NxusApiError) {
       console.error("Failed to retrieve aging report:", err.userMessage);
@@ -90,7 +94,11 @@ async function main() {
     console.log("General detail report retrieved successfully.");
     console.log("  Report type: GeneralLedger");
     console.log("  Date range: 2025-01-01 to 2025-12-31");
-    console.log("  Data:", JSON.stringify(detailReport, null, 2).slice(0, 500), "...");
+    console.log(
+      "  Data:",
+      JSON.stringify(detailReport, null, 2).slice(0, 500),
+      "...",
+    );
   } catch (err) {
     if (err instanceof NxusApiError) {
       console.error("Failed to retrieve detail report:", err.userMessage);
@@ -121,7 +129,11 @@ async function main() {
     console.log("General summary report retrieved successfully.");
     console.log("  Report type: ProfitAndLossStandard");
     console.log("  Date range: 2025-01-01 to 2025-12-31");
-    console.log("  Data:", JSON.stringify(summaryReport, null, 2).slice(0, 500), "...");
+    console.log(
+      "  Data:",
+      JSON.stringify(summaryReport, null, 2).slice(0, 500),
+      "...",
+    );
   } catch (err) {
     if (err instanceof NxusApiError) {
       console.error("Failed to retrieve summary report:", err.userMessage);

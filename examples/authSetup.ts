@@ -17,7 +17,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError, type Connection } from "@nxus/qbd";
+import { NxusClient, NxusApiError, type Connection } from "nxus-qbd";
 
 const apiKey = process.env.NXUS_API_KEY;
 if (!apiKey) {
@@ -75,11 +75,14 @@ async function main() {
   console.log(`  Session ID: ${authSession.id}`);
   console.log(`  Status: ${authSession.status ?? "(unknown)"}`);
   console.log(`  Expires At: ${authSession.expiresAt ?? "(not provided)"}`);
-  console.log(`  Auth Flow URL: ${authSession.authFlowUrl ?? "(not provided)"}`);
+  console.log(
+    `  Auth Flow URL: ${authSession.authFlowUrl ?? "(not provided)"}`,
+  );
 
   console.log("\n--- Checking authenticated status ---");
   const statusConnectionId = authSession.connectionId ?? connectionId;
-  const status = await nxus.connections.retrieveStatusAuthenticated(statusConnectionId);
+  const status =
+    await nxus.connections.retrieveStatusAuthenticated(statusConnectionId);
 
   console.log("Connection auth status:");
   console.log(`  Connection ID: ${status.connectionId ?? statusConnectionId}`);
@@ -88,8 +91,12 @@ async function main() {
   console.log(`  Last Sync At: ${status.lastSyncAt ?? "(not available yet)"}`);
 
   console.log("\nNext step:");
-  console.log("  Send your user to the Auth Flow URL above so they can complete the QWC setup.");
-  console.log("  After they finish, you can poll retrieveStatusAuthenticated() or your own app flow.");
+  console.log(
+    "  Send your user to the Auth Flow URL above so they can complete the QWC setup.",
+  );
+  console.log(
+    "  After they finish, you can poll retrieveStatusAuthenticated() or your own app flow.",
+  );
 }
 
 main().catch((err) => {

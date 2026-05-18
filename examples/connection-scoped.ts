@@ -27,7 +27,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -44,11 +44,12 @@ const connectionIdA =
   process.env.NXUS_CONNECTION_ID_A ??
   process.env.NXUS_CONNECTION_ID;
 const connectionIdB =
-  process.env.CONNECTION_ID_B ??
-  process.env.NXUS_CONNECTION_ID_B;
+  process.env.CONNECTION_ID_B ?? process.env.NXUS_CONNECTION_ID_B;
 
 if (!connectionIdA) {
-  console.error("Error: CONNECTION_ID_A or NXUS_CONNECTION_ID_A environment variable is required.");
+  console.error(
+    "Error: CONNECTION_ID_A or NXUS_CONNECTION_ID_A environment variable is required.",
+  );
   console.error("  Set it to a connection GUID or your external ID string.");
   process.exit(1);
 }
@@ -121,7 +122,9 @@ async function main() {
       console.log(`  - ${customer.name}`);
     }
   } else {
-    console.log("\n(Skipping connection B — set CONNECTION_ID_B or NXUS_CONNECTION_ID_B to compare two connections.)");
+    console.log(
+      "\n(Skipping connection B — set CONNECTION_ID_B or NXUS_CONNECTION_ID_B to compare two connections.)",
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -129,11 +132,17 @@ async function main() {
   // -------------------------------------------------------------------------
   console.log("\n=== Summary ===\n");
   console.log("  API key: authenticates your app.");
-  console.log("  Connection: identifies which customer, account, or org in your app the request is for.");
+  console.log(
+    "  Connection: identifies which customer, account, or org in your app the request is for.",
+  );
   console.log("  Each connection maps to one QuickBooks company file.");
-  console.log("  Set it once on the client when most requests use the same connection.");
+  console.log(
+    "  Set it once on the client when most requests use the same connection.",
+  );
   console.log("  Pass it per request when you need to switch between files.");
-  console.log("  Requests for one connection always stay isolated from the others.");
+  console.log(
+    "  Requests for one connection always stay isolated from the others.",
+  );
 }
 
 // ---------------------------------------------------------------------------

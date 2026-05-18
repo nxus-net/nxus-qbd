@@ -15,7 +15,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError, Vendor } from "@nxus/qbd";
+import { NxusClient, NxusApiError, Vendor } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -60,7 +60,12 @@ async function main() {
   console.log("\n--- Retrieving vendor ---");
   const fetched = await nxus.vendors.retrieve(created.id!);
 
-  console.log("Retrieved vendor:", fetched.name, "| Company:", fetched.companyName);
+  console.log(
+    "Retrieved vendor:",
+    fetched.name,
+    "| Company:",
+    fetched.companyName,
+  );
 
   // -------------------------------------------------------------------------
   // 3. Update the vendor name
@@ -79,7 +84,9 @@ async function main() {
   console.log("\n--- Listing vendors (first page) ---");
   const page = await nxus.vendors.list({ limit: 5 });
 
-  console.log(`Page contains ${page.data.length} vendors (totalCount: ${page.totalCount})`);
+  console.log(
+    `Page contains ${page.data.length} vendors (totalCount: ${page.totalCount})`,
+  );
   for (const vendor of page.data) {
     console.log(`  - ${vendor.name} (${vendor.id})`);
   }
@@ -104,7 +111,10 @@ main().catch((err) => {
     if (err.code) console.error("  Code:", err.code);
     if (err.requestId) console.error("  Request ID:", err.requestId);
     if (err.validationErrors) {
-      console.error("  Validation errors:", JSON.stringify(err.validationErrors, null, 2));
+      console.error(
+        "  Validation errors:",
+        JSON.stringify(err.validationErrors, null, 2),
+      );
     }
   } else {
     console.error("Unexpected error:", err);

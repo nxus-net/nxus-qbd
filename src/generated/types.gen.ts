@@ -5,7 +5,7 @@ export type ClientOptions = {
 };
 
 /**
- * A QuickBooks Desktop Account object is a type of List object that represents a financial account within a company's chart of accounts, such as a Bank, Accounts Payable, Accounts Receivable, or Credit Card account Because it is a list object, it is tracked and identified by a unique, QuickBooks-assigned ListID as well as a FullName.
+ * Represents a financial account within the chart of accounts.
  */
 export type Account = {
   id: string;
@@ -50,9 +50,6 @@ export type AccountTaxLineInfo = {
    * The primary display name for the List object (e.g., Customer Name, Vendor Name).
    */
   name?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
   /**
    * Indicates whether the list item is active. Common to all list types.
    */
@@ -108,7 +105,9 @@ export type AdditionalNoteMod = {
 };
 
 /**
- * Address data model - shared across all QuickBooks entities
+ * The Address object represents a physical address, which can be associated with various entities in QuickBooks, such as customers, vendors, or employees.
+ * It includes properties for the street address, city, state, postal code, country, and an optional note.
+ * The Address object is used to capture and store location information for these entities in QuickBooks.
  */
 export type Address = {
   line1?: string | null;
@@ -136,7 +135,9 @@ export type AddressBlock = {
 };
 
 /**
- * A reusable request DTO for an address block.
+ * The AddressRequest object represents a physical address, which can be associated with various entities in QuickBooks, such as customers, vendors, or employees.
+ * It includes properties for the street address, city, state, postal code, country, and an optional note.
+ * The AddressRequest object is used to capture and store location information for these entities in QuickBooks.
  */
 export type AddressRequest = {
   line1?: string | null;
@@ -1610,7 +1611,9 @@ export type BaseUnit = {
  */
 export type BaseUnitRequest = {
   /**
-   * (Required) The name of the base unit (e.g., "Barrel"). Max length: 31.
+   * The case-insensitive unique name of this unit-of-measure set, unique across all unit-of-measure sets. To ensure this set appears in the QuickBooks UI for companies configured with a single unit per item, prefix the name with "By the" (e.g., "By the Barrel").
+   *
+   * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
@@ -1965,8 +1968,7 @@ export type CheckBillPayment = {
 };
 
 /**
- * Classes can be used to separate transactions into meaningful categories.
- * For example, transactions could be classified according to department, business location, or type of work.
+ * A category used to group objects into meaningful categories within the nXus platform.
  */
 export type Class = {
   id: string;
@@ -1981,12 +1983,21 @@ export type Class = {
   updatedAt: string;
   revisionNumber: string;
   /**
-   * The FullName is the name prefixed by the names of each ancestor, for example Parent:Child:SubClass. FullName values are not case-sensitive.
+   * The case-insensitive fully-qualified unique name of this class.
+   *
+   * Formed by combining the names of its hierarchical parent objects with its own name, separated by colons.
    */
   fullname?: string | null;
+  /**
+   * The parent class one level above this one in the hierarchy.
+   *
+   * If this class is at the top level, this field will be null.
+   */
   parent?: QbdRef | null;
   /**
-   * A number indicating the number of ancestors. For example, The customer job with Name = carpets and FullName = Jones:Building2:carpets would have a sublevel of 2.
+   * The depth level of this class in the hierarchy.
+   *
+   * A top-level class has a sublevel of 0; each subsequent sublevel increases this number by 1.
    */
   sublevel?: number | null;
   /**
@@ -2145,67 +2156,67 @@ export type Contact = {
 };
 
 /**
- * Request model for creating a new account.
+ * Contains parameters for creating a new financial account.
  */
 export type CreateAccountRequest = {
   /**
-   * Account name (required)
+   * The case-insensitive name of this account.
+   *
+   * Not guaranteed to be unique across all accounts, but must be unique within its hierarchical parent.
    */
   name: string;
   /**
-   * Account type (required)
-   * NOTE: Cannot create non_posting accounts via API - QuickBooks creates these internally
+   * The classification of this account, indicating its purpose within the chart of accounts.
    */
   accountType: AccountType;
   /**
-   * Account number (optional)
+   * The account number, which appears in the chart of accounts, reports, and graphs.
    */
   accountNumber?: string | null;
   /**
-   * Account description (optional)
+   * A description of this account.
    */
   description?: string | null;
   /**
-   * Parent account reference (for sub-accounts)
+   * The parent account one level above this one in the hierarchy.
+   *
+   * Required for creating sub-accounts. If omitted, the account is created at the top level.
    */
   parentId?: string | null;
   /**
-   * The default sales-tax code for transactions with this account, determining whether
-   * the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level.
-   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks.
-   * If QuickBooks is not set up to charge sales tax(via the "Do You Charge Sales Tax?" preference), it will assign the
-   * default non-taxable code to all sales.
+   * The default sales-tax code for transactions with this account.
+   *
+   * Determines whether the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level. Default codes typically include "Non" (non-taxable) and "Tax" (taxable).
    */
   salesTaxCodeId?: string | null;
   /**
-   * The identifier of the tax line associated with this account. You can see a list of all available values for this
-   * field by calling the endpoint for account tax lines.
+   * The identifier of the tax line associated with this account.
    */
   taxLineId?: string | null;
   /**
-   * The account's currency. For built-in currencies, the name and code are standard international values. For user-defined
-   * currencies, all values are editable.
+   * The account's currency.
    */
   currencyId?: string | null;
   /**
-   * Whether the account is active (default: true)
+   * Indicates whether this account is active.
+   *
+   * Inactive objects are typically hidden from views and reports.
    */
   isActive?: boolean;
   /**
-   * Whether the account is a tax account (optional, default: false)
-   * Only set to true for accounts that track tax liabilities/expenses
+   * Indicates whether this account is used for tracking taxes.
    */
   isTaxAccount?: boolean;
   /**
-   * Opening balance for the account (optional)
+   * The amount of money in, or the value of, this account as of the opening balance date.
    */
   openBalance?: number | null;
   /**
-   * Opening balance date (optional, defaults to today)
+   * The date of the opening balance of this account.
    */
   openBalanceDate?: string | null;
   /**
-   * Bank account number (for bank accounts only)
+   * The bank account number or identifying note.
    */
   bankNumber?: string | null;
   externalId?: string | null;
@@ -2217,7 +2228,7 @@ export type CreateAccountRequest = {
  */
 export type CreateAdditionalNoteRequest = {
   /**
-   * The note text (max 4095 characters).
+   * A note or comment about this employee.
    */
   note: string;
 };
@@ -2318,7 +2329,7 @@ export type CreateBillPaymentOrCreditRequest = {
 };
 
 /**
- * Model used to create a new vendor Bill in QuickBooks Desktop.
+ * Request model used to create a new Bill in QuickBooks.
  */
 export type CreateBillRequest = {
   /**
@@ -2366,12 +2377,13 @@ export type CreateBillRequest = {
   externalId?: string | null;
   linkToTransactionIds?: Array<string> | null;
   /**
-   * Expense line items for the bill.
-   * At least one expense line or item line is required.
+   * General Ledger expense allocations.
+   * Must provide at least one Expense Line if no Item Lines are present.
    */
   expenseLines?: Array<CreateExpenseLineRequest> | null;
   /**
-   * Item line items for the bill (for inventory items).
+   * Inventory or Service item allocations.
+   * Must provide at least one Item Line if no Expense Lines are present.
    */
   itemLines?: Array<CreateItemLineRequest> | null;
 };
@@ -2609,23 +2621,25 @@ export type CreateCheckRequest = {
 };
 
 /**
- * Creates a new QuickBooks Class with the specified properties.
+ * Contains parameters for creating a new class.
  */
 export type CreateClassRequest = {
   /**
-   * (Required) The name of the class (up to 31 characters).
-   * Note: If the class is going to be a sub-class, this property should only contain the
-   * child's name, not the full hierarchical name of its ancestors.
+   * The case-insensitive name of this class.
+   *
+   * Not guaranteed to be unique across all classes, but must be unique within its hierarchical parent.
    */
   name: string;
   /**
-   * (Optional) Whether the class is active. Defaults to true.
+   * Indicates whether this class is active.
+   *
+   * Inactive objects are typically hidden from views and reports. Defaults to true.
    */
   isActive?: boolean | null;
   /**
-   * (Optional) The ListID or FullName of the parent class.
-   * A reference to the list object that is exactly one level above this one.
-   * Used to create sub-classes.
+   * The parent class one level above this one in the hierarchy.
+   *
+   * If this class is at the top level, this field will be null.
    */
   parentId?: string | null;
 };
@@ -3073,64 +3087,225 @@ export type CreateCurrencyRequest = {
 };
 
 /**
- * Request model for creating a new customer
+ * Represents a request to create a new customer or project (job) in QuickBooks Desktop.
  */
 export type CreateCustomerRequest = {
+  /**
+   * The primary identifier name for the customer or job.
+   *
+   * This value is case-insensitive. Because it does not include parent hierarchy prefixes, it is not guaranteed to be globally unique across your entire QuickBooks company file.
+   */
   name: string;
+  /**
+   * The unique identifier of the Class associated with this customer.
+   *
+   * Useful for segmenting records by department, region, or vertical. Class tracking must be enabled in QuickBooks preferences.
+   */
   isActive?: boolean | null;
+  /**
+   * The unique identifier of the Class associated with this customer.
+   *
+   * Useful for segmenting records by department, region, or vertical. Class tracking must be enabled in QuickBooks preferences.
+   */
   classId?: string | null;
+  /**
+   * The unique identifier of the hierarchical parent customer.
+   *
+   * Leave this null if creating a top-level customer.
+   * **Important:** This field is strictly required if you provide a <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStatus" />, as that indicates this record is a sub-customer (job).
+   */
   parentId?: string | null;
+  /**
+   * The formal company name to be printed on invoices, checks, and official correspondence.
+   */
   companyName?: string | null;
+  /**
+   * The formal title preceding the primary contact's name (e.g., Mr., Ms., Dr.).
+   */
   salutation?: string | null;
+  /**
+   * The first name of the primary contact person.
+   */
   firstName?: string | null;
+  /**
+   * The middle name or initial of the primary contact person.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the primary contact person.
+   */
   lastName?: string | null;
+  /**
+   * The professional title of the primary contact.
+   */
   jobTitle?: string | null;
   billingAddress?: AddressRequest | null;
   shippingAddress?: AddressRequest | null;
   shippingAddresses?: Array<ShipToAddressRequest> | null;
+  /**
+   * The primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * A secondary telephone number.
+   */
   altPhone?: string | null;
+  /**
+   * The fax number of the primary contact.
+   */
   fax?: string | null;
+  /**
+   * The primary email address used for digital correspondence and e-invoicing.
+   */
   email?: string | null;
+  /**
+   * An additional email address to automatically CC on communications.
+   */
   ccEmail?: string | null;
+  /**
+   * The primary contact name used for digital correspondence and e-invoicing.
+   */
   contact?: string | null;
   alternateContact?: string | null;
   customContactFields?: Array<CustomContactField> | null;
+  /**
+   * An expanded list of alternate personnel linked to this customer account.
+   */
   contacts?: Array<Contact> | null;
+  /**
+   * The unique identifier of the type of the customer.
+   */
   customerTypeId?: string | null;
+  /**
+   * The unique identifier of the terms dictating the payment schedule and early-payment discounts (e.g., Net 30).
+   */
   termsId?: string | null;
+  /**
+   * The unique identifier of the sales representative associated with this customer account.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * The initial monetary balance owed by the customer at the time of creation.
+   */
   openBalance?: number | null;
+  /**
+   * The date on which the open balance was established.
+   */
   openBalanceDate?: string | null;
+  /**
+   * The identifier for the default sales tax code (taxable vs. non-taxable).
+   *
+   * Applied globally to transactions unless overridden at the line-item level.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The identifier for the specific tax agency rate applied to this customer's purchases.
+   *
+   * This drives the actual percentage calculation, unlike the binary <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.SalesTaxCodeId" />.
+   */
   itemSalesTaxId?: string | null;
+  /**
+   * The geographical country jurisdiction for tax calculations (e.g., US, UK, Canada, Australia).
+   */
   salesTaxCountry?: string | null;
+  /**
+   * The certificate number provided by customers purchasing items wholesale/for resale.
+   */
   resaleNumber?: string | null;
   accountNumber?: string | null;
+  /**
+   * The maximum allowable outstanding balance before a credit hold is triggered.
+   */
   creditLimit?: number | null;
+  /**
+   * The identifier for the customer's default way of paying (e.g., Cash, Check, Visa).
+   */
   preferredPaymentMethodId?: string | null;
+  /**
+   * Stored credit card details for processing transactions.
+   */
   creditCardInfo?: CreditCardInfo | null;
   /**
-   * JobStatus may have one of the following values: Awarded, Closed, InProgress, None [DEFAULT], NotAwarded, Pending
+   * The current operational state of the job.
+   *
+   * **Important:** Supplying this value explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
+   * Available values: Awarded, Closed, InProgress, None, NotAwarded, Pending.
    */
   jobStatus?: NullableJobStatus | null;
+  /**
+   * The date active work commenced on the job.
+   *
+   * Must be chronologically before or equal to <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobProjectedEndDate" /> and <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobEndDate" />, if they are provided.
+   */
   jobStartDate?: string | null;
+  /**
+   * The estimated deadline for job completion.
+   *
+   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStartDate" />, if provided.
+   */
   jobProjectedEndDate?: string | null;
+  /**
+   * The actual date the job was finalized.
+   *
+   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStartDate" />, if provided.
+   */
   jobEndDate?: string | null;
+  /**
+   * A short summary outlining the scope of work for the job.
+   */
   jobDesc?: string | null;
+  /**
+   * The unique identifier categorizing the nature of the job (e.g., Commercial, Residential, Maintenance).
+   */
   jobTypeId?: string | null;
+  /**
+   * An overarching internal comment or memo regarding the customer.
+   */
   notes?: string | null;
+  /**
+   * A collection of individual, distinct internal notes attached to the customer record.
+   */
   additionalNotes?: Array<string> | null;
+  /**
+   * The default medium for sending invoices and estimates (e.g., Email, Mail, None).
+   */
   preferredDeliveryMethod?: string | null;
+  /**
+   * The identifier for a custom pricing tier applied automatically to items sold to this customer.
+   *
+   * Overrides standard item rates automatically on new sales forms.
+   */
   priceLevelId?: string | null;
   externalId?: string | null;
+  /**
+   * The official tax identification number (primarily utilized in UK and Canadian QBD versions).
+   */
   taxRegistrationNumber?: string | null;
+  /**
+   * The unique identifier of the default currency used for this customer's transactions.
+   *
+   * Note: You must have multicurrency support enabled in QuickBooks Desktop for this field to be available.
+   */
   currencyId?: string | null;
+  /**
+   * A name suffix (e.g., Jr., Sr., III).
+   */
   suffix?: string | null;
+  /**
+   * The pager number for the primary contact.
+   */
   printAs?: string | null;
+  /**
+   * The pager number for the primary contact.
+   */
   pager?: string | null;
+  /**
+   * The mobile/cellular telephone number for the primary contact.
+   */
   mobile?: string | null;
+  /**
+   * Additional carbon copy (CC) details.
+   */
   cc?: string | null;
 };
 
@@ -3140,11 +3315,11 @@ export type CreateCustomerRequest = {
  */
 export type CreateCustomerTypeRequest = {
   /**
-   * (Required) The name of the customer type. (Max 31 characters)
+   * The case-insensitive name of this customer type. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two customer types could both have the `name` "Healthcare", but they could have unique `fullName` values, such as "Industry:Healthcare" and "Region:Healthcare".
    */
   name: string;
   /**
-   * (Optional) If false, this Customer Type is inactive. Default is true.
+   * Indicates whether this customer type is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -3162,10 +3337,21 @@ export type CreateCustomerTypeRequest = {
  */
 export type CreateDateDrivenTermRequest = {
   id: string;
+  /**
+   * The case-insensitive unique name of this date-driven term, unique across all date-driven terms.
+   *
+   * **NOTE**: Date-driven terms do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * Indicates whether this date-driven term is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   dueDayOfMonth?: string | null;
   gracePeriod?: string | null;
+  /**
+   * The day of the month within which payment must be received to qualify for the discount specified by `discountPercentage`.
+   */
   discountDayOfMonth?: string | null;
   discountPercentage?: string | null;
 };
@@ -3229,29 +3415,76 @@ export type CreateDepositRequest = {
  */
 export type CreateEmployeeRequest = {
   /**
-   * The employee's name (required). This is the display name in QuickBooks.
+   * Indicates whether this employee is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * The employee's formal salutation title that precedes their name, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The employee's first name.
+   */
   firstName?: string | null;
+  /**
+   * The employee's middle name.
+   */
   middleName?: string | null;
+  /**
+   * The employee's last name.
+   */
   lastName?: string | null;
+  /**
+   * The employee's job title.
+   */
   jobTitle?: string | null;
   /**
    * ListID of the supervisor employee.
    */
   supervisorId?: string | null;
+  /**
+   * The employee's department. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   department?: string | null;
+  /**
+   * A description of this employee. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   description?: string | null;
   employeeAddress?: EmployeeAddress | null;
+  /**
+   * The name to use when printing this employee from QuickBooks. By default, this is the same as the `name` field.
+   */
   printAs?: string | null;
+  /**
+   * The employee's primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * The employee's mobile phone number.
+   */
   mobile?: string | null;
+  /**
+   * The employee's pager number.
+   */
   pager?: string | null;
+  /**
+   * The employee's pager PIN.
+   */
   pagerPin?: string | null;
   alternatePhone?: string | null;
+  /**
+   * The employee's fax number.
+   */
   fax?: string | null;
+  /**
+   * The employee's email address.
+   */
   email?: string | null;
+  /**
+   * The employee's Social Security Number. The value can be with or without dashes.
+   *
+   * **NOTE**: This field cannot be changed after the employee is created.
+   */
   ssn?: string | null;
   /**
    * Additional contact references (may repeat, v12.0+).
@@ -3262,33 +3495,65 @@ export type CreateEmployeeRequest = {
    */
   emergencyContacts?: EmergencyContact | null;
   /**
-   * Additional notes (may repeat, v12.0+). For Add, only Note is needed.
+   * Additional notes about this employee.
    */
   additionalNotes?: Array<CreateAdditionalNoteRequest> | null;
+  /**
+   * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
+   */
   employeeType?: string | null;
   partOrFullTime?: string | null;
+  /**
+   * This employee's gender.
+   */
   gender?: string | null;
+  /**
+   * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
+   */
   hiredDate?: string | null;
   releasedDate?: string | null;
+  /**
+   * This employee's date of birth, in ISO 8601 format (YYYY-MM-DD).
+   */
   birthDate?: string | null;
+  /**
+   * The employee's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   notes?: string | null;
   /**
    * ListID of the billing rate.
    */
   billingRateId?: string | null;
+  /**
+   * The target bonus for this employee, represented as a decimal string. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   targetBonus?: number | null;
   exempt?: string | null;
   keyEmployee?: string | null;
+  /**
+   * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
+   */
   originalHireDate?: string | null;
+  /**
+   * The adjusted service date for this employee, in ISO 8601 format (YYYY-MM-DD). This date accounts for previous employment periods or leaves that affect seniority.
+   */
   adjustedServiceDate?: string | null;
   usCitizen?: string | null;
+  /**
+   * This employee's ethnicity.
+   */
   ethnicity?: string | null;
   disabled?: string | null;
   disabilityDesc?: string | null;
   onFile?: string | null;
   workAuthExpireDate?: string | null;
   usVeteran?: string | null;
+  /**
+   * This employee's military status if they are a U.S. veteran.
+   */
   militaryStatus?: string | null;
   employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
@@ -3591,6 +3856,9 @@ export type CreateInventoryAdjustmentRequest = {
  * Implements ICreateRequest for the abstraction pattern.
  */
 export type CreateInventoryItemRequest = {
+  /**
+   * The case-insensitive name of this inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory items could both have the `name` "Cabinet", but they could have unique `fullName` values, such as "Kitchen:Cabinet" and "Inventory:Cabinet".
+   */
   name: string;
   barcode?: BarCodeRequest | null;
   classId?: string | null;
@@ -3600,32 +3868,73 @@ export type CreateInventoryItemRequest = {
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
   salesDescription?: string | null;
+  /**
+   * The price at which this inventory item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   incomeAccountId?: string | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   cogsAccountId?: string | null;
   preferredVendorId?: string | null;
   assetAccountId: string;
+  /**
+   * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
+   */
   reorderPoint?: number | null;
   maximumQuantityOnHand?: number | null;
+  /**
+   * The number of units of this inventory item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory item, you must use an inventory-adjustment instead of updating the inventory item directly.
+   */
   quantityOnHand?: number | null;
   totalValue?: number | null;
   inventoryDate?: string | null;
+  /**
+   * Indicates whether this inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean;
   externalId?: string | null;
 };
 
 export type CreateInventorySiteRequest = {
+  /**
+   * The case-insensitive unique name of this inventory site, unique across all inventory sites.
+   *
+   * **NOTE**: Inventory sites do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * Indicates whether this inventory site is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
+  /**
+   * A description of this inventory site.
+   */
   description?: string | null;
+  /**
+   * The name of the primary contact person for this inventory site.
+   */
   contact?: string | null;
+  /**
+   * The inventory site's primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * The inventory site's fax number.
+   */
   fax?: string | null;
+  /**
+   * The inventory site's email address.
+   */
   email?: string | null;
+  /**
+   * The inventory site's address.
+   */
   address?: AddressRequest | null;
   externalId?: string | null;
 };
@@ -3696,14 +4005,30 @@ export type CreateInvoiceRequest = {
  * Request model for creating an ItemDiscount.
  */
 export type CreateItemDiscountRequest = {
+  /**
+   * The case-insensitive name of this discount item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two discount items could both have the `name` "10% labor discount", but they could have unique `fullName` values, such as "Discounts:10% labor discount" and "Promotions:10% labor discount".
+   */
   name: string;
+  /**
+   * Indicates whether this discount item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
   parentName?: string | null;
   itemDesc?: string | null;
   salesTaxCodeId?: string | null;
   salesTaxCodeName?: string | null;
+  /**
+   * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
+   *
+   * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
+   */
   discountRate?: number | null;
+  /**
+   * The percentage amount to subtract from the total or subtotal when applying this discount item to a transaction.
+   *
+   * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
+   */
   discountRatePercent?: number | null;
   accountId?: string | null;
   accountName?: string | null;
@@ -3773,9 +4098,17 @@ export type CreateItemGroupLineRequest = {
  * Implements ICreateRequest for the new abstraction.
  */
 export type CreateItemGroupRequest = {
+  /**
+   * The case-insensitive unique name of this item group, unique across all item groups.
+   *
+   * **NOTE**: Item groups do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
   barCode?: BarCodeRequest | null;
   description?: string | null;
+  /**
+   * Indicates whether this item group is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   unitOfMeasureSetId?: string | null;
   shouldPrintItemsInGroup?: boolean | null;
@@ -3792,11 +4125,17 @@ export type CreateItemInventoryAssemblyLineRequest = {
  * Request model for creating an ItemInventoryAssembly.
  */
 export type CreateItemInventoryAssemblyRequest = {
+  /**
+   * The case-insensitive name of this inventory assembly item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory assembly items could both have the `name` "Deluxe Kit", but they could have unique `fullName` values, such as "Assemblies:Deluxe Kit" and "Inventory:Deluxe Kit".
+   */
   name: string;
   incomeAccountId?: string | null;
   assetAccountId: string | null;
   cogsAccountId?: string | null;
   barCode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this inventory assembly item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -3805,16 +4144,34 @@ export type CreateItemInventoryAssemblyRequest = {
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
   salesDescription?: string | null;
+  /**
+   * The price at which this inventory assembly item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this inventory assembly item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   preferredVendorId?: string | null;
+  /**
+   * The inventory assembly item's minimum quantity threshold that triggers a build notification in QuickBooks. When the sum of `quantityOnHand` (current inventory) and `quantityOnOrder` (pending purchase orders) drops below this threshold, QuickBooks will notify users that more units need to be built or assembled. This helps ensure adequate inventory levels for inventory assembly items.
+   */
   buildNotificationThreshold?: number | null;
+  /**
+   * The maximum quantity of this inventory assembly item desired in inventory.
+   */
   maximumQuantityOnHand?: number | null;
+  /**
+   * The number of units of this inventory assembly item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory assembly item, you must use an inventory-adjustment instead of updating the inventory assembly item directly.
+   */
   quantityOnHand?: number | null;
   totalValue?: number | null;
   inventoryDate?: string | null;
+  /**
+   * The inventory assembly item's lines.
+   */
   lines?: Array<CreateItemInventoryAssemblyLineRequest> | null;
   externalId?: string | null;
 };
@@ -3901,8 +4258,14 @@ export type CreateItemLineRequest = {
  * Request model for creating an ItemNonInventory.
  */
 export type CreateItemNonInventoryRequest = {
+  /**
+   * The case-insensitive name of this non-inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two non-inventory items could both have the `name` "Printer Ink Cartridge", but they could have unique `fullName` values, such as "Office Supplies:Printer Ink Cartridge" and "Miscellaneous:Printer Ink Cartridge".
+   */
   name: string;
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this non-inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -3910,7 +4273,17 @@ export type CreateItemNonInventoryRequest = {
   unitOfMeasureSetId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
+  /**
+   * Details for non-inventory items that are exclusively sold or exclusively purchased, but not both. This typically applies to non-inventory items (like a purchased office supply that isn't resold) or service items (like consulting services that are sold but not purchased).
+   *
+   * **IMPORTANT**: A non-inventory item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest | null;
+  /**
+   * Details for non-inventory items that are both purchased and sold, such as reimbursable expenses or inventory items that are bought from vendors and sold to customers.
+   *
+   * **IMPORTANT**: A non-inventory item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest | null;
   externalId?: string | null;
 };
@@ -3919,8 +4292,14 @@ export type CreateItemNonInventoryRequest = {
  * Request model for creating an ItemOtherCharge.
  */
 export type CreateItemOtherChargeRequest = {
+  /**
+   * The case-insensitive name of this other charge item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two other charge items could both have the `name` "Overnight Delivery", but they could have unique `fullName` values, such as "Shipping Charges:Overnight Delivery" and "Misc Fees:Overnight Delivery".
+   */
   name: string;
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this other charge item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   className?: string | null;
@@ -3928,7 +4307,17 @@ export type CreateItemOtherChargeRequest = {
   parentName?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
+  /**
+   * Details for other charge items that are exclusively sold or exclusively purchased, but not both. This typically applies to non-inventory items (like a purchased office supply that isn't resold) or service items (like consulting services that are sold but not purchased).
+   *
+   * **IMPORTANT**: An other charge item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest | null;
+  /**
+   * Details for other charge items that are both purchased and sold, such as reimbursable expenses or inventory items that are bought from vendors and sold to customers.
+   *
+   * **IMPORTANT**: An other charge item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest | null;
   externalId?: string | null;
 };
@@ -4150,20 +4539,60 @@ export type CreateJournalLineRequest = {
  * Implements ICreateRequest for the abstraction pattern.
  */
 export type CreateOtherNameRequest = {
+  /**
+   * The case-insensitive unique name of this other-name, unique across all other-names.
+   *
+   * **NOTE**: Other-names do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name?: string | null;
+  /**
+   * The name of the company associated with this other-name. This name is used on invoices, checks, and other forms.
+   */
   companyName?: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this other-name, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The first name of the contact person for this other-name.
+   */
   firstName?: string | null;
+  /**
+   * The middle name of the contact person for this other-name.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the contact person for this other-name.
+   */
   lastName?: string | null;
+  /**
+   * The other-name's address.
+   */
   address?: Address | null;
   addressBlock?: AddressBlock | null;
+  /**
+   * The other-name's primary telephone number.
+   */
   phone?: string | null;
   alternatPhone?: string | null;
+  /**
+   * The other-name's fax number.
+   */
   fax?: string | null;
+  /**
+   * The other-name's email address.
+   */
   email?: string | null;
+  /**
+   * The name of the primary contact person for this other-name.
+   */
   contact?: string | null;
   alternateContact?: string | null;
+  /**
+   * The other-name's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   notes?: string | null;
   customFields?: Array<DataExtRequest> | null;
@@ -4176,17 +4605,17 @@ export type CreateOtherNameRequest = {
  */
 export type CreatePaymentMethodRequest = {
   /**
-   * (Required) The name of the payment method.
+   * The case-insensitive unique name of this payment method, unique across all payment methods.
+   *
+   * **NOTE**: Payment methods do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) Whether the payment method is active.
-   * Defaults to true if not specified.
+   * Indicates whether this payment method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean;
   /**
-   * (Optional) The type of payment method.
-   * Valid values: american_express, cash, check, debit_card, discover, e_check, gift_card, master_card, other, other_credit_card, visa.
+   * This payment method's type.
    */
   paymentMethodType?: string | null;
 };
@@ -4196,12 +4625,13 @@ export type CreatePaymentMethodRequest = {
  */
 export type CreatePayrollItemWageRequest = {
   /**
-   * (Required) The name of the wage payroll item.
+   * The case-insensitive unique name of this payroll wage item, unique across all payroll wage items.
+   *
+   * **NOTE**: Payroll wage items do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Required) The wage item type.
-   * Possible values: Bonus, Commission, HourlyOvertime, HourlyRegular, HourlySick, HourlyVacation, SalaryRegular, SalarySick, SalaryVacation.
+   * Categorizes how this payroll wage item calculates pay - can be hourly (regular, overtime, sick, or vacation), salary (regular, sick, or vacation), bonus, or commission based.
    */
   wageType: string;
   /**
@@ -4209,7 +4639,7 @@ export type CreatePayrollItemWageRequest = {
    */
   expenseAccountId: string;
   /**
-   * (Optional) Indicates whether the payroll item is active.
+   * Indicates whether this payroll wage item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   externalId?: string | null;
@@ -4229,11 +4659,13 @@ export type CreatePayrollItemWageRequest = {
  */
 export type CreatePriceLevelRequest = {
   /**
-   * (Required) The name of the new price level. Max length: 31 characters.
+   * The case-insensitive unique name of this price level, unique across all price levels.
+   *
+   * **NOTE**: Price levels do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) Whether the price level is active. Defaults to true.
+   * Indicates whether this price level is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -4663,19 +5095,21 @@ export type CreateSalesReceiptRequest = {
  */
 export type CreateSalesTaxCodeRequest = {
   /**
-   * (Required) The name of the sales tax code. (Max 3 characters)
+   * The case-insensitive unique name of this sales-tax code, unique across all sales-tax codes. This short name will appear on sales forms to identify the tax status of an item.
+   *
+   * **NOTE**: Sales-tax codes do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) If false, this Sales Tax Code is inactive. Default is true.
+   * Indicates whether this sales-tax code is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
-   * (Required) Indicates whether the sales tax code represents a taxable (true) or non-taxable (false) item.
+   * Indicates whether this sales-tax code is tracking taxable sales. This field cannot be modified once the sales-tax code has been used in a transaction.
    */
   isTaxable: boolean;
   /**
-   * (Optional) A description for the sales tax code. (Max 50 characters)
+   * A description of this sales-tax code.
    */
   description?: string | null;
   /**
@@ -4740,9 +5174,15 @@ export type CreateSalesTaxPaymentCheckRequest = {
 };
 
 export type CreateServiceItemRequest = {
+  /**
+   * The case-insensitive name of this service item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two service items could both have the `name` "Web-Design", but they could have unique `fullName` values, such as "Consulting:Web-Design" and "Contracting:Web-Design".
+   */
   name: string;
   barCode?: BarCodeRequest | null;
   externalId?: string | null;
+  /**
+   * Indicates whether this service item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -4779,11 +5219,13 @@ export type CreateSetCreditRequest = {
  */
 export type CreateShipMethodRequest = {
   /**
-   * (Required) The name of the shipping method. (Max 15 characters)
+   * The case-insensitive unique name of this shipping method, unique across all shipping methods.
+   *
+   * **NOTE**: Shipping methods do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) If false, this Shipping Method is inactive. Default is true.
+   * Indicates whether this shipping method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   externalId?: string | null;
@@ -4884,28 +5326,29 @@ export type CreateTimeTrackingRequest = {
  */
 export type CreateUnitOfMeasureSetRequest = {
   /**
-   * (Required) The name of the unit of measure set. Max length: 31.
+   * The case-insensitive unique name of this unit-of-measure set, unique across all unit-of-measure sets. To ensure this set appears in the QuickBooks UI for companies configured with a single unit per item, prefix the name with "By the" (e.g., "By the Barrel").
+   *
+   * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) Whether the UOM set is active. Defaults to true.
+   * Indicates whether this unit-of-measure set is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
-   * (Required) The type of measurement this set is for.
-   * Valid values: "Area", "Count", "Length", "Other", "Time", "Volume", "Weight"
+   * The unit-of-measure set's type. Use "other" for a custom type defined in QuickBooks.
    */
   unitOfMeasureType: string;
   /**
-   * (Required) The base unit definition for the set.
+   * The unit-of-measure set's base unit used to track and price item quantities. If the company file is enabled for a single unit of measure per item, the base unit is the only unit available on transaction line items. If enabled for multiple units per item, the base unit is the default unless overridden by the set's default units.
    */
   baseUnit: BaseUnitRequest;
   /**
-   * (Optional) A list of related units and their conversion ratios to the base unit.
+   * The unit-of-measure set's related units, each specifying how many base units they represent (conversion ratio).
    */
   relatedUnits?: Array<RelatedUnitRequest> | null;
   /**
-   * (Optional) A list of default units to use for specific purposes (Purchase, Sales, Shipping).
+   * The unit-of-measure set's default units to appear in the U/M field on transaction line items. You can specify separate defaults for purchases, sales, and shipping.
    */
   defaultUnits?: Array<DefaultUnitRequest> | null;
   externalId?: string | null;
@@ -4967,32 +5410,90 @@ export type CreateVendorCreditRequest = {
  * Implements ICreateRequest for the new abstraction.
  */
 export type CreateVendorRequest = {
+  /**
+   * The case-insensitive unique name of this vendor, unique across all vendors.
+   *
+   * **NOTE**: Vendors do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * Indicates whether this vendor is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean;
   classId?: string | null;
+  /**
+   * The name of the company associated with this vendor. This name is used on invoices, checks, and other forms.
+   */
   companyName?: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this vendor, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The first name of the contact person for this vendor.
+   */
   firstName?: string | null;
+  /**
+   * The middle name of the contact person for this vendor.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the contact person for this vendor.
+   */
   lastName?: string | null;
+  /**
+   * The job title of the contact person for this vendor.
+   */
   jobTitle?: string | null;
   billingAddress?: AddressRequest | null;
   shippingAddress?: AddressRequest | null;
+  /**
+   * The vendor's primary telephone number.
+   */
   phone?: string | null;
   alternatePhone?: string | null;
+  /**
+   * The vendor's fax number.
+   */
   fax?: string | null;
+  /**
+   * The vendor's email address.
+   */
   email?: string | null;
   ccEmail?: string | null;
+  /**
+   * The name of the primary contact person for this vendor.
+   */
   contact?: string | null;
   alternateContact?: string | null;
+  /**
+   * Additional custom contact fields for this vendor, such as phone numbers or email addresses.
+   */
   customContactFields?: Array<CustomContactField> | null;
+  /**
+   * Additional alternate contacts for this vendor.
+   */
   additionalContacts?: Array<Contact> | null;
+  /**
+   * The vendor's name as it should appear on checks issued to this vendor.
+   */
   nameOnCheck?: string | null;
+  /**
+   * The vendor's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   notes?: string | null;
+  /**
+   * Additional notes about this vendor.
+   */
   additionalNotes?: Array<AdditionalNote> | null;
   vendorTypeId?: string | null;
   termsId?: string | null;
+  /**
+   * The vendor's credit limit, represented as a decimal string. This is the maximum amount of money that can be spent being before billed by this vendor. If `null`, there is no credit limit.
+   */
   creditLimit?: number | null;
   taxIdentificationNumber?: string | null;
   isEligibleFor1099?: boolean | null;
@@ -5000,10 +5501,22 @@ export type CreateVendorRequest = {
   openingBalanceDate?: string | null;
   billingRateId?: string | null;
   salesTaxCodeId?: string | null;
+  /**
+   * The country for which sales tax is collected for this vendor.
+   */
   salesTaxCountry?: string | null;
+  /**
+   * Indicates whether this vendor is a sales tax agency.
+   */
   isSalesTaxAgency?: boolean | null;
   salesTaxReturnId?: string | null;
+  /**
+   * The vendor's tax registration number, for use in Canada or the UK.
+   */
   taxRegistrationNumber?: string | null;
+  /**
+   * The vendor's tax reporting period, for use in Canada or the UK.
+   */
   reportingPeriod?: string | null;
   isTrackingPurchaseTax?: boolean | null;
   purchaseTaxAccountId?: string | null;
@@ -5021,11 +5534,11 @@ export type CreateVendorRequest = {
  */
 export type CreateVendorTypeRequest = {
   /**
-   * (Required) The name of the vendor type. (Max 31 characters)
+   * The case-insensitive name of this customer type. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two customer types could both have the `name` "Healthcare", but they could have unique `fullName` values, such as "Industry:Healthcare" and "Region:Healthcare".
    */
   name: string;
   /**
-   * (Optional) If false, this Vendor Type is inactive. Default is true.
+   * Indicates whether this customer type is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -5048,11 +5561,13 @@ export type CreateVendorTypeRequest = {
  */
 export type CreateWorkersCompCodeRequest = {
   /**
-   * (Required) The name of the Workers Comp Code. Max length: 13.
+   * The case-insensitive unique name of this employee, unique across all employees. A concatenation of the employee's `firstName`, `middleName`, and `lastName` fields.
+   *
+   * **NOTE**: Employees do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
-   * (Optional) Indicates if the code is active. Defaults to true.
+   * Indicates whether this employee is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -5241,12 +5756,24 @@ export type CreditCardTransactionInfo = {
  */
 export type CreditCardTransactionInputInfo = {
   number: string;
+  /**
+   * The expirationMonth associated with this object.
+   */
   expirationMonth: number | null;
+  /**
+   * The expirationYear associated with this object.
+   */
   expirationYear: number | null;
   name: string;
   sddress?: string | null;
   postalCode?: string | null;
+  /**
+   * The commercialCardCode associated with this object.
+   */
   commercialCardCode?: string | null;
+  /**
+   * The transactionMode associated with this object.
+   */
   transactionMode?: NullableTransactionMode | null;
   transactionType?: NullableCreditCardTransactionType | null;
 };
@@ -5255,16 +5782,49 @@ export type CreditCardTransactionInputInfo = {
  * DTO for credit card result details.
  */
 export type CreditCardTransactionResultInfo = {
+  /**
+   * The resultCode associated with this object.
+   */
   resultCode: number | null;
+  /**
+   * The resultMessage associated with this object.
+   */
   resultMessage: string;
+  /**
+   * The creditCardTransID associated with this object.
+   */
   creditCardTransID: string;
+  /**
+   * The merchantAccountNumber associated with this object.
+   */
   merchantAccountNumber: string;
+  /**
+   * The authorizationCode associated with this object.
+   */
   authorizationCode?: string | null;
+  /**
+   * The avsStreet associated with this object.
+   */
   avsStreet?: NullableAvsStreet | null;
+  /**
+   * The avsZip associated with this object.
+   */
   avsZip?: NullableAvsZip | null;
+  /**
+   * The cardSecurityCodeMatch associated with this object.
+   */
   cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
+  /**
+   * The reconBatchID associated with this object.
+   */
   reconBatchID?: string | null;
+  /**
+   * The paymentGroupingCode associated with this object.
+   */
   paymentGroupingCode?: number | null;
+  /**
+   * The paymentStatus associated with this object.
+   */
   paymentStatus: PaymentStatus;
   transactionAuthorizationTime: string | null;
   transactionAuthorizationStamp?: number | null;
@@ -5467,9 +6027,7 @@ export type CustomContactField = {
 };
 
 /**
- * Customers:
- * A customer record in QuickBooks represents either a business or individual who purchases goods or services, or a specific job/project being performed for that customer.
- * Jobs are treated as sub-customers; they inherit billing information from their parent customer while allowing for job-specific details to be tracked.
+ * Represents a Customer or Job record retrieved from QuickBooks Desktop.
  */
 export type Customer = {
   id: string;
@@ -5865,6 +6423,9 @@ export type EmployeeAddress = {
   state?: string | null;
   postalCode?: string | null;
   country?: string | null;
+  /**
+   * A note or comment about this employee.
+   */
   note?: string | null;
 };
 
@@ -8288,10 +8849,25 @@ export type RefundAppliedToTransaction = {
   objectType?: string;
   transactionType?: string | null;
   transactionDate?: string | null;
+  /**
+   * The RefNumber associated with this object.
+   */
   refNumber?: string | null;
+  /**
+   * The CreditRemaining associated with this object.
+   */
   creditRemaining?: number | null;
+  /**
+   * The RefundAmount associated with this object.
+   */
   refundAmount?: number | null;
+  /**
+   * The CreditRemainingInHomeCurrency associated with this object.
+   */
   creditRemainingInHomeCurrency?: number | null;
+  /**
+   * The RefundAmountInHomeCurrency associated with this object.
+   */
   refundAmountInHomeCurrency?: number | null;
 };
 
@@ -8326,7 +8902,9 @@ export type RelatedUnit = {
  */
 export type RelatedUnitRequest = {
   /**
-   * (Required) The name of the related unit (e.g., "Gallon"). Max length: 31.
+   * The case-insensitive unique name of this unit-of-measure set, unique across all unit-of-measure sets. To ensure this set appears in the QuickBooks UI for companies configured with a single unit per item, prefix the name with "By the" (e.g., "By the Barrel").
+   *
+   * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
   /**
@@ -8783,7 +9361,7 @@ export type ShipMethod = {
 };
 
 /**
- * DTO for an alternate shipping address on a customer.
+ * Represents an additional shipping destination associated with a customer profile.
  */
 export type ShipToAddress = {
   line1?: string | null;
@@ -8893,7 +9471,7 @@ export type StandardErrorResponse = {
 };
 
 /**
- * Tax Line Information.
+ * Tax line information mappings for federal tax form reporting.
  */
 export type TaxLineInfo = {
   taxLineId: number;
@@ -9059,70 +9637,62 @@ export type UnitOfMeasureSet = {
 };
 
 /**
- * Request model for updating an existing account
+ * Contains parameters to modify an existing financial account.
  */
 export type UpdateAccountRequest = {
   revisionNumber: string;
   /**
-   * Account name
+   * The case-insensitive name of this account.
    */
   name?: string | null;
   /**
-   * Whether the account is active
+   * Indicates whether this account is active.
    */
   isActive?: boolean | null;
   /**
-   * Account type (optional)
-   * NOTE: Cannot create non_posting accounts via API - QuickBooks creates these internally
+   * The classification of this account, indicating its purpose within the chart of accounts.
    */
   accountType?: NullableAccountType | null;
   /**
-   * Whether the account is a tax account (optional)
+   * Indicates whether this account is used for tracking taxes.
    */
   isTaxAccount?: boolean | null;
   /**
-   * Account number (optional)
+   * The account number, which appears in the chart of accounts, reports, and graphs.
    */
   accountNumber?: string | null;
   /**
-   * Account description (optional)
+   * A description of this account.
    */
   description?: string | null;
   /**
-   * Parent account reference (optional, for sub-accounts)
+   * The parent account one level above this one in the hierarchy.
    */
   parentId?: string | null;
   /**
-   * The default sales-tax code for transactions with this account, determining whether
-   * the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level.
-   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks.
-   * If QuickBooks is not set up to charge sales tax(via the "Do You Charge Sales Tax?" preference), it will assign the
-   * default non-taxable code to all sales. (Optional)
+   * The default sales-tax code for transactions with this account.
+   *
+   * Determines whether the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level.
    */
   salesTaxCodeId?: string | null;
   /**
-   * Opening balance for the account (optional)
+   * The amount of money in, or the value of, this account as of the opening balance date.
    */
   openBalance?: number | null;
   /**
-   * Opening balance date (optional, defaults to today)
+   * The date of the opening balance of this account.
    */
   openBalanceDate?: string | null;
   /**
-   * The identifier of the tax line associated with this account. You can see a list of all available values for this
-   * field by calling the endpoint for account tax lines.
+   * The identifier of the tax line associated with this account.
    */
   taxLineId?: string | null;
   /**
-   * The account's currency. For built-in currencies, the name and code are standard international values. For user-defined
-   * currencies, all values are editable. (Optional)
+   * The account's currency.
    */
   currencyId?: string | null;
   /**
-   * Bank account number (Optional, for bank accounts only)
-   *
-   *
-   * <i>**NOTE:** QuickBooks Desktop does not support cursor-based pagination for this resource.</i>
+   * The bank account number or identifying note.
    */
   bankNumber?: string | null;
 };
@@ -9137,7 +9707,7 @@ export type UpdateAdditionalNoteRequest = {
    */
   noteId: number;
   /**
-   * The note text (max 4095 characters).
+   * A note or comment about this employee.
    */
   note: string;
 };
@@ -9190,38 +9760,82 @@ export type UpdateBillPaymentOrCreditRequest = {
   [key: string]: unknown;
 };
 
-/**
- * Request model for modifying an existing Bill.
- */
 export type UpdateBillRequest = {
   revisionNumber: string;
+  /**
+   * The unique identifier of the vendor associated with this bill.
+   *
+   * **Important:** If this bill is linked to other transactions, this vendor's A/P account must match the account used in those transactions.
+   */
   vendorId?: string | null;
+  /**
+   * An optional override for the vendor's billing address.
+   */
   vendorAddress?: AddressRequest | null;
   payablesAccountId?: string | null;
   transactionDate?: string | null;
+  /**
+   * The date by which the bill must be paid.
+   */
   dueDate?: string | null;
+  /**
+   * A user-defined reference number for the bill. Case-sensitive.
+   *
+   * Set to an empty string (`""`) to clear the existing reference number in QuickBooks.
+   */
   refNumber?: string | null;
+  /**
+   * The payment terms defining when the bill is due and applicable discounts.
+   */
   termsId?: string | null;
   /**
-   * Reference to the QuickBooks Class for this transaction (PRIVATE, v13.0).
+   * Reference to the QuickBooks Class for categorization (e.g., department, location).
    */
   classId?: string | null;
+  /**
+   * A note that appears in the A/P register and related reports.
+   *
+   * Set to an empty string (`""`) to clear the existing memo in QuickBooks.
+   */
   memo?: string | null;
   /**
-   * Whether tax is included in item amounts (not in QBD).
+   * Whether tax is included in item amounts.
    */
   isTaxIncluded?: boolean | null;
-  /**
-   * Sales tax code reference (not in QBD).
-   */
   salesTaxCodeId?: string | null;
   /**
-   * Exchange rate for multi-currency transactions.
+   * The market exchange rate between the bill's currency and the home currency.
    */
   exchangeRate?: number | null;
+  /**
+   * When `true`, forcefully removes all existing expense lines from the bill.
+   *
+   * To selectively modify or add lines instead of wiping them, use the `ExpenseLines` array.
+   */
   clearExpenseLines?: boolean | null;
+  /**
+   * Expense line items to modify or add.
+   *
+   * **Array Replacement Rules:** Providing this array will **REPLACE** all existing expense lines.
+   * <br />- **Update / Retain:** To keep or modify an existing line, include it with its current `Id`. **Any existing lines not included in this array will be removed.**<br />- **Add:** To append a new line to the bill, include it with an `Id` set to `"-1"`.
+   * <br />- **Ignore:** Omit this property entirely (send `null`) to leave existing expense lines completely unchanged.
+   * <br />- **Delete All:** To remove all expense lines, leave this `null` and set `ClearExpenseLines` to `true` instead.
+   */
   expenseLines?: Array<UpdateExpenseLineRequest> | null;
+  /**
+   * When `true`, forcefully removes all existing item lines from the bill.
+   *
+   * To selectively modify or add lines instead of wiping them, use the `ItemLines` array.
+   */
   clearItemLines?: boolean | null;
+  /**
+   * Inventory or service item allocations to modify or add.
+   *
+   * **Array Replacement Rules:** Providing this array will **REPLACE** all existing item lines.
+   * <br />- **Update / Retain:** To keep or modify an existing line, include it with its current `Id`. **Any existing lines not included in this array will be removed.**<br />- **Add:** To append a new line to the bill, include it with an `Id` set to `"-1"`.
+   * <br />- **Ignore:** Omit this property entirely (send `null`) to leave existing item lines completely unchanged.
+   * <br />- **Delete All:** To remove all item lines, leave this `null` and set `ClearItemLines` to `true` instead.
+   */
   itemLines?: Array<UpdateItemLineRequest> | null;
 };
 
@@ -9462,22 +10076,20 @@ export type UpdateCheckRequest = {
 };
 
 /**
- * Modifies a QuickBooks Class with the specified properties. Only provided properties will be updated.
+ * Contains parameters to modify an existing class.
  */
 export type UpdateClassRequest = {
   revisionNumber: string;
   /**
-   * (Optional) The new name for the class.
+   * The case-insensitive name of this class.
    */
   name?: string | null;
   /**
-   * (Optional) Update the active status of the class.
+   * Indicates whether this class is active.
    */
   isActive?: boolean | null;
   /**
-   * (Optional) The ListID or FullName of the parent class (to move this class).
-   * To remove the class from its current parent and move it to the top level,
-   * provide an empty string.
+   * The parent class one level above this one in the hierarchy.
    */
   parentId?: string | null;
 };
@@ -9935,73 +10547,216 @@ export type UpdateCurrencyRequest = {
 };
 
 /**
- * Request model for updating an existing customer
+ * Represents a request to modify an existing customer or project (job) in QuickBooks Desktop.
  */
 export type UpdateCustomerRequest = {
   revisionNumber: string;
+  /**
+   * The primary identifier name for the customer or job.
+   *
+   * This value is case-insensitive. Modifying this will automatically change the customer's fully-qualified name across QuickBooks.
+   */
   name?: string | null;
+  /**
+   * The formal company name printed on invoices, checks, and official correspondence.
+   */
   companyName?: string | null;
+  /**
+   * A name suffix for the primary contact (e.g., Jr., Sr., III).
+   */
   suffix?: string | null;
+  /**
+   * The exact text format that should be printed on physical checks.
+   */
   printAs?: string | null;
+  /**
+   * The pager number for the primary contact.
+   */
   pager?: string | null;
+  /**
+   * The mobile/cellular telephone number for the primary contact.
+   */
   mobile?: string | null;
+  /**
+   * Additional carbon copy (CC) email details.
+   */
   cc?: string | null;
+  /**
+   * Determines whether this customer record is active and visible in standard QuickBooks lists and reports.
+   */
   isActive?: boolean | null;
+  /**
+   * The unique identifier of the hierarchical parent customer.
+   *
+   * **Important:** This field is required if you are actively updating or setting the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStatus" />, as that indicates this record is a sub-customer (job).
+   */
   parentId?: string | null;
+  /**
+   * The unique identifier of the Class associated with this customer, used for segmentation.
+   */
   classId?: string | null;
+  /**
+   * The unique identifier of the Customer Type, used to group customers for specialized reporting.
+   */
   customerTypeId?: string | null;
+  /**
+   * The unique identifier dictating the payment schedule and early-payment discounts (e.g., Net 30).
+   */
   termsId?: string | null;
+  /**
+   * The unique identifier of the assigned sales agent, vendor, or employee managing this account.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * The identifier for the specific tax agency rate applied to this customer's purchases.
+   */
   salesTaxItemId?: string | null;
+  /**
+   * The identifier for the customer's default payment method (e.g., Cash, Check, Visa).
+   */
   preferredPaymentMethodId?: string | null;
+  /**
+   * The identifier for a custom pricing tier applied automatically to items sold to this customer.
+   */
   priceLevelId?: string | null;
+  /**
+   * The official tax identification number (primarily utilized in UK and Canadian QBD versions).
+   */
   taxRegistrationNumber?: string | null;
+  /**
+   * The unique identifier categorizing the nature of the job (e.g., Commercial, Residential, Maintenance).
+   */
   jobTypeId?: string | null;
+  /**
+   * The unique identifier of the default currency used for this customer's transactions.
+   *
+   * QuickBooks must have multicurrency support enabled.
+   */
   currencyId?: string | null;
+  /**
+   * Stored credit card details for processing transactions.
+   */
   creditCardInfo?: CreditCardInfo | null;
+  /**
+   * The formal title preceding the primary contact's name (e.g., Mr., Ms., Dr.).
+   */
   salutation?: string | null;
+  /**
+   * The first name of the primary contact person.
+   */
   firstName?: string | null;
+  /**
+   * The middle name or initial of the primary contact person.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the primary contact person.
+   */
   lastName?: string | null;
+  /**
+   * The professional title of the primary contact.
+   */
   jobTitle?: string | null;
   billingAddress?: AddressRequest | null;
   shippingAddress?: AddressRequest | null;
   /**
-   * Additional ship-to addresses (up to 50 allowed by QuickBooks).
-   * Note: Updating ship-to addresses replaces the entire list.
+   * A collection of secondary shipping locations.
+   *
+   * **Note:** Updating ship-to addresses replaces the entire existing list in QuickBooks.
    */
   shipToAddresses?: Array<ShipToAddressRequest> | null;
+  /**
+   * The primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * A secondary telephone number.
+   */
   altPhone?: string | null;
+  /**
+   * The primary email address used for digital correspondence and e-invoicing.
+   */
   email?: string | null;
+  /**
+   * An additional email address to automatically CC on communications.
+   */
   ccEmail?: string | null;
+  /**
+   * The full name of the primary contact individual.
+   */
   contact?: string | null;
   alternateContact?: string | null;
   /**
-   * Custom contact fields (name/value pairs) for the customer.
-   * Maps to AdditionalContactRef in QbXML (0-8 allowed at customer level).
+   * User-defined contact data points (e.g., Skype ID, secondary emails).
    */
   customContactFields?: Array<CustomContactField> | null;
+  /**
+   * The maximum allowable outstanding balance before a credit hold is triggered.
+   */
   creditLimit?: number | null;
+  /**
+   * The current operational state of the job.
+   *
+   * **Important:** Modifying this explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
+   */
   jobStatus?: NullableJobStatus | null;
+  /**
+   * The date active work commenced on the job.
+   *
+   * Must be chronologically before or equal to <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobProjectedEndDate" /> and <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobEndDate" />, if they are provided.
+   */
   jobStartDate?: string | null;
+  /**
+   * The estimated deadline for job completion.
+   *
+   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStartDate" />, if provided.
+   */
   jobProjectedEndDate?: string | null;
+  /**
+   * The actual date the job was finalized.
+   *
+   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStartDate" />, if provided.
+   */
   jobEndDate?: string | null;
+  /**
+   * A short summary outlining the scope of work for the job.
+   */
   jobDesc?: string | null;
+  /**
+   * An overarching internal comment or memo regarding the customer.
+   */
   notes?: string | null;
+  /**
+   * A collection of modifications to individual, distinct internal notes attached to the customer record.
+   */
   additionalNotes?: Array<AdditionalNoteMod> | null;
   /**
-   * Can be None [Default], Email, or Fax. Use regex to validate.
+   * The default medium for sending invoices and estimates.
    */
   preferredDeliveryMethod?: string | null;
+  /**
+   * The certificate number provided by customers purchasing items wholesale/for resale.
+   */
   resaleNumber?: string | null;
+  /**
+   * A custom internal tracking number that appears on the Chart of Accounts and reports.
+   */
   accountNumber?: string | null;
+  /**
+   * The facsimile number for the customer.
+   */
   fax?: string | null;
 };
 
 export type UpdateCustomerTypeRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this customer type. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two customer types could both have the `name` "Healthcare", but they could have unique `fullName` values, such as "Industry:Healthcare" and "Region:Healthcare".
+   */
   name?: string | null;
+  /**
+   * Indicates whether this customer type is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
 };
@@ -10067,27 +10822,77 @@ export type UpdateDepositRequest = {
  */
 export type UpdateEmployeeRequest = {
   revisionNumber: string;
+  /**
+   * Indicates whether this employee is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
+  /**
+   * The employee's formal salutation title that precedes their name, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The employee's first name.
+   */
   firstName?: string | null;
+  /**
+   * The employee's middle name.
+   */
   middleName?: string | null;
+  /**
+   * The employee's last name.
+   */
   lastName?: string | null;
+  /**
+   * The employee's job title.
+   */
   jobTitle?: string | null;
   /**
    * ListID of the supervisor employee.
    */
   supervisorId?: string | null;
+  /**
+   * The employee's department. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   department?: string | null;
+  /**
+   * A description of this employee. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   description?: string | null;
   employeeAddress?: EmployeeAddress | null;
+  /**
+   * The name to use when printing this employee from QuickBooks. By default, this is the same as the `name` field.
+   */
   printAs?: string | null;
+  /**
+   * The employee's primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * The employee's mobile phone number.
+   */
   mobile?: string | null;
+  /**
+   * The employee's pager number.
+   */
   pager?: string | null;
+  /**
+   * The employee's pager PIN.
+   */
   pagerPin?: string | null;
   altPhone?: string | null;
+  /**
+   * The employee's fax number.
+   */
   fax?: string | null;
+  /**
+   * The employee's email address.
+   */
   email?: string | null;
+  /**
+   * The employee's Social Security Number. The value can be with or without dashes.
+   *
+   * **NOTE**: This field cannot be changed after the employee is created.
+   */
   ssn?: string | null;
   /**
    * Additional contact references (may repeat, v12.0+).
@@ -10097,16 +10902,33 @@ export type UpdateEmployeeRequest = {
    * Emergency contacts for the employee (QBD only, v13.0+).
    */
   emergencyContacts?: EmergencyContact | null;
+  /**
+   * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
+   */
   employeeType?: string | null;
   partOrFullTime?: string | null;
+  /**
+   * This employee's gender.
+   */
   gender?: string | null;
+  /**
+   * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
+   */
   hiredDate?: string | null;
   releasedDate?: string | null;
+  /**
+   * This employee's date of birth, in ISO 8601 format (YYYY-MM-DD).
+   */
   birthDate?: string | null;
+  /**
+   * The employee's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   notes?: string | null;
   /**
-   * Additional notes modification (may repeat, v12.0+). Requires NoteId for existing notes.
+   * Additional notes about this employee.
    */
   additionalNotes?: Array<UpdateAdditionalNoteRequest> | null;
   /**
@@ -10114,18 +10936,33 @@ export type UpdateEmployeeRequest = {
    */
   billingRateId?: string | null;
   suffix?: string | null;
+  /**
+   * The target bonus for this employee, represented as a decimal string. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
   targetBonus?: number | null;
   exempt?: string | null;
   keyEmployee?: string | null;
+  /**
+   * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
+   */
   originalHireDate?: string | null;
+  /**
+   * The adjusted service date for this employee, in ISO 8601 format (YYYY-MM-DD). This date accounts for previous employment periods or leaves that affect seniority.
+   */
   adjustedServiceDate?: string | null;
   usCitizen?: string | null;
+  /**
+   * This employee's ethnicity.
+   */
   ethnicity?: string | null;
   disabled?: string | null;
   disabilityDesc?: string | null;
   onFile?: string | null;
   workAuthExpireDate?: string | null;
   usVeteran?: string | null;
+  /**
+   * This employee's military status if they are a U.S. veteran.
+   */
   militaryStatus?: string | null;
   employeePayrollInfo?: EmployeePayrollInfo | null;
   externalId?: string | null;
@@ -10439,6 +11276,9 @@ export type UpdateInventoryAdjustmentRequest = {
  * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdateInventoryItemRequest = {
+  /**
+   * The case-insensitive name of this inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory items could both have the `name` "Cabinet", but they could have unique `fullName` values, such as "Kitchen:Cabinet" and "Inventory:Cabinet".
+   */
   name: string;
   barcode?: BarCodeRequest | null;
   classId?: string | null;
@@ -10449,32 +11289,70 @@ export type UpdateInventoryItemRequest = {
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
   salesDescription?: string | null;
+  /**
+   * The price at which this inventory item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   incomeAccountId?: string | null;
   applyIncomeAccountRefToExistingTxns?: boolean | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   cogsAccountId?: string | null;
   applyCOGSAccountRefToExistingTxns?: boolean | null;
   preferredVendorId?: string | null;
   assetAccountId?: string | null;
+  /**
+   * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
+   */
   reorderPoint?: number | null;
   maximumQuantityOnHand?: number | null;
+  /**
+   * Indicates whether this inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   revisionNumber: string;
 };
 
 export type UpdateInventorySiteRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive unique name of this inventory site, unique across all inventory sites.
+   *
+   * **NOTE**: Inventory sites do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name?: string | null;
+  /**
+   * Indicates whether this inventory site is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
+  /**
+   * A description of this inventory site.
+   */
   description?: string | null;
+  /**
+   * The name of the primary contact person for this inventory site.
+   */
   contact?: string | null;
+  /**
+   * The inventory site's primary telephone number.
+   */
   phone?: string | null;
+  /**
+   * The inventory site's fax number.
+   */
   fax?: string | null;
+  /**
+   * The inventory site's email address.
+   */
   email?: string | null;
+  /**
+   * The inventory site's address.
+   */
   address?: AddressRequest | null;
 };
 
@@ -10540,14 +11418,30 @@ export type UpdateInvoiceRequest = {
  */
 export type UpdateItemDiscountRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this discount item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two discount items could both have the `name` "10% labor discount", but they could have unique `fullName` values, such as "Discounts:10% labor discount" and "Promotions:10% labor discount".
+   */
   name?: string | null;
+  /**
+   * Indicates whether this discount item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
   parentName?: string | null;
   itemDesc?: string | null;
   salesTaxCodeId?: string | null;
   salesTaxCodeName?: string | null;
+  /**
+   * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
+   *
+   * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
+   */
   discountRate?: number | null;
+  /**
+   * The percentage amount to subtract from the total or subtotal when applying this discount item to a transaction.
+   *
+   * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
+   */
   discountRatePercent?: number | null;
   accountId?: string | null;
   accountName?: string | null;
@@ -10611,8 +11505,16 @@ export type UpdateItemGroupLineRequest = {
  * Implements IUpdateRequest for the new abstraction.
  */
 export type UpdateItemGroupRequest = {
+  /**
+   * The case-insensitive unique name of this item group, unique across all item groups.
+   *
+   * **NOTE**: Item groups do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name?: string | null;
   barCode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this item group is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   description?: string | null;
   unitOfMeasureSetId?: string | null;
@@ -10632,7 +11534,7 @@ export type UpdateItemInventoryAssemblyLineRequest = {
  * Request model for updating an ItemInventoryAssembly.
  * Updates an inventory assembly item. If you change the income account,
  * set updateExistingTransactionsIncomeAccount to true so QuickBooks applies
- * ]the new account to existing transactions that use the assembly.
+ * the new account to existing transactions that use the assembly.
  *
  * Updating quantity on hand: The number of units of this inventory assembly
  * item currently in inventory. quantityOnHand multiplied by averageCost
@@ -10642,8 +11544,14 @@ export type UpdateItemInventoryAssemblyLineRequest = {
  */
 export type UpdateItemInventoryAssemblyRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this inventory assembly item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory assembly items could both have the `name` "Deluxe Kit", but they could have unique `fullName` values, such as "Assemblies:Deluxe Kit" and "Inventory:Deluxe Kit".
+   */
   name?: string | null;
   barCode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this inventory assembly item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -10652,16 +11560,31 @@ export type UpdateItemInventoryAssemblyRequest = {
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
   salesDescription?: string | null;
+  /**
+   * The price at which this inventory assembly item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   incomeAccountId?: string | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this inventory assembly item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   cogsAccountId?: string | null;
   preferredVendorId?: string | null;
   assetAccountId?: string | null;
+  /**
+   * The inventory assembly item's minimum quantity threshold that triggers a build notification in QuickBooks. When the sum of `quantityOnHand` (current inventory) and `quantityOnOrder` (pending purchase orders) drops below this threshold, QuickBooks will notify users that more units need to be built or assembled. This helps ensure adequate inventory levels for inventory assembly items.
+   */
   buildNotificationThreshold?: number | null;
+  /**
+   * The maximum quantity of this inventory assembly item desired in inventory.
+   */
   maximumQuantityOnHand?: number | null;
+  /**
+   * The inventory assembly item's lines.
+   */
   lines?: Array<UpdateItemInventoryAssemblyLineRequest> | null;
 };
 
@@ -10744,8 +11667,14 @@ export type UpdateItemLineRequest = {
  */
 export type UpdateItemNonInventoryRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this non-inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two non-inventory items could both have the `name` "Printer Ink Cartridge", but they could have unique `fullName` values, such as "Office Supplies:Printer Ink Cartridge" and "Miscellaneous:Printer Ink Cartridge".
+   */
   name?: string | null;
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this non-inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
@@ -10753,7 +11682,17 @@ export type UpdateItemNonInventoryRequest = {
   unitOfMeasureSetId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
+  /**
+   * Details for non-inventory items that are exclusively sold or exclusively purchased, but not both. This typically applies to non-inventory items (like a purchased office supply that isn't resold) or service items (like consulting services that are sold but not purchased).
+   *
+   * **IMPORTANT**: A non-inventory item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesOrPurchaseDetails?: ItemNonInventorySalesOrPurchaseDetailsRequest | null;
+  /**
+   * Details for non-inventory items that are both purchased and sold, such as reimbursable expenses or inventory items that are bought from vendors and sold to customers.
+   *
+   * **IMPORTANT**: A non-inventory item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesAndPurchaseDetails?: ItemNonInventorySalesAndPurchaseDetailsRequest | null;
 };
 
@@ -10762,14 +11701,30 @@ export type UpdateItemNonInventoryRequest = {
  */
 export type UpdateItemOtherChargeRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this other charge item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two other charge items could both have the `name` "Overnight Delivery", but they could have unique `fullName` values, such as "Shipping Charges:Overnight Delivery" and "Misc Fees:Overnight Delivery".
+   */
   name?: string | null;
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this other charge item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   classId?: string | null;
   parentId?: string | null;
   isTaxIncluded?: boolean | null;
   salesTaxCodeId?: string | null;
+  /**
+   * Details for other charge items that are exclusively sold or exclusively purchased, but not both. This typically applies to non-inventory items (like a purchased office supply that isn't resold) or service items (like consulting services that are sold but not purchased).
+   *
+   * **IMPORTANT**: An other charge item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesOrPurchaseDetails?: ItemOtherChargeSalesOrPurchaseDetailsRequest | null;
+  /**
+   * Details for other charge items that are both purchased and sold, such as reimbursable expenses or inventory items that are bought from vendors and sold to customers.
+   *
+   * **IMPORTANT**: An other charge item will have either `salesAndPurchaseDetails` or `salesOrPurchaseDetails`, but never both because an item cannot have both configurations.
+   */
   salesAndPurchaseDetails?: ItemOtherChargeSalesAndPurchaseDetailsRequest | null;
 };
 
@@ -10992,20 +11947,60 @@ export type UpdateJournalLineRequest = {
  * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdateOtherNameRequest = {
+  /**
+   * The case-insensitive unique name of this other-name, unique across all other-names.
+   *
+   * **NOTE**: Other-names do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name?: string | null;
+  /**
+   * The name of the company associated with this other-name. This name is used on invoices, checks, and other forms.
+   */
   companyName?: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this other-name, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The first name of the contact person for this other-name.
+   */
   firstName?: string | null;
+  /**
+   * The middle name of the contact person for this other-name.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the contact person for this other-name.
+   */
   lastName?: string | null;
+  /**
+   * The other-name's address.
+   */
   address?: Address | null;
   addressBlock?: AddressBlock | null;
+  /**
+   * The other-name's primary telephone number.
+   */
   phone?: string | null;
   alternatePhone?: string | null;
+  /**
+   * The other-name's fax number.
+   */
   fax?: string | null;
+  /**
+   * The other-name's email address.
+   */
   email?: string | null;
+  /**
+   * The name of the primary contact person for this other-name.
+   */
   contact?: string | null;
   alternateContact?: string | null;
+  /**
+   * The other-name's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   notes?: string | null;
   customFields?: Array<DataExtRequest> | null;
@@ -11017,11 +12012,18 @@ export type UpdateOtherNameRequest = {
  * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdatePaymentMethodRequest = {
+  /**
+   * The case-insensitive unique name of this payment method, unique across all payment methods.
+   *
+   * **NOTE**: Payment methods do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * Indicates whether this payment method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   /**
-   * (Optional) The type of payment method.
-   * Valid values: american_express, cash, check, debit_card, discover, e_check, gift_card, master_card, other, other_credit_card, visa.
+   * This payment method's type.
    */
   paymentMethodType?: string | null;
   revisionNumber: string;
@@ -11043,11 +12045,13 @@ export type UpdatePaymentMethodRequest = {
 export type UpdatePriceLevelRequest = {
   revisionNumber: string;
   /**
-   * (Optional) The new name for the price level. Max length: 31 characters.
+   * The case-insensitive unique name of this price level, unique across all price levels.
+   *
+   * **NOTE**: Price levels do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name?: string | null;
   /**
-   * (Optional) Whether the price level is active.
+   * Indicates whether this price level is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -11484,20 +12488,21 @@ export type UpdateSalesReceiptRequest = {
 export type UpdateSalesTaxCodeRequest = {
   revisionNumber: string;
   /**
-   * (Optional) The new name of the sales tax code. (Max 31 characters)
+   * The case-insensitive unique name of this sales-tax code, unique across all sales-tax codes. This short name will appear on sales forms to identify the tax status of an item.
+   *
+   * **NOTE**: Sales-tax codes do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name?: string | null;
   /**
-   * (Optional) If false, this Sales Tax Code will be made inactive.
+   * Indicates whether this sales-tax code is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
-   * (Optional) Indicates whether the sales tax code represents a taxable (true) or non-taxable (false) item.
-   * NOTE: You cannot change this after the code has been used in a transaction.
+   * Indicates whether this sales-tax code is tracking taxable sales. This field cannot be modified once the sales-tax code has been used in a transaction.
    */
   isTaxable?: boolean | null;
   /**
-   * (Optional) The new description for the sales tax code. (Max 50 characters)
+   * A description of this sales-tax code.
    */
   description?: string | null;
   /**
@@ -11541,8 +12546,14 @@ export type UpdateSalesTaxPaymentCheckRequest = {
 
 export type UpdateServiceItemRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive name of this service item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two service items could both have the `name` "Web-Design", but they could have unique `fullName` values, such as "Consulting:Web-Design" and "Contracting:Web-Design".
+   */
   name?: string | null;
   barCode?: BarCodeRequest | null;
+  /**
+   * Indicates whether this service item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean | null;
   parentId?: string | null;
   salesTaxCodeId?: string | null;
@@ -11564,11 +12575,13 @@ export type UpdateServiceItemRequest = {
 export type UpdateShipMethodRequest = {
   revisionNumber: string;
   /**
-   * (Optional) The new name of the shipping method. (Max 15 characters)
+   * The case-insensitive unique name of this shipping method, unique across all shipping methods.
+   *
+   * **NOTE**: Shipping methods do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name?: string | null;
   /**
-   * (Optional) If false, this Shipping Method is inactive.
+   * Indicates whether this shipping method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
 };
@@ -11694,41 +12707,111 @@ export type UpdateVendorCreditRequest = {
  */
 export type UpdateVendorRequest = {
   revisionNumber: string;
+  /**
+   * The case-insensitive unique name of this vendor, unique across all vendors.
+   *
+   * **NOTE**: Vendors do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name?: string | null;
+  /**
+   * Indicates whether this vendor is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
   isActive?: boolean;
   classId?: string | null;
+  /**
+   * The name of the company associated with this vendor. This name is used on invoices, checks, and other forms.
+   */
   companyName?: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this vendor, such as "Mr.", "Ms.", or "Dr.".
+   */
   salutation?: string | null;
+  /**
+   * The first name of the contact person for this vendor.
+   */
   firstName?: string | null;
+  /**
+   * The middle name of the contact person for this vendor.
+   */
   middleName?: string | null;
+  /**
+   * The last name of the contact person for this vendor.
+   */
   lastName?: string | null;
+  /**
+   * The job title of the contact person for this vendor.
+   */
   jobTitle?: string | null;
   billingAddress?: AddressRequest | null;
   shippingAddress?: AddressRequest | null;
+  /**
+   * The vendor's primary telephone number.
+   */
   phone?: string | null;
   alternatePhone?: string | null;
+  /**
+   * The vendor's fax number.
+   */
   fax?: string | null;
+  /**
+   * The vendor's email address.
+   */
   email?: string | null;
   ccEmail?: string | null;
+  /**
+   * The name of the primary contact person for this vendor.
+   */
   contact?: string | null;
   alternateContact?: string | null;
+  /**
+   * Additional custom contact fields for this vendor, such as phone numbers or email addresses.
+   */
   customContactFields?: Array<CustomContactField> | null;
+  /**
+   * Additional alternate contacts for this vendor.
+   */
   additionalContacts?: Array<Contact> | null;
+  /**
+   * The vendor's name as it should appear on checks issued to this vendor.
+   */
   nameOnCheck?: string | null;
+  /**
+   * The vendor's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
   accountNumber?: string | null;
   note?: string | null;
+  /**
+   * Additional notes about this vendor.
+   */
   additionalNotes?: Array<AdditionalNote> | null;
   vendorTypeId?: string | null;
   termsId?: string | null;
+  /**
+   * The vendor's credit limit, represented as a decimal string. This is the maximum amount of money that can be spent being before billed by this vendor. If `null`, there is no credit limit.
+   */
   creditLimit?: number | null;
   taxIdentificationNumber?: string | null;
   isEligibleFor1099?: boolean | null;
   billingRateId?: string | null;
   salesTaxCodeId?: string | null;
+  /**
+   * The country for which sales tax is collected for this vendor.
+   */
   salesTaxCountry?: string | null;
+  /**
+   * Indicates whether this vendor is a sales tax agency.
+   */
   isSalesTaxAgency?: boolean | null;
   salesTaxReturnId?: string | null;
+  /**
+   * The vendor's tax registration number, for use in Canada or the UK.
+   */
   taxRegistrationNumber?: string | null;
+  /**
+   * The vendor's tax reporting period, for use in Canada or the UK.
+   */
   reportingPeriod?: string | null;
   isTrackingPurchaseTax?: boolean | null;
   purchaseTaxAccountId?: string | null;
@@ -11754,11 +12837,13 @@ export type UpdateVendorRequest = {
 export type UpdateWorkersCompCodeRequest = {
   revisionNumber: string;
   /**
-   * (Optional) New name for the code. Max length: 13.
+   * The case-insensitive unique name of this employee, unique across all employees. A concatenation of the employee's `firstName`, `middleName`, and `lastName` fields.
+   *
+   * **NOTE**: Employees do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name?: string | null;
   /**
-   * (Optional) Update the active status.
+   * Indicates whether this employee is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   /**
@@ -12767,10 +13852,14 @@ export type ListBillsData = {
      */
     fromTransactionDate?: string | null;
     /**
-     * Filter for paid, not paid, or both. Values: All, PaidOnly, NotPaidOnly
+     * Filters bills by their payment state.
+     * Supported values: `All`, `PaidOnly`, `NotPaidOnly`.
      */
     paymentStatus?: string;
-    CurrencyIds?: Array<string>;
+    /**
+     * Filter records by one or more Currency IDs.
+     */
+    currencyIds?: Array<string>;
     /**
      * Filter by starting reference number (startsWith).
      */
@@ -22986,13 +24075,15 @@ export type ListAccountsData = {
      */
     IncludeRetElementList?: Array<string>;
     /**
-     * Optional: Filter by account type (e.g., Bank, AccountsReceivable, Expense, Income, etc.)
-     * Binds from query parameter: ?accountType=Bank
+     * Filter by a specific account type.
      */
     accountType?: NullableAccountType;
+    /**
+     * Filter accounts by multiple account type values.
+     */
     accountTypes?: Array<AccountType>;
     /**
-     * Optional: Filter by OwnerID (GUIDs).
+     * Filter by one or more external owner identifiers.
      */
     ownerIds?: Array<string>;
   };
@@ -28682,8 +29773,7 @@ export type ListPaymentMethodsData = {
      */
     IncludeRetElementList?: Array<string>;
     /**
-     * (Optional) Filter by type.
-     * Valid values: american_express, cash, check, debit_card, discover, e_check, gift_card, master_card, other, other_credit_card, visa.
+     * This payment method's type.
      */
     PaymentMethodType?: string;
   };

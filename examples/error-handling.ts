@@ -18,7 +18,7 @@
  */
 
 import "dotenv/config";
-import { NxusClient, NxusApiError, isNxusApiError } from "@nxus/qbd";
+import { NxusClient, NxusApiError, isNxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -143,7 +143,9 @@ async function demonstrateRetryOnRateLimit() {
 
       if (err.isRateLimited && attempt < MAX_RETRIES) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-        console.log(`Rate limited on attempt ${attempt}. Retrying in ${delay}ms...`);
+        console.log(
+          `Rate limited on attempt ${attempt}. Retrying in ${delay}ms...`,
+        );
         await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
