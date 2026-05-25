@@ -48,6 +48,7 @@ export * from './price_level';
 export * from './purchase_order';
 export * from './receive_payment';
 export * from './report';
+export * from './sales_order';
 export * from './sales_receipt';
 export * from './sales_tax_code';
 export * from './sales_tax_payment_check';

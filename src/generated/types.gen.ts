@@ -8,35 +8,123 @@ export type ClientOptions = {
  * Represents a financial account within the chart of accounts.
  */
 export type Account = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  fullname?: string | null;
-  parent?: QbdRef | null;
-  sublevel?: number;
-  accountType?: NullableAccountType | null;
-  specialAccountType?: NullableSpecialAccountType | null;
-  isTaxAccount?: boolean | null;
-  accountNumber?: string | null;
-  bankNumber?: string | null;
-  description?: string | null;
-  balance?: number | null;
-  totalBalance?: number | null;
-  salesTaxCode?: QbdRef | null;
-  taxLineDetails?: TaxLineInfo | null;
-  cashFlowClassification?: NullableCashFlowClassification | null;
-  currency?: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The fully-qualified, case-insensitive unique name of this account.
+   *
+   * Formed by combining the names of its hierarchical parent objects with its own name, separated by colons.
+   */
+  fullname: string | null;
+  /**
+   * The parent account one level above this one in the hierarchy.
+   *
+   * If this account is at the top level, this field will be null.
+   */
+  parent: QbdRef | null;
+  /**
+   * The depth level of this account in the hierarchy.
+   *
+   * A top-level account has a sublevel of 0; each subsequent sublevel increases this number by 1.
+   */
+  sublevel: number;
+  /**
+   * The classification of this account, indicating its purpose within the chart of accounts.
+   */
+  accountType: NullableAccountType | null;
+  /**
+   * Indicates if this is an account automatically created for specific underlying purposes.
+   * Null for standard, non-special accounts.
+   */
+  specialAccountType: NullableSpecialAccountType | null;
+  /**
+   * Indicates whether this account is used for tracking taxes.
+   */
+  isTaxAccount: boolean | null;
+  /**
+   * The account number, which appears in the chart of accounts, reports, and graphs.
+   */
+  accountNumber: string | null;
+  /**
+   * The bank account number or identifying note.
+   */
+  bankNumber: string | null;
+  /**
+   * A description of this account.
+   */
+  description: string | null;
+  /**
+   * The current balance of this account only, excluding balances from any subordinate accounts.
+   */
+  balance: number | null;
+  /**
+   * The combined balance of this account and all its sub-accounts.
+   *
+   * For example, the total balance for a bank would be the total of the balances of all its sub-accounts. If it has no sub-accounts, this will match <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Account.Models.AccountDto.Balance" />.
+   */
+  totalBalance: number | null;
+  /**
+   * The default sales-tax code for transactions with this account.
+   *
+   * Determines whether the transactions are taxable or non-taxable by default. This can be overridden at the transaction or transaction-line level.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The account's tax line details, used for tax reporting purposes.
+   */
+  taxLineDetails: TaxLineInfo | null;
+  /**
+   * Indicates how this account is classified for cash flow reporting.
+   */
+  cashFlowClassification: NullableCashFlowClassification | null;
+  /**
+   * The currency associated with the account.
+   */
+  currency: QbdRef | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -44,17 +132,31 @@ export type Account = {
  * Used to map accounts to federal tax lines.
  */
 export type AccountTaxLineInfo = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The primary, user-defined display name for the list object.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  name: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -80,8 +182,37 @@ export enum AccountType {
   OTHER_INCOME = "OtherIncome",
 }
 
+/**
+ * A single contact reference on an employee request (additional contact or emergency contact).
+ */
 export type AdditionalContact = {
+  /**
+   * The case-insensitive unique name of this employee, unique across all employees. A concatenation of the employee's `firstName`, `middleName`, and `lastName` fields.
+   *
+   * **NOTE**: Employees do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
+  name: string | null;
+  /**
+   * The contact's value (e.g. phone number).
+   */
+  value: string | null;
+  /**
+   * Relation for emergency contacts only. Values: Spouse, Partner, Mother, Father, Sister, Brother, Son, Daughter, Friend, Other
+   */
+  relation: string | null;
+};
+
+/**
+ * A single contact reference on an employee request (additional contact or emergency contact).
+ */
+export type AdditionalContactRequest = {
+  /**
+   * The contact's name.
+   */
   name?: string | null;
+  /**
+   * The contact's value (e.g. phone number).
+   */
   value?: string | null;
   /**
    * Relation for emergency contacts only. Values: Spouse, Partner, Mother, Father, Sister, Brother, Son, Daughter, Friend, Other
@@ -94,14 +225,18 @@ export type AdditionalContact = {
  * Per DTD: AdditionalNotes just has Note element.
  */
 export type AdditionalNote = {
-  noteId?: number | null;
-  date?: string | null;
-  note?: string | null;
-};
-
-export type AdditionalNoteMod = {
-  noteID?: number;
-  note: string;
+  /**
+   * The ID of the note to modify (required for updates).
+   */
+  noteId: number | null;
+  /**
+   * The date associated with this object.
+   */
+  date: string | null;
+  /**
+   * The note text (max 4095 characters).
+   */
+  note: string | null;
 };
 
 /**
@@ -110,16 +245,16 @@ export type AdditionalNoteMod = {
  * The Address object is used to capture and store location information for these entities in QuickBooks.
  */
 export type Address = {
-  line1?: string | null;
-  line2?: string | null;
-  line3?: string | null;
-  line4?: string | null;
-  line5?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
-  country?: string | null;
-  note?: string | null;
+  line1: string | null;
+  line2: string | null;
+  line3: string | null;
+  line4: string | null;
+  line5: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+  note: string | null;
 };
 
 /**
@@ -127,10 +262,51 @@ export type Address = {
  * Corresponds to the AddressBlock XML element.
  */
 export type AddressBlock = {
+  /**
+   * The Addr1 associated with this object.
+   */
+  line1: string | null;
+  /**
+   * The Addr2 associated with this object.
+   */
+  line2: string | null;
+  /**
+   * The Addr3 associated with this object.
+   */
+  line3: string | null;
+  /**
+   * The Addr4 associated with this object.
+   */
+  line4: string | null;
+  /**
+   * The Addr5 associated with this object.
+   */
+  line5: string | null;
+};
+
+/**
+ * Request for a block of addresses.
+ */
+export type AddressBlockRequest = {
+  /**
+   * The Addr1 associated with this object.
+   */
   line1?: string | null;
+  /**
+   * The Addr2 associated with this object.
+   */
   line2?: string | null;
+  /**
+   * The Addr3 associated with this object.
+   */
   line3?: string | null;
+  /**
+   * The Addr4 associated with this object.
+   */
   line4?: string | null;
+  /**
+   * The Addr5 associated with this object.
+   */
   line5?: string | null;
 };
 
@@ -140,10 +316,25 @@ export type AddressBlock = {
  * The AddressRequest object is used to capture and store location information for these entities in QuickBooks.
  */
 export type AddressRequest = {
+  /**
+   * (Optional) Address line 1.
+   */
   line1?: string | null;
+  /**
+   * (Optional) Address line 2.
+   */
   line2?: string | null;
+  /**
+   * (Optional) Address line 3.
+   */
   line3?: string | null;
+  /**
+   * (Optional) Address line 4.
+   */
   line4?: string | null;
+  /**
+   * (Optional) Address line 5.
+   */
   line5?: string | null;
   /**
    * (Optional) City.
@@ -171,44 +362,141 @@ export type AddressRequest = {
  * Response wrapper for API responses
  */
 export type ApiResponseReport = {
-  success?: boolean;
-  message?: string | null;
-  data?: Report | null;
-  timestamp?: string;
-  requestId?: string | null;
+  success: boolean;
+  message: string | null;
+  data: Report | null;
+  timestamp: string;
+  requestId: string | null;
 };
 
 /**
  * Represents a credit that can be applied to a bill.
  */
 export type ApplicableCredit = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionType?: string | null;
-  payablesAccount?: QbdRef | null;
-  creditRemaining?: number | null;
-  creditRemainingInHomeCurrency?: number | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnType associated with this object.
+   */
+  transactionType: string | null;
+  /**
+   * The APAccount associated with this object.
+   */
+  payablesAccount: QbdRef | null;
+  /**
+   * The creditRemaining associated with this object.
+   */
+  creditRemaining: number | null;
+  creditRemainingInHomeCurrency: number | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -216,6 +504,9 @@ export type ApplicableCredit = {
  * Represents an invoice or transaction that this payment is being applied to.
  */
 export type AppliedToTransactionRequest = {
+  /**
+   * Transaction ID of the invoice/transaction to apply payment to (required for add).
+   */
   id: string;
   paymentAmount?: number | null;
   setCredits?: Array<SetCreditRequest> | null;
@@ -238,36 +529,51 @@ export type AppliedToTransactionRequest = {
  * This element is typically found in response objects like ReceivePaymentRet or BillPaymentCheckRet.
  */
 export type AppliedToTxn = {
+  /**
+   * The unique identifier for the transaction this one is applied to.
+   */
   id: string;
-  objectType?: string;
-  type?: string | null;
-  transactionDate?: string | null;
+  objectType: string;
+  /**
+   * The type of transaction this one is applied to.
+   */
+  type: string | null;
+  /**
+   * The date of the transaction this one is applied to.
+   */
+  transactionDate: string | null;
   /**
    * The primary reference number for the transaction this one is applied to.
    */
-  refNumber?: string | null;
+  refNumber: string | null;
   /**
    * The balance remaining on the applied-to transaction.
    */
-  balanceRemaining?: number | null;
+  balanceRemaining: number | null;
   /**
    * The amount of the parent transaction applied to this one.
    */
-  paymentAmount?: number | null;
+  paymentAmount: number | null;
   /**
    * The discount amount given on the applied-to transaction.
    */
-  discountAmount?: number | null;
+  discountAmount: number | null;
   /**
    * Reference to the discount account used.
    */
-  discountAccount?: QbdRef | null;
+  discountAccount: QbdRef | null;
   /**
    * Reference to the class used for the discount.
    */
-  discountClass?: QbdRef | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  appliedCredits?: Array<SetCredit> | null;
+  discountClass: QbdRef | null;
+  /**
+   * Other transactions linked to this applied-to transaction.
+   */
+  linkedTransactions: Array<LinkedTransaction> | null;
+  /**
+   * Credits applied to this transaction.
+   */
+  appliedCredits: Array<SetCredit> | null;
 };
 
 /**
@@ -276,6 +582,10 @@ export type AppliedToTxn = {
  * This is the simplified version with only TxnID and Amount.
  */
 export type ApplyCheckToTransactionRequest = {
+  /**
+   * The id of the transaction (Invoice, Statement Charge, etc.) to apply the check to.
+   * (Required)
+   */
   id: string;
   /**
    * The amount of the check to apply to this transaction.
@@ -290,6 +600,10 @@ export type ApplyCheckToTransactionRequest = {
  * This is the complex version with credits and discounts.
  */
 export type ApplyToTransactionRequest = {
+  /**
+   * The TxnID of the transaction to which the payment or credit is being applied.
+   * (Required)
+   */
   id: string;
   /**
    * The amount of the payment to apply to this transaction.
@@ -333,37 +647,149 @@ export type ApplyToTransactionRequest = {
  * card refund to one credit transaction.
  */
 export type ArRefundCreditCard = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  receivablesAccount?: QbdRef | null;
-  address?: Address | null;
-  addressBlock?: AddressBlock | null;
-  paymentMethod?: QbdRef | null;
-  creditCardTransaction?: CreditCardTransactionInfo | null;
-  refundAppliedToTransactions?: Array<RefundAppliedToTransaction> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The ARAccount associated with this object.
+   */
+  receivablesAccount: QbdRef | null;
+  /**
+   * The card's billing address.
+   */
+  address: Address | null;
+  /**
+   * The addressBlock associated with this object.
+   */
+  addressBlock: AddressBlock | null;
+  /**
+   * The paymentMethod associated with this object.
+   */
+  paymentMethod: QbdRef | null;
+  /**
+   * The CreditCardTxnInfo associated with this object.
+   */
+  creditCardTransaction: CreditCardTransactionInfo | null;
+  /**
+   * (Required) List of credit transactions (e.g., Credit Memos) to apply this refund to.
+   */
+  refundAppliedToTransactions: Array<RefundAppliedToTransaction> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -378,7 +804,7 @@ export type AuthSessionResponse = {
   /**
    * Always `"auth_session"`
    */
-  objectType?: string;
+  objectType: string;
   /**
    * UTC timestamp when this session was created
    */
@@ -386,55 +812,87 @@ export type AuthSessionResponse = {
   /**
    * The connection ID this session was created for
    */
-  connectionId?: string;
+  connectionId: string;
   /**
    * Opaque secret for server-side session identification.
    * Do not share this with your users.
    */
-  clientSecret?: string;
+  clientSecret: string;
   /**
    * The URL to send your user to for QWC setup.
    * Embed this in an email, button, or redirect — the user clicks it,
    * walks through the setup wizard, and the connection activates.
    */
-  authFlowUrl?: string;
+  authFlowUrl: string;
   /**
    * UTC timestamp when this session expires.
    * Defaults to 30 minutes from creation. Extend with `linkExpiryMins`.
    */
-  expiresAt?: string;
+  expiresAt: string;
   /**
    * The redirect URL included in the request, if any
    */
-  redirectUrl?: string | null;
+  redirectUrl: string | null;
   /**
    * Session status: "pending", "in_progress", or "completed"
    */
-  status?: string;
+  status: string;
 };
 
 /**
  * Represents a Barcode identifier associated with a QuickBooks List Object (e.g., Item, Customer, Vendor).
  */
 export type BarCode = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of list object associated with the barcode (e.g., ItemInventory, Employee).
+   * ListType may have one of the following values: Account, Class, Customer, CustomerMsg, CustomerType, DateDrivenTerms, Employee, ItemDiscount, ItemFixedAsset, ItemGroup, ItemInventory, ItemInventoryAssembly, ItemNonInventory, ItemOtherCharge, ItemPayment, ItemSalesTax, ItemSalesTaxGroup, ItemService, ItemSubtotal, JobType, OtherName, PaymentMethod, PriceLevel, SalesRep, SalesTaxCode, ShipMethod, StandardTerms, ToDo, Vendor, VendorType
    */
-  listType?: string | null;
+  listType: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -442,6 +900,9 @@ export type BarCode = {
  * Corresponds to the BarCode aggregate.
  */
 export type BarCodeRequest = {
+  /**
+   * (Optional) The actual bar code value. (Max 50 characters)
+   */
   value?: string | null;
   /**
    * (Optional) If true, allows the value to be assigned even if already in use.
@@ -458,18 +919,18 @@ export type BarCodeRequest = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseAccount = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Account>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Account>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -477,18 +938,18 @@ export type BasePageResponseAccount = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseAccountTaxLineInfo = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<AccountTaxLineInfo>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<AccountTaxLineInfo>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -496,18 +957,18 @@ export type BasePageResponseAccountTaxLineInfo = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseArRefundCreditCard = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ArRefundCreditCard>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ArRefundCreditCard>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -515,18 +976,18 @@ export type BasePageResponseArRefundCreditCard = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseBarCode = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<BarCode>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<BarCode>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -534,18 +995,18 @@ export type BasePageResponseBarCode = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseBill = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Bill>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Bill>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -553,18 +1014,18 @@ export type BasePageResponseBill = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseBillingRate = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<BillingRate>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<BillingRate>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -572,18 +1033,18 @@ export type BasePageResponseBillingRate = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseBillPaymentOrCredit = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<BillPaymentOrCredit>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<BillPaymentOrCredit>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -591,18 +1052,18 @@ export type BasePageResponseBillPaymentOrCredit = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseBuildAssembly = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<BuildAssembly>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<BuildAssembly>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -610,18 +1071,18 @@ export type BasePageResponseBuildAssembly = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCharge = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Charge>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Charge>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -629,18 +1090,18 @@ export type BasePageResponseCharge = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCheck = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Check>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Check>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -648,18 +1109,18 @@ export type BasePageResponseCheck = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCheckBillPayment = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CheckBillPayment>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CheckBillPayment>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -667,18 +1128,18 @@ export type BasePageResponseCheckBillPayment = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseClass = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Class>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Class>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -686,18 +1147,18 @@ export type BasePageResponseClass = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCreditCardBillPayment = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CreditCardBillPayment>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CreditCardBillPayment>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -705,18 +1166,18 @@ export type BasePageResponseCreditCardBillPayment = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCreditCardCharge = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CreditCardCharge>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CreditCardCharge>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -724,18 +1185,18 @@ export type BasePageResponseCreditCardCharge = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCreditCardCredit = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CreditCardCredit>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CreditCardCredit>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -743,18 +1204,18 @@ export type BasePageResponseCreditCardCredit = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCreditMemo = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CreditMemo>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CreditMemo>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -762,18 +1223,18 @@ export type BasePageResponseCreditMemo = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCurrency = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Currency>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Currency>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -781,18 +1242,18 @@ export type BasePageResponseCurrency = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCustomer = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Customer>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Customer>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -800,18 +1261,18 @@ export type BasePageResponseCustomer = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseCustomerType = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<CustomerType>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<CustomerType>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -819,18 +1280,18 @@ export type BasePageResponseCustomerType = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseDateDrivenTerm = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<DateDrivenTerm>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<DateDrivenTerm>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -838,18 +1299,18 @@ export type BasePageResponseDateDrivenTerm = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseDeposit = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Deposit>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Deposit>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -857,18 +1318,18 @@ export type BasePageResponseDeposit = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseEmployee = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Employee>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Employee>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -876,18 +1337,18 @@ export type BasePageResponseEmployee = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseEstimate = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Estimate>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Estimate>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -895,18 +1356,18 @@ export type BasePageResponseEstimate = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseInventoryAdjustment = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<InventoryAdjustment>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<InventoryAdjustment>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -914,18 +1375,18 @@ export type BasePageResponseInventoryAdjustment = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseInventoryItem = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<InventoryItem>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<InventoryItem>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -933,18 +1394,18 @@ export type BasePageResponseInventoryItem = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseInventorySite = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<InventorySite>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<InventorySite>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -952,18 +1413,18 @@ export type BasePageResponseInventorySite = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseInvoice = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Invoice>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Invoice>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -971,18 +1432,18 @@ export type BasePageResponseInvoice = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItem = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Item>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Item>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -990,18 +1451,18 @@ export type BasePageResponseItem = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemDiscount = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemDiscount>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemDiscount>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1009,18 +1470,18 @@ export type BasePageResponseItemDiscount = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemFixedAsset = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemFixedAsset>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemFixedAsset>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1028,18 +1489,18 @@ export type BasePageResponseItemFixedAsset = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemGroup = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemGroup>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemGroup>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1047,18 +1508,18 @@ export type BasePageResponseItemGroup = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemInventoryAssembly = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemInventoryAssembly>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemInventoryAssembly>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1066,18 +1527,18 @@ export type BasePageResponseItemInventoryAssembly = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemNonInventory = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemNonInventory>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemNonInventory>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1085,18 +1546,18 @@ export type BasePageResponseItemNonInventory = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemOtherCharge = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemOtherCharge>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemOtherCharge>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1104,18 +1565,18 @@ export type BasePageResponseItemOtherCharge = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemPayment = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemPayment>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemPayment>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1123,18 +1584,18 @@ export type BasePageResponseItemPayment = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemReceipt = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemReceipt>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemReceipt>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1142,18 +1603,18 @@ export type BasePageResponseItemReceipt = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemSalesTax = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemSalesTax>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemSalesTax>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1161,18 +1622,18 @@ export type BasePageResponseItemSalesTax = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemSalesTaxGroup = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemSalesTaxGroup>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemSalesTaxGroup>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1180,18 +1641,18 @@ export type BasePageResponseItemSalesTaxGroup = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseItemSubtotal = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ItemSubtotal>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ItemSubtotal>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1199,18 +1660,18 @@ export type BasePageResponseItemSubtotal = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseJournalEntry = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<JournalEntry>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<JournalEntry>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1218,18 +1679,18 @@ export type BasePageResponseJournalEntry = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseOtherName = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<OtherName>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<OtherName>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1237,18 +1698,18 @@ export type BasePageResponseOtherName = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponsePaymentMethod = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<PaymentMethod>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<PaymentMethod>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1256,18 +1717,18 @@ export type BasePageResponsePaymentMethod = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponsePayrollItemNonWage = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<PayrollItemNonWage>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<PayrollItemNonWage>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1275,18 +1736,18 @@ export type BasePageResponsePayrollItemNonWage = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponsePayrollItemWage = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<PayrollItemWage>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<PayrollItemWage>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1294,18 +1755,18 @@ export type BasePageResponsePayrollItemWage = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponsePriceLevel = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<PriceLevel>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<PriceLevel>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1313,18 +1774,18 @@ export type BasePageResponsePriceLevel = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponsePurchaseOrder = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<PurchaseOrder>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<PurchaseOrder>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1332,18 +1793,37 @@ export type BasePageResponsePurchaseOrder = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseReceivePayment = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ReceivePayment>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ReceivePayment>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
+};
+
+/**
+ * Simple paginated response designed for SDK consumption
+ * Clean, predictable structure perfect for automated pagination handling
+ */
+export type BasePageResponseSalesOrder = {
+  requestId: string | null;
+  success: boolean;
+  data: Array<SalesOrder>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1351,18 +1831,18 @@ export type BasePageResponseReceivePayment = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseSalesReceipt = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<SalesReceipt>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<SalesReceipt>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1370,18 +1850,18 @@ export type BasePageResponseSalesReceipt = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseSalesTaxCode = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<SalesTaxCode>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<SalesTaxCode>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1389,18 +1869,18 @@ export type BasePageResponseSalesTaxCode = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseSalesTaxPaymentCheck = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<SalesTaxPaymentCheck>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<SalesTaxPaymentCheck>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1408,18 +1888,18 @@ export type BasePageResponseSalesTaxPaymentCheck = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseServiceItem = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ServiceItem>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ServiceItem>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1427,18 +1907,18 @@ export type BasePageResponseServiceItem = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseShipMethod = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<ShipMethod>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<ShipMethod>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1446,18 +1926,18 @@ export type BasePageResponseShipMethod = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseTerm = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Term>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Term>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1465,18 +1945,18 @@ export type BasePageResponseTerm = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseTimeTracking = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<TimeTracking>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<TimeTracking>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1484,18 +1964,18 @@ export type BasePageResponseTimeTracking = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseTransaction = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Transaction>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Transaction>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1503,18 +1983,18 @@ export type BasePageResponseTransaction = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseUnitOfMeasureSet = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<UnitOfMeasureSet>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<UnitOfMeasureSet>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1522,18 +2002,18 @@ export type BasePageResponseUnitOfMeasureSet = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseVendor = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<Vendor>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<Vendor>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1541,18 +2021,18 @@ export type BasePageResponseVendor = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseVendorCredit = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<VendorCredit>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<VendorCredit>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1560,18 +2040,18 @@ export type BasePageResponseVendorCredit = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseVendorType = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<VendorType>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<VendorType>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
@@ -1579,25 +2059,33 @@ export type BasePageResponseVendorType = {
  * Clean, predictable structure perfect for automated pagination handling
  */
 export type BasePageResponseWorkersCompCode = {
-  requestId?: string | null;
-  success?: boolean;
-  data?: Array<WorkersCompCode>;
-  nextCursor?: string;
-  page?: number;
-  count?: number;
-  limit?: number;
-  totalCount?: number;
-  pageCount?: number;
-  hasMore?: boolean;
-  timestamp?: string;
-  remainingCount?: number;
+  requestId: string | null;
+  success: boolean;
+  data: Array<WorkersCompCode>;
+  nextCursor: string;
+  page: number;
+  count: number;
+  limit: number;
+  totalCount: number;
+  pageCount: number;
+  hasMore: boolean;
+  timestamp: string;
+  remainingCount: number;
 };
 
 /**
  * DTO for the base unit of a UnitOfMeasureSet.
  */
 export type BaseUnit = {
+  /**
+   * The case-insensitive unique name of this unit-of-measure set, unique across all unit-of-measure sets. To ensure this set appears in the QuickBooks UI for companies configured with a single unit per item, prefix the name with "By the" (e.g., "By the Barrel").
+   *
+   * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * The base unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
+   */
   abbreviation: string;
 };
 
@@ -1631,42 +2119,173 @@ export type BaseUnitRequest = {
  * the use of transaction dates, meaning TxnDate must be supplied even if marked optional.
  */
 export type Bill = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionNumber?: number | null;
-  vendor?: QbdRef | null;
-  vendorAddress?: Address | null;
-  payablesAccount?: QbdRef | null;
-  transactionDate?: string | null;
-  dueDate?: string | null;
-  amountDue?: number;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
-  amountDueInHomeCurrency?: string | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  isPending?: boolean | null;
-  terms?: QbdRef | null;
-  class?: QbdRef | null;
-  memo?: string | null;
-  salesTaxCode?: QbdRef | null;
-  isPaid?: boolean | null;
-  amount?: number | null;
-  isTaxIncluded?: boolean | null;
-  account?: QbdRef | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  openAmount?: number | null;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * An internal transaction number automatically assigned by QuickBooks.
+   */
+  transactionNumber: number | null;
+  /**
+   * The vendor who issued the bill. When linking to a Purchase Order, this vendor
+   * must match the vendor on the Purchase Order.
+   */
+  vendor: QbdRef | null;
+  /**
+   * The billing address of the vendor.
+   */
+  vendorAddress: Address | null;
+  /**
+   * The Accounts Payable (A/P) account to which this bill is posted.
+   * If omitted during creation, QuickBooks will automatically use the default A/P account.
+   */
+  payablesAccount: QbdRef | null;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The date by which the bill must be paid.
+   */
+  dueDate: string | null;
+  /**
+   * The total monetary amount of the bill.
+   */
+  amountDue: number;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * The total amount due expressed in the company's home currency.
+   * This is calculated and returned by QuickBooks when the multicurrency feature is enabled.
+   */
+  amountDueInHomeCurrency: string | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * Indicates whether the bill is currently marked as pending.
+   */
+  isPending: boolean | null;
+  /**
+   * The payment terms associated with the bill (e.g., Net 30), which calculate the DueDate.
+   */
+  terms: QbdRef | null;
+  /**
+   * The class associated with the bill, used for categorizing expenses and reporting
+   * (requires class tracking to be enabled in QuickBooks).
+   */
+  class: QbdRef | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The sales tax code indicating the general taxability of the bill (e.g., Tax, Non).
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * Indicates whether the bill has been paid in full and closed.
+   */
+  isPaid: boolean | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * Indicates whether the amounts in the bill already include sales tax.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * The remaining unpaid balance (open amount) of the bill.
+   */
+  openAmount: number | null;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -1674,32 +2293,64 @@ export type Bill = {
  * This allows you to charge different rates based on who does the work or the difficulty of the task [1].
  */
 export type BillingRate = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of billing rate (e.g., FixedRate, PerItem).
+   * Indicates whether the billing rate applies a fixed rate to all service items or custom rates per individual service item [2-4].
    */
-  billingRateType?: string | null;
+  billingRateType: string | null;
   /**
-   * The fixed rate amount if the BillingRateType is FixedRate.
+   * A simple fixed rate that will override all the standard rates for service items performed by the entity assigned this billing rate [2, 3].
    */
-  fixedBillingRate?: number | null;
+  fixedBillingRate: number | null;
   /**
-   * A list of item-specific rates if the BillingRateType is PerItem.
+   * A list of specific service items that are being overridden by a fixed custom rate or percentage [2, 4].
    */
-  billingRatePerItems?: Array<BillingRatePerItem> | null;
+  billingRatePerItems: Array<BillingRatePerItem> | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -1734,15 +2385,19 @@ export type BillingRateItemRequest = {
  * Represents a custom rate or percentage adjustment applied to a specific service item within a billing rate [2, 4].
  */
 export type BillingRatePerItem = {
-  item?: QbdRef | null;
   /**
-   * The custom rate amount for this item.
+   * A reference to the specific service item this custom rate applies to [4, 5].
    */
-  customRate?: number | null;
+  item: QbdRef | null;
   /**
-   * The custom rate percentage for this item.
+   * A fixed hourly rate for this specific service item that overrides the item's standard rate [6].
    */
-  customRatePercent?: number | null;
+  customRate: number | null;
+  /**
+   * A percentage adjustment higher or lower than the item's standard rate [6, 7].
+   * A positive value indicates a higher rate, and a negative value indicates a lower rate discount (e.g., -50.0 means 50% lower than the standard rate) [7, 8].
+   */
+  customRatePercent: number | null;
 };
 
 /**
@@ -1750,62 +2405,215 @@ export type BillingRatePerItem = {
  * that requires payment, or an available credit that can be applied to a payment.
  */
 export type BillPaymentOrCredit = {
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  bill?: PayableBill | null;
-  credit?: ApplicableCredit | null;
-  customFields?: Array<QbdDataExt>;
+  bill: PayableBill | null;
+  credit: ApplicableCredit | null;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Data Transfer Object for BuildAssemblyRet.
  */
 export type BuildAssembly = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The internal transaction number.
+   */
+  transactionNumber: number | null;
   /**
    * Reference to the Inventory Assembly Item being built.
    */
-  itemInventoryAssembly?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  expirationDateForSerialLotNumber?: string | null;
+  itemInventoryAssembly: QbdRef | null;
   /**
-   * Indicates if the build is pending.
+   * The site location where inventory for the item associated with this build assembly is stored.
    */
-  isPending?: boolean | null;
-  quantityToBuild?: number | null;
-  quantityCanBuild?: number | null;
-  quantityOnHand?: number | null;
-  quantityOnSalesOrder?: number | null;
-  lines?: Array<ComponentItemLine> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location (e.g., bin or shelf) within the inventory site where the item associated with this build assembly is stored.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The serial number of the item associated with this build assembly. This is used for tracking individual units of serialized inventory items.
+   */
+  serialNumber: string | null;
+  /**
+   * The lot number of the item associated with this build assembly. Used for tracking groups of inventory items that are purchased or manufactured together.
+   */
+  lotNumber: string | null;
+  /**
+   * (Optional) Expiration date for the serial/lot number.
+   */
+  expirationDateForSerialLotNumber: string | null;
+  /**
+   * Indicates whether this build assembly has not been completed.
+   */
+  isPending: boolean | null;
+  /**
+   * The number of build assembly to be built. The transaction will fail if the number specified here exceeds the number of on-hand components.
+   */
+  quantityToBuild: number | null;
+  /**
+   * The number of this build assembly that can be built from the parts on hand.
+   */
+  quantityCanBuild: number | null;
+  /**
+   * The number of units of this build assembly currently in inventory.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The number of units of this build assembly that have been sold (as recorded in sales orders) but not yet fulfilled or delivered to customers.
+   */
+  quantityOnSalesOrder: number | null;
+  /**
+   * The ComponentItemLines associated with this object.
+   */
+  lines: Array<ComponentItemLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -1813,10 +2621,22 @@ export type BuildAssembly = {
  * Corresponds to the CashBackInfoAdd aggregate.
  */
 export type CashBackInfo = {
-  transactionLineId?: string | null;
-  account?: QbdRef | null;
-  memo?: string | null;
-  amount?: number | null;
+  /**
+   * The TxnLineID associated with this object.
+   */
+  transactionLineId: string | null;
+  /**
+   * The account associated with this object.
+   */
+  account: QbdRef | null;
+  /**
+   * A memo or note for this deposit.
+   */
+  memo: string | null;
+  /**
+   * The amount associated with this object.
+   */
+  amount: number | null;
 };
 
 /**
@@ -1843,47 +2663,201 @@ export type CashBackInfoRequest = {
  * Represents a Statement Charge applied to a customer's account.
  */
 export type Charge = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  item?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  overrideItemAccount?: QbdRef | null;
-  rate?: number | null;
-  balanceRemaining?: number | null;
-  description?: string | null;
-  receivablesAccount?: QbdRef | null;
-  class?: QbdRef | null;
-  billedDate?: string | null;
-  dueDate?: string | null;
-  isPaid?: boolean | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The QuickBooks-assigned numeric identifier for the transaction.
+   *
+   * If `null`, no transaction number has been assigned yet.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer or customer-job associated with this charge.
+   *
+   * **Required** when creating a charge.
+   */
+  customer: QbdRef | null;
+  /**
+   * The specific good, service, or discount being charged to the customer.
+   *
+   * **Required** when creating a charge. Because statement charges are single-line transactions, this defines the entirety of the charge.
+   */
+  item: QbdRef | null;
+  /**
+   * The site location where inventory for this item is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location (e.g., bin or shelf) within the inventory site.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The quantity of the item being charged.
+   */
+  quantity: number | null;
+  /**
+   * The unit-of-measure used for the `Quantity`. Must be a valid unit within the item's available units.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * Specifies an alternative unit-of-measure set, overriding the item's default.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The account to use for this charge, overriding the default income/expense account associated with the item.
+   */
+  overrideItemAccount: QbdRef | null;
+  /**
+   * The price per unit of the item.
+   *
+   * If both `Quantity` and `Rate` are provided, QuickBooks calculates the total amount automatically.
+   */
+  rate: number | null;
+  /**
+   * The remaining unpaid balance of this charge.
+   *
+   * This is a read-only calculated field. It equals the total charge amount minus any payments applied.
+   */
+  balanceRemaining: number | null;
+  /**
+   * A description of the charge that will appear on the customer's statement.
+   */
+  description: string | null;
+  /**
+   * The Accounts Receivable (A/R) account used to track the money owed for this charge.
+   *
+   * If omitted, QuickBooks Desktop will use its default A/R account.
+   */
+  receivablesAccount: QbdRef | null;
+  /**
+   * The class associated with this charge, used for categorizing segments like department or location.
+   */
+  class: QbdRef | null;
+  /**
+   * The date the charge was entered into the register.
+   */
+  billedDate: string | null;
+  /**
+   * The date by which the charge must be paid.
+   */
+  dueDate: string | null;
+  /**
+   * Indicates whether this charge has been paid in full. When `true`, `BalanceRemaining` will be 0.
+   */
+  isPaid: boolean | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -1891,37 +2865,151 @@ export type Charge = {
  * Inherits transaction fields from BaseTransactionDto
  */
 export type Check = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  address?: Address | null;
-  isPending?: boolean | null;
-  isQueuedForPrint?: boolean;
-  isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef | null;
-  isVoid?: boolean;
-  transactionNumber?: number | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The address that is printed on the check.
+   */
+  address: Address | null;
+  /**
+   * Indicates whether this check has not been completed.
+   */
+  isPending: boolean | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
+  isQueuedForPrint: boolean;
+  /**
+   * If true, the amount includes sales tax.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The sales-tax code for this check, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the payee. This can be overridden on the check's individual lines.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The isVoid associated with this object.
+   */
+  isVoid: boolean;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -1929,84 +3017,216 @@ export type Check = {
  * Based on the CheckAddRq QBXML type.
  */
 export type CheckBillPayment = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The date the transaction occurred or was recorded.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  payablesAccount?: QbdRef | null;
+  transactionDate: string | null;
   /**
-   * The total amount of the check.
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  address?: Address | null;
+  currency: QbdRef | null;
   /**
-   * The payee's address formatted as a 5-line block.
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
    */
-  addressBlock?: AddressBlock | null;
-  isQueuedForPrint?: boolean | null;
-  appliedToTransactions?: Array<AppliedToTxn> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The transaction number, often auto-generated by QuickBooks.
+   */
+  transactionNumber: number | null;
+  /**
+   * Reference to the Accounts Payable (AP) account.
+   */
+  payablesAccount: QbdRef | null;
+  /**
+   * The payee's full address.
+   */
+  address: Address | null;
+  /**
+   * The address block formatted for printing on the check.
+   */
+  addressBlock: AddressBlock | null;
+  /**
+   * Indicates if the check is queued to be printed.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * List of transactions this payment is applied to (e.g., Bills).
+   * This is the equivalent of "line items" for a BillPayment.
+   */
+  appliedToTransactions: Array<AppliedToTxn> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * A category used to group objects into meaningful categories within the nXus platform.
  */
 export type Class = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary, user-defined display name for the list object (e.g., Customer Name, Vendor Name, Item Name).
-   *
-   * This value is often used by QuickBooks to construct the fully qualified hierarchical name (e.g., `Parent:Child`).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive fully-qualified unique name of this class.
    *
    * Formed by combining the names of its hierarchical parent objects with its own name, separated by colons.
    */
-  fullname?: string | null;
+  fullname: string | null;
   /**
    * The parent class one level above this one in the hierarchy.
    *
    * If this class is at the top level, this field will be null.
    */
-  parent?: QbdRef | null;
+  parent: QbdRef | null;
   /**
    * The depth level of this class in the hierarchy.
    *
    * A top-level class has a sublevel of 0; each subsequent sublevel increases this number by 1.
    */
-  sublevel?: number | null;
+  sublevel: number | null;
   /**
    * Indicates whether the list item is currently active.
-   *
-   * **Soft Delete Behavior:** QuickBooks rarely allows hard deletions of records that have been used in transactions. Instead, they are marked as inactive (hidden from standard drop-downs and UI lists) to preserve historical data integrity.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -2014,16 +3234,43 @@ export type Class = {
  * ComponentLineItems are usually read-only or auto-populated based on the assembly item's definition, unless the user is specifically overriding a build.
  */
 export type ComponentItemLine = {
-  objectType?: string;
-  item?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  expirationDateForSerialLotNumber?: string | null;
-  description?: string | null;
-  quantityOnHand?: number | null;
-  quantityNeeded?: number | null;
+  objectType: string;
+  /**
+   * The Inventory Assembly item being created.
+   */
+  item: QbdRef | null;
+  /**
+   * The site location where inventory for the item associated with this component item line is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location (e.g., bin or shelf) within the inventory site where the item associated with this component item line is stored.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The serial number of the item associated with this component item line. This is used for tracking individual units of serialized inventory items.
+   */
+  serialNumber: string | null;
+  /**
+   * The lot number of the item associated with this component item line. Used for tracking groups of inventory items that are purchased or manufactured together.
+   */
+  lotNumber: string | null;
+  /**
+   * The ExpirationDateForSerialLotNumber associated with this object.
+   */
+  expirationDateForSerialLotNumber: string | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The number of units of this component item line currently in inventory.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The quantity of this component item line that is needed to build the assembly. For example, if the `itemId` references a bolt, the `quantityNeeded` field indicates how many of these bolts are used in the assembly.
+   */
+  quantityNeeded: number | null;
 };
 
 /**
@@ -2042,71 +3289,71 @@ export type ConnectionResponse = {
   /**
    * Constant resource discriminator.
    */
-  objectType?: string;
+  objectType: string;
   /**
    * Your own external identifier for the connection, if supplied.
    */
-  externalId?: string | null;
+  externalId: string | null;
   /**
    * Human-friendly label for the connection.
    */
-  description?: string | null;
+  description: string | null;
   /**
    * Connection mode, either `development` or `production`.
    */
-  mode?: string;
+  mode: string;
   /**
    * Lifecycle state, e.g. `active` or `archived`.
    */
-  lifecycleState?: string;
+  lifecycleState: string;
   /**
    * Restriction reason when access is limited by policy.
    */
-  restrictionReason?: string | null;
+  restrictionReason: string | null;
   /**
    * True when the tenant may currently access the connection.
    */
-  isActive?: boolean;
+  isActive: boolean;
   /**
    * True when the connection has been archived.
    */
-  isArchived?: boolean;
+  isArchived: boolean;
   /**
    * True when the connection is usable for sync and API operations.
    */
-  isOperational?: boolean;
+  isOperational: boolean;
   /**
    * True when the connection requires billing completion before it can operate.
    */
-  requiresPayment?: boolean;
+  requiresPayment: boolean;
   /**
    * Billing status for production connections.
    */
-  billingStatus?: string;
+  billingStatus: string;
   /**
    * Hosted billing URL when payment is required.
    */
-  billingUrl?: string | null;
+  billingUrl: string | null;
   /**
    * Relative API endpoint the client can call to start checkout.
    */
-  billingCheckoutEndpoint?: string | null;
+  billingCheckoutEndpoint: string | null;
   /**
    * Company name reported by QuickBooks.
    */
-  companyName?: string | null;
+  companyName: string | null;
   /**
    * Company file path reported by QuickBooks.
    */
-  companyFile?: string | null;
+  companyFile: string | null;
   /**
    * QuickBooks edition, e.g. Pro or Enterprise.
    */
-  edition?: string | null;
+  edition: string | null;
   /**
    * Last observed QuickBooks connection timestamp.
    */
-  lastConnectedAt?: string | null;
+  lastConnectedAt: string | null;
   /**
    * When the connection record was created.
    */
@@ -2114,45 +3361,94 @@ export type ConnectionResponse = {
   /**
    * When the connection record was last updated.
    */
-  updatedAt?: string | null;
+  updatedAt: string | null;
 };
 
 export type ConnectionStatus = {
-  connectionId?: string;
-  isConnected?: boolean | null;
-  lastSyncAt?: string | null;
-  companyName?: string | null;
+  connectionId: string;
+  isConnected: boolean | null;
+  lastSyncAt: string | null;
+  companyName: string | null;
 };
 
 /**
  * DTO for Contact information from ContactsRet list.
  */
 export type Contact = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  contactName?: string | null;
-  salutation?: string | null;
+  /**
+   * The ContactName associated with this object.
+   */
+  contactName: string | null;
+  /**
+   * The contact's formal salutation title that precedes their name, such as "Mr.", "Ms.", or "Dr.".
+   */
+  salutation: string | null;
+  /**
+   * The contact's first name.
+   */
   firstName: string;
-  middleName?: string | null;
-  lastName?: string | null;
-  jobTitle?: string | null;
   /**
-   * Custom contact fields (name/value pairs) for this contact.
-   * Maps to AdditionalContactRef in QbXML (0-5 allowed per contact).
+   * The contact's middle name.
    */
-  customContactFields?: Array<CustomContactField> | null;
+  middleName: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The contact's last name.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  lastName: string | null;
+  /**
+   * The contact's job title.
+   */
+  jobTitle: string | null;
+  /**
+   * Additional custom contact fields for this contact, such as phone numbers or email addresses.
+   */
+  customContactFields: Array<CustomContactField> | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -2191,6 +3487,8 @@ export type CreateAccountRequest = {
   salesTaxCodeId?: string | null;
   /**
    * The identifier of the tax line associated with this account.
+   *
+   * Available values can be retrieved from '/accounts-tax-line-info' list.
    */
   taxLineId?: string | null;
   /**
@@ -2204,10 +3502,6 @@ export type CreateAccountRequest = {
    */
   isActive?: boolean;
   /**
-   * Indicates whether this account is used for tracking taxes.
-   */
-  isTaxAccount?: boolean;
-  /**
    * The amount of money in, or the value of, this account as of the opening balance date.
    */
   openBalance?: number | null;
@@ -2219,6 +3513,9 @@ export type CreateAccountRequest = {
    * The bank account number or identifying note.
    */
   bankNumber?: string | null;
+  /**
+   * An external identifier used for tracking purposes.
+   */
   externalId?: string | null;
 };
 
@@ -2234,7 +3531,6 @@ export type CreateAdditionalNoteRequest = {
 };
 
 /**
- * A reusable request DTO for adding an AR Refund Credit Card transaction.
  * Adds a credit card refund transaction that is linked to one or more QuickBooks credit memo transactions.
  * Based on the ARRefundCreditCardAdd QBXML type.
  */
@@ -2250,7 +3546,13 @@ export type CreateArRefundCreditCardRequest = {
    * if you wish. If you specify nothing here, Undeposited Funds is used by default.
    */
   refundFromAccountId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account involved.
+   */
   receivablesAccountId?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number for the refund.
@@ -2268,12 +3570,21 @@ export type CreateArRefundCreditCardRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
+  /**
+   * (Optional) Information about the credit card transaction if processed outside QuickBooks.
+   */
   creditCardTransaction?: CreditCardTransactionInfo | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) A unique GUID used to prevent duplicate processing.
+   */
   externalId?: string | null;
+  /**
+   * (Required) List of credit transactions (e.g., Credit Memos) to apply this refund to.
+   */
   refundAppliedToTransactions: Array<RefundAppliedToTransactionRequest>;
 };
 
@@ -2318,6 +3629,9 @@ export type CreateBillingRateRequest = {
    * Mutually exclusive with FixedBillingRate.
    */
   billingRateItems?: Array<BillingRateItemRequest> | null;
+  /**
+   * (Optional) A unique GUID used to prevent duplicate processing.
+   */
   externalId?: string | null;
 };
 
@@ -2340,7 +3654,13 @@ export type CreateBillRequest = {
    * Optional vendor address override.
    */
   vendorAddress?: AddressRequest | null;
+  /**
+   * Accounts Payable account reference (optional - QB will use default if not provided).
+   */
   payablesAccountId?: string | null;
+  /**
+   * Transaction date (defaults to today if not specified).
+   */
   transactionDate: string;
   /**
    * Due date for the bill.
@@ -2374,7 +3694,18 @@ export type CreateBillRequest = {
    * Exchange rate for multi-currency transactions (v8.0).
    */
   exchangeRate?: number | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   */
   externalId?: string | null;
+  /**
+   * A list of existing Purchase Order IDs to link to this Bill.
+   *
+   * **Linking Rules:**<br />- **Scope:** Links the <i>entire</i> transaction. To link specific lines, use `LinkToTransactionLine` on the individual Expense or Item lines instead.
+   * <br />- **Timing:** Transactions can only be linked during the **Create** (POST) operation. They cannot be unlinked or modified later via this API.
+   * <br />- **Restrictions:** You cannot link to a transaction that is empty, already closed, or already linked via a line-level override.
+   * <br />- **Visibility:** Linked transaction details are not returned in the immediate response. To verify links, refetch the Bill or use the `includeLinkedTransactions=true` parameter on List endpoints.
+   */
   linkToTransactionIds?: Array<string> | null;
   /**
    * General Ledger expense allocations.
@@ -2397,6 +3728,9 @@ export type CreateBillRequest = {
  * Based on BuildAssemblyAddRq.
  */
 export type CreateBuildAssemblyRequest = {
+  /**
+   * (Required) The ListID or FullName of the Inventory Assembly Item to build.
+   */
   inventoryAssemblyItemId: string;
   /**
    * (Optional) The ListID or FullName of the inventory site where the build takes place.
@@ -2414,7 +3748,13 @@ export type CreateBuildAssemblyRequest = {
    * (Optional) Lot number for the built assembly.
    */
   lotNumber?: string | null;
+  /**
+   * (Optional) Expiration date for the serial/lot number.
+   */
   expirationDate?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number for the build.
@@ -2433,6 +3773,9 @@ export type CreateBuildAssemblyRequest = {
    * If false (default), the request will fail if components are missing.
    */
   markPendingIfRequired?: boolean | null;
+  /**
+   * (Optional) A unique GUID used to prevent duplicate processing.
+   */
   externalId?: string | null;
 };
 
@@ -2440,6 +3783,9 @@ export type CreateBuildAssemblyRequest = {
  * Request model for creating a new Charge transaction.
  */
 export type CreateChargeRequest = {
+  /**
+   * (Optional) External GUID for idempotency or external tracking.
+   */
   externalId?: string | null;
   /**
    * (Required) The ListID or FullName of the customer.
@@ -2449,6 +3795,9 @@ export type CreateChargeRequest = {
    * (Required) The ListID or FullName of the item.
    */
   itemId: string;
+  /**
+   * (Optional) The transaction date.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number.
@@ -2486,6 +3835,9 @@ export type CreateChargeRequest = {
    * (Optional) Description of the charge.
    */
   description?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account.
+   */
   receivablesAccountId?: string | null;
   /**
    * (Optional) The ListID or FullName of the class.
@@ -2510,12 +3862,19 @@ export type CreateChargeRequest = {
  * Based on the CheckAddRq QBXML type.
  */
 export type CreateCheckBillPaymentRequest = {
+  /**
+   * (Required) The ListID of the payee (Vendor, Customer, Employee, or OtherName).
+   * Max length: 209 characters.
+   */
   payeeId: string;
   /**
    * (Required) The ListID of the bank account from which the check is drawn.
    * Max length: 159 characters.
    */
   bankAccountId: string;
+  /**
+   * (Optional) The transaction date.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number (e.g., Check #).
@@ -2550,7 +3909,14 @@ export type CreateCheckBillPaymentRequest = {
    * Max length: 4095 characters.
    */
   memo?: string | null;
+  /**
+   * (Optional) Indicates if the check is queued for printing.
+   * Note: Cannot be specified with RefNumber.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) External GUID for tracking/deduplication.
+   */
   externalId?: string | null;
   /**
    * (Required) List of transactions (bills) to apply this check to.
@@ -2567,6 +3933,9 @@ export type CreateCheckRequest = {
    * Check number (optional - QB can auto-generate)
    */
   refNumber?: string | null;
+  /**
+   * Transaction date (defaults to today if not specified)
+   */
   transactionDate?: string | null;
   /**
    * Bank account to write check from (required)
@@ -2580,7 +3949,14 @@ export type CreateCheckRequest = {
    * Memo/description for the check
    */
   memo?: string | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   * If not provided, a new GUID will be generated automatically.
+   */
   externalId?: string | null;
+  /**
+   * Whether this check should be marked for printing
+   */
   isQueuedForPrint?: boolean;
   /**
    * If true, the amount includes sales tax.
@@ -2674,6 +4050,9 @@ export type CreateConnectionRequest = {
  * Note: Only create and read operations are supported for bill payments
  */
 export type CreateCreditCardBillPaymentRequest = {
+  /**
+   * Transaction date (defaults to today if not specified)
+   */
   transactionDate?: string | null;
   /**
    * Transaction reference number (optional) autogenerates if not specified
@@ -2684,6 +4063,9 @@ export type CreateCreditCardBillPaymentRequest = {
    * Vendor/payee being paid (required)
    */
   payeeId: string;
+  /**
+   * Accounts Payable account reference (required)
+   */
   payablesAccountId: string;
   /**
    * Credit card account being charged (required)
@@ -2706,7 +4088,15 @@ export type CreateCreditCardBillPaymentRequest = {
    * Exchange rate (required if currency is specified)
    */
   exchangeRate?: number | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   * If not provided, a new GUID will be generated automatically.
+   */
   externalId?: string | null;
+  /**
+   * Bills being paid by this credit card payment
+   * At least one bill must be specified
+   */
   applyToTransactions: Array<ApplyToTransactionRequest>;
   /**
    * Validation: Ensure total matches applied amounts
@@ -2732,10 +4122,12 @@ export type CreateCreditCardCreditRequest = {
    * create the initially reequested object
    */
   defMacro?: string | null;
+  /**
+   * Transaction date (Optional - defaults to today).
+   */
   transactionDate?: string | null;
   /**
-   * Reference number for the transaction (Optional).
-   * MaxLength of 11 characters is based on QuickBooks Desktop's limit for RefNumber fields.
+   * The case-sensitive user-defined reference number for this credit card credit, which can be used to identify the transaction in QuickBooks. This value is not required to be unique and can be arbitrarily changed by the QuickBooks user.
    */
   refNumber?: string | null;
   /**
@@ -2755,6 +4147,9 @@ export type CreateCreditCardCreditRequest = {
    * Exchange rate for multi-currency transactions (Optional).
    */
   exchangeRate?: number | null;
+  /**
+   * External GUID for tracking (Optional - will be auto-generated if not provided).
+   */
   externalId?: string | null;
   /**
    * Expense line items for the credit card credit.
@@ -2785,6 +4180,9 @@ export type CreateCreditCardRequest = {
    * (Optional) The ListID or FullName of the Payee (Vendor, Customer, Employee).
    */
   payeeId?: string | null;
+  /**
+   * (Optional) The date of the transaction. Defaults to today if not provided.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number for the transaction.
@@ -2806,6 +4204,9 @@ export type CreateCreditCardRequest = {
    * (Optional) Exchange rate, used for multi-currency.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) A unique external identifier. Defaults to a new Guid if omitted.
+   */
   externalId?: string | null;
   /**
    * (Optional) A list of expense lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
@@ -2896,6 +4297,9 @@ export type CreateCreditMemoLineGroupRequest = {
    * (Optional) The ListID or FullName of the inventory site location.
    */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) Custom fields (Data Extensions) for the group.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -2968,9 +4372,21 @@ export type CreateCreditMemoLineRequest = {
    * (Optional) The ListID or FullName of the account to override the item's default account.
    */
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) Other custom field 1. Max length: 29.
+   */
   otherCustomField1?: string | null;
+  /**
+   * (Optional) Other custom field 2. Max length: 29.
+   */
   otherCustomField2?: string | null;
+  /**
+   * (Optional) Credit card transaction info for this specific line.
+   */
   creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
+  /**
+   * (Optional) Custom fields (Data Extensions).
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -2989,17 +4405,29 @@ export type CreateCreditMemoRequest = {
    * (Optional) The ListID or FullName of the class.
    */
   classId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account.
+   */
   receivablesAccountId?: string | null;
   /**
    * (Optional) The ListID or FullName of the template to use.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number (e.g., Credit Memo #).
    */
   refNumber?: string | null;
+  /**
+   * (Optional) The billing address.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address.
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the credit memo is pending.
@@ -3017,7 +4445,13 @@ export type CreateCreditMemoRequest = {
    * (Optional) The due date.
    */
   dueDate?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * (Optional) Free On Board (FOB) terms. (Max 13 characters)
+   */
   shipmentOrigin?: string | null;
   /**
    * (Optional) The date of shipment.
@@ -3035,11 +4469,17 @@ export type CreateCreditMemoRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the customer message.
+   */
   customerMessageId?: string | null;
   /**
    * (Optional) Indicates if the transaction is to be printed.
    */
   isToBePrinted?: boolean | null;
+  /**
+   * (Optional) Indicates if the transaction is to be emailed.
+   */
   isQueuedForEmail?: boolean | null;
   /**
    * (Optional) Indicates if tax is included in the amounts.
@@ -3049,6 +4489,9 @@ export type CreateCreditMemoRequest = {
    * (Optional) The ListID or FullName of the customer sales tax code.
    */
   customerSalesTaxCodeId?: string | null;
+  /**
+   * (Optional) Other custom field. (Max 29 characters)
+   */
   otherCustomField?: string | null;
   /**
    * (Optional) The exchange rate for the transaction.
@@ -3058,7 +4501,13 @@ export type CreateCreditMemoRequest = {
    * (Optional) Standard item lines for the credit memo.
    */
   lines?: Array<CreateCreditMemoLineRequest> | null;
+  /**
+   * (Optional) Grouped item lines for the credit memo.
+   */
   lineGroups?: Array<CreateCreditMemoLineGroupRequest> | null;
+  /**
+   * (Optional) A unique GUID used to prevent duplicate processing.
+   */
   externalId?: string | null;
 };
 
@@ -3083,6 +4532,10 @@ export type CreateCurrencyRequest = {
    * (Optional) Specifies the formatting rules for the currency.
    */
   currencyFormat?: CurrencyFormatRequest | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   * Implemented from ICreateRequest.
+   */
   externalId?: string | null;
 };
 
@@ -3139,8 +4592,19 @@ export type CreateCustomerRequest = {
    * The professional title of the primary contact.
    */
   jobTitle?: string | null;
+  /**
+   * The default billing location for invoices and statements. (optional)
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * The default shipping location for products.
+   */
   shippingAddress?: AddressRequest | null;
+  /**
+   * A collection of secondary shipping locations.
+   *
+   * Ideal for customers with multiple physical storefronts or delivery sites.
+   */
   shippingAddresses?: Array<ShipToAddressRequest> | null;
   /**
    * The primary telephone number.
@@ -3166,7 +4630,13 @@ export type CreateCustomerRequest = {
    * The primary contact name used for digital correspondence and e-invoicing.
    */
   contact?: string | null;
+  /**
+   * The full name of a secondary or emergency contact individual.
+   */
   alternateContact?: string | null;
+  /**
+   * User-defined contact data points (e.g., Skype ID, secondary emails).
+   */
   customContactFields?: Array<CustomContactField> | null;
   /**
    * An expanded list of alternate personnel linked to this customer account.
@@ -3276,6 +4746,12 @@ export type CreateCustomerRequest = {
    * Overrides standard item rates automatically on new sales forms.
    */
   priceLevelId?: string | null;
+  /**
+   * A globally unique identifier generated by your external application to track this record in QuickBooks Desktop.
+   *
+   * **Important:** This field must use a GUID format, e.g., "e3b0c442-989b-464c-869d-27f12e841f3d".
+   * Note: This field is immutable. It can only be written once during record creation and cannot be updated.
+   */
   externalId?: string | null;
   /**
    * The official tax identification number (primarily utilized in UK and Canadian QBD versions).
@@ -3327,6 +4803,10 @@ export type CreateCustomerTypeRequest = {
    * Follows the Flattened-ID Pattern for ParentRef.
    */
   parentId?: string | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   * Implemented from ICreateRequest.
+   */
   externalId?: string | null;
 };
 
@@ -3336,6 +4816,9 @@ export type CreateCustomerTypeRequest = {
  * This model exists only for interface compatibility. The validator will reject all requests.
  */
 export type CreateDateDrivenTermRequest = {
+  /**
+   * External GUID (not used - Terms cannot be created).
+   */
   id: string;
   /**
    * The case-insensitive unique name of this date-driven term, unique across all date-driven terms.
@@ -3380,6 +4863,9 @@ export type CreateDepositLineRequest = {
  * Corresponds to the DepositAdd QBXML message.
  */
 export type CreateDepositRequest = {
+  /**
+   * (Optional) The date of the transaction. Defaults to today.
+   */
   transactionDate?: string | null;
   /**
    * (Required) The ListID of the bank account where the funds are deposited.
@@ -3407,6 +4893,10 @@ export type CreateDepositRequest = {
    * (Optional) A list of payment and manual lines making up the total deposit amount.
    */
   depositLines?: Array<CreateDepositLineRequest> | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   * Implemented from ICreateRequest.
+   */
   externalId?: string | null;
 };
 
@@ -3439,7 +4929,7 @@ export type CreateEmployeeRequest = {
    */
   jobTitle?: string | null;
   /**
-   * ListID of the supervisor employee.
+   * ListID of the supervisor employee."
    */
   supervisorId?: string | null;
   /**
@@ -3450,7 +4940,10 @@ export type CreateEmployeeRequest = {
    * A description of this employee. Found in the "employment job details" section of the employee's record in QuickBooks.
    */
   description?: string | null;
-  employeeAddress?: EmployeeAddress | null;
+  /**
+   * The employee's address.
+   */
+  employeeAddress?: AddressRequest | null;
   /**
    * The name to use when printing this employee from QuickBooks. By default, this is the same as the `name` field.
    */
@@ -3489,11 +4982,11 @@ export type CreateEmployeeRequest = {
   /**
    * Additional contact references (may repeat, v12.0+).
    */
-  additionalContacts?: Array<AdditionalContact> | null;
+  additionalContacts?: Array<AdditionalContactRequest> | null;
   /**
    * Emergency contacts for the employee (QBD only, v13.0+).
    */
-  emergencyContacts?: EmergencyContact | null;
+  emergencyContacts?: EmergencyContactRequest | null;
   /**
    * Additional notes about this employee.
    */
@@ -3501,16 +4994,22 @@ export type CreateEmployeeRequest = {
   /**
    * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
    */
-  employeeType?: string | null;
-  partOrFullTime?: string | null;
+  employeeType?: NullableEmployeeType | null;
+  /**
+   * The employee's employment status.
+   */
+  employmentStatus?: NullableEmploymentStatus | null;
   /**
    * This employee's gender.
    */
-  gender?: string | null;
+  gender?: NullableGender | null;
   /**
    * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
    */
   hiredDate?: string | null;
+  /**
+   * The date this employee was released, in ISO 8601 format (YYYY-MM-DD).
+   */
   releasedDate?: string | null;
   /**
    * This employee's date of birth, in ISO 8601 format (YYYY-MM-DD).
@@ -3522,6 +5021,9 @@ export type CreateEmployeeRequest = {
    * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
    */
   accountNumber?: string | null;
+  /**
+   * The employee's notes.
+   */
   notes?: string | null;
   /**
    * ListID of the billing rate.
@@ -3531,8 +5033,18 @@ export type CreateEmployeeRequest = {
    * The target bonus for this employee, represented as a decimal string. Found in the "employment job details" section of the employee's record in QuickBooks.
    */
   targetBonus?: number | null;
-  exempt?: string | null;
-  keyEmployee?: string | null;
+  /**
+   * Whether this employee is exempt from overtime pay.
+   *
+   * exempt, non_exempt
+   */
+  overtimeExemptStatus?: NullableOvertimeExemptStatus | null;
+  /**
+   * The status of this employee's key employee designation.
+   *
+   * none, key_employee, not_key_employee
+   */
+  keyEmployeeStatus?: NullableKeyEmployeeStatus | null;
   /**
    * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -3541,23 +5053,57 @@ export type CreateEmployeeRequest = {
    * The adjusted service date for this employee, in ISO 8601 format (YYYY-MM-DD). This date accounts for previous employment periods or leaves that affect seniority.
    */
   adjustedServiceDate?: string | null;
-  usCitizen?: string | null;
+  /**
+   * The status of this employee's citizenship.
+   *
+   * citizen, non_citizen
+   */
+  usCitizenshipStatus?: NullableCitizenshipStatus | null;
   /**
    * This employee's ethnicity.
    */
-  ethnicity?: string | null;
-  disabled?: string | null;
-  disabilityDesc?: string | null;
-  onFile?: string | null;
-  workAuthExpireDate?: string | null;
-  usVeteran?: string | null;
+  ethnicity?: NullableEthnicity | null;
+  /**
+   * The status of this employee's disability.
+   *
+   * none, disabled, not_disabled
+   */
+  disabilityStatus?: NullableDisabilityStatus | null;
+  /**
+   * The description of this employee's disability.
+   */
+  disabilityDescription?: string | null;
+  /**
+   * The status of this employee's I-9 file.
+   *
+   * on_file, not_on_file
+   */
+  i9OnFileStatus?: NullableI9FileStatus | null;
+  /**
+   * The expiration date of this employee's work authorization, in ISO 8601 format (YYYY-MM-DD).
+   */
+  workAuthorizationExpirationDate?: string | null;
+  /**
+   * Whether this employee is a U.S. veteran.
+   *
+   * veteran, non_veteran
+   */
+  usVeteranStatus?: NullableUsVeteranStatus | null;
   /**
    * This employee's military status if they are a U.S. veteran.
    */
-  militaryStatus?: string | null;
-  employeePayrollInfo?: EmployeePayrollInfo | null;
+  militaryStatus?: NullableMilitaryStatus | null;
+  /**
+   * The payroll information for this employee.
+   */
+  employeePayrollInfo?: EmployeePayrollInfoRequest | null;
+  /**
+   * Fulfills the ICreateRequest interface.
+   * Used for tracking the "Add" job.
+   *
+   * GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   */
   externalId?: string | null;
-  suffix?: string | null;
 };
 
 /**
@@ -3585,6 +5131,9 @@ export type CreateEstimateLineGroupRequest = {
    * (Optional) The ListID or FullName of the Inventory Site Location. (InventorySiteLocationRef, Flattened-ID Pattern)
    */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) List of custom data extensions for the group line. (DataExt)
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -3594,7 +5143,13 @@ export type CreateEstimateLineGroupRequest = {
  * you can add a new line by supplying a TxnLineID value of -1.
  */
 export type CreateEstimateLineRequest = {
+  /**
+   * (Required for Mod) The TxnLineID of the specific line item being modified or deleted. (IDTYPE)
+   */
   id?: string | null;
+  /**
+   * The type of object. This value is always `"qbd_estimate"`.
+   */
   objectType?: string | null;
   /**
    * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
@@ -3668,6 +5223,9 @@ export type CreateEstimateLineRequest = {
    * (Optional) Custom field 2. Max 29 chars.
    */
   other2?: string | null;
+  /**
+   * (Optional, Add only) List of custom data extensions.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -3688,17 +5246,29 @@ export type CreateEstimateRequest = {
    * (Optional) The ListID or FullName of the template to use for the Estimate. (TemplateRef, Flattened-ID Pattern)
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction. Defaults to today. (DATETYPE)
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The sequential reference number for the Estimate (e.g., Estimate Number). (STRTYPE)
    */
   refNumber?: string | null;
+  /**
+   * (Optional) Billing address information. (BillAddress)
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) Shipping address information. (ShipAddress)
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Whether the Estimate is active. (BOOLTYPE)
    */
   isActive?: boolean | null;
+  /**
+   * (Optional) Customer's Purchase Order number. (STRTYPE)
+   */
   purchaseOrderNumber?: string | null;
   /**
    * (Optional) The ListID or FullName of the payment terms for the Estimate. (TermsRef, Flattened-ID Pattern)
@@ -3712,6 +5282,9 @@ export type CreateEstimateRequest = {
    * (Optional) The ListID or FullName of the Sales Rep. (SalesRepRef, Flattened-ID Pattern)
    */
   salesRepId?: string | null;
+  /**
+   * (Optional) Freight on Board term. (STRTYPE)
+   */
   shippmentOrigin?: string | null;
   /**
    * (Optional) The ListID or FullName of the sales tax item that applies to the entire Estimate. (ItemSalesTaxRef, Flattened-ID Pattern)
@@ -3725,6 +5298,9 @@ export type CreateEstimateRequest = {
    * (Optional) The ListID or FullName of the Customer Message to appear on the form. (CustomerMsgRef, Flattened-ID Pattern)
    */
   customerMessageId?: string | null;
+  /**
+   * (Optional) Whether the Estimate should be flagged to be emailed. (BOOLTYPE)
+   */
   isQueuedForEmailed?: boolean | null;
   /**
    * (Optional) Whether tax is included in the line item amounts. (BOOLTYPE)
@@ -3750,6 +5326,9 @@ export type CreateEstimateRequest = {
    * (Optional) List of item group lines (EstimateLineGroupAdd). Mutually exclusive with LineItems.
    */
   lineItemGroups?: Array<CreateEstimateLineGroupRequest> | null;
+  /**
+   * (Optional) A unique identifier assigned by the client application for tracking the asynchronous request. (GUIDTYPE, from ICreateRequest)
+   */
   externalId?: string | null;
   /**
    * (Optional) List of custom fields (DataExt) for the Estimate. (DataExtRequest)
@@ -3794,7 +5373,13 @@ export type CreateExpenseLineRequest = {
    * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
    */
   billableStatus?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * (Optional) List of custom data extensions.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -3823,6 +5408,9 @@ export type CreateInventoryAdjustmentRequest = {
    * Follows the Flattened-ID Pattern for AccountRef.
    */
   accountId: string;
+  /**
+   * (Optional) The date of the transaction. Defaults to today.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The document number. (Max 11 characters)
@@ -3847,7 +5435,14 @@ export type CreateInventoryAdjustmentRequest = {
    * (Optional) General memo about the Inventory Adjustment. (Max 4095 characters)
    */
   memo?: string | null;
+  /**
+   * (Required) A list of line items specifying the quantities/values being adjusted.
+   */
   inventoryAdjustmentLines: Array<CreateInventoryAdjustmentLineRequest>;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   * Implemented from ICreateRequest.
+   */
   externalId?: string | null;
 };
 
@@ -3860,43 +5455,102 @@ export type CreateInventoryItemRequest = {
    * The case-insensitive name of this inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory items could both have the `name` "Cabinet", but they could have unique `fullName` values, such as "Kitchen:Cabinet" and "Inventory:Cabinet".
    */
   name: string;
+  /**
+   * The barcode associated with this inventory item.
+   */
   barcode?: BarCodeRequest | null;
+  /**
+   * The unique QuickBooks ListID of the Class linked to this inventory item.
+   */
   classId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the parent inventory item, if this is a sub-item.
+   */
   parentId?: string | null;
+  /**
+   * The manufacturer part number for the inventory item.
+   *
+   * Stored as SKU in the database layer.
+   */
   sku?: string | null;
+  /**
+   * The unique QuickBooks ListID of the unit of measure set associated with this inventory item.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Indicates whether sales tax is included in the sales price.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * The unique QuickBooks ListID of the sales tax code associated with this inventory item.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * Customer-facing description printed on sales documents like invoices and sales receipts.
+   */
   salesDescription?: string | null;
   /**
    * The price at which this inventory item is sold to customers, represented as a decimal string.
    */
   salesPrice?: number | null;
+  /**
+   * The unique QuickBooks ListID of the income account used to track revenue from sales of this inventory item.
+   */
   incomeAccountId?: string | null;
+  /**
+   * Vendor-facing description printed on purchase forms like purchase orders or bills.
+   */
   purchaseDescription?: string | null;
   /**
    * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
    */
   purchaseCost?: number | null;
+  /**
+   * The unique QuickBooks ListID of the purchase tax code.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the Cost of Goods Sold (COGS) account.
+   */
   cogsAccountId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the preferred vendor from whom this inventory item is typically purchased.
+   */
   preferredVendorId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the asset account used to track the current value of this inventory item in inventory.
+   */
   assetAccountId: string;
   /**
    * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
    */
   reorderPoint?: number | null;
+  /**
+   * The maximum quantity of this inventory item to hold in inventory.
+   */
   maximumQuantityOnHand?: number | null;
   /**
    * The number of units of this inventory item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory item, you must use an inventory-adjustment instead of updating the inventory item directly.
    */
   quantityOnHand?: number | null;
+  /**
+   * The total asset value of this inventory item.
+   */
   totalValue?: number | null;
+  /**
+   * The date when this inventory quantity on hand was recorded.
+   */
   inventoryDate?: string | null;
   /**
    * Indicates whether this inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean;
+  /**
+   * Fulfills the ICreateRequest interface.
+   * Used for tracking the "Add" job.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalId?: string | null;
 };
 
@@ -3948,11 +5602,17 @@ export type CreateInvoiceRequest = {
    * Customer ListID (required).
    */
   customerId: string;
+  /**
+   * Transaction date (defaults to today if not specified).
+   */
   transactionDate?: string | null;
   /**
    * Class ListID.
    */
   classId?: string | null;
+  /**
+   * AR Account ListID.
+   */
   receivablesAccountId?: string | null;
   /**
    * Template ListID.
@@ -3962,10 +5622,25 @@ export type CreateInvoiceRequest = {
    * Reference number for the invoice.
    */
   refNumber?: string | null;
+  /**
+   * Billing Address.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * Shipping Address.
+   */
   shippingAddress?: AddressRequest | null;
+  /**
+   * Indicates whether this invoice has not been completed or is in a draft version.
+   */
   isPending?: boolean | null;
+  /**
+   * Whether this invoice includes a finance charge. This field is immutable and can only be set during invoice creation.
+   */
   isFinanceCharge?: boolean | null;
+  /**
+   * The PoNumber associated with this object.
+   */
   purchaseOrderNumber?: string | null;
   /**
    * Terms ListID.
@@ -3975,29 +5650,77 @@ export type CreateInvoiceRequest = {
    * Due date for the invoice.
    */
   dueDate?: string | null;
+  /**
+   * Sales Rep ListID.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * The Fob associated with this object.
+   */
   shipmentOrigin?: string | null;
+  /**
+   * The ShipDate associated with this object.
+   */
   shippingDate?: string | null;
+  /**
+   * Ship Method ListID.
+   */
   shippingMethodId?: string | null;
+  /**
+   * Item Sales Tax ListID.
+   */
   salesTaxItemId?: string | null;
   /**
    * Memo/description for the invoice.
    */
   memo?: string | null;
+  /**
+   * Customer Msg ListID.
+   */
   customerMessageId?: string | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * The IsToBeEmailed associated with this object.
+   */
   isQueuedForEmail?: boolean | null;
+  /**
+   * The isTaxIncluded associated with this object.
+   */
   isTaxIncluded?: boolean | null;
   /**
    * Customer Sales Tax Code ListID.
    */
   customerSalesTaxCodeId?: string | null;
+  /**
+   * The Other associated with this object.
+   */
   otherCustomField?: string | null;
+  /**
+   * The market exchange rate between this invoice's currency and the home currency in QuickBooks at the time of this transaction. Represented as a decimal value (e.g., 1.2345 for 1 EUR = 1.2345 USD if USD is the home currency).
+   */
   exchangeRate?: number | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   */
   externalId?: string | null;
+  /**
+   * Link to Transaction IDs.
+   */
   linkToTransactionIds?: Array<string> | null;
+  /**
+   * Specific credit transactions to apply while creating the invoice.
+   */
   applyCredits?: Array<CreateSetCreditRequest> | null;
+  /**
+   * Item line items for the invoice.
+   */
   lines?: Array<CreateItemLineRequest> | null;
+  /**
+   * Item group line items for the invoice.
+   */
   lineGroups?: Array<CreateItemGroupLineRequest> | null;
 };
 
@@ -4013,10 +5736,29 @@ export type CreateItemDiscountRequest = {
    * Indicates whether this discount item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * The unique QuickBooks ListID of the parent discount item, if this is a sub-item.
+   *
+   * Only applicable if this is a sub-item and hierarchy is enabled.
+   */
   parentId?: string | null;
+  /**
+   * The fully qualified name of the parent discount item, if this is a sub-item.
+   */
   parentName?: string | null;
+  /**
+   * The customer-facing description printed on sales documents when applying this discount item.
+   *
+   * Optional. If omitted, QuickBooks will use the default description set on the item itself.
+   */
   itemDesc?: string | null;
+  /**
+   * The unique QuickBooks ListID of the default sales tax code applied to this discount item.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The name of the default sales tax code applied to this discount item.
+   */
   salesTaxCodeName?: string | null;
   /**
    * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
@@ -4030,8 +5772,21 @@ export type CreateItemDiscountRequest = {
    * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
    */
   discountRatePercent?: number | null;
+  /**
+   * The unique QuickBooks ListID of the posting account to which transactions involving this discount item are posted.
+   *
+   * Must be an Expense or Income account.
+   */
   accountId?: string | null;
+  /**
+   * The name of the posting account to which transactions involving this discount item are posted.
+   */
   accountName?: string | null;
+  /**
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine.
+   *
+   * Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalId?: string | null;
 };
 
@@ -4039,29 +5794,150 @@ export type CreateItemDiscountRequest = {
  * Request model for creating an ItemFixedAsset.
  */
 export type CreateItemFixedAssetRequest = {
+  /**
+   * The name of the fixed asset item.
+   * Max Length: 31 characters.
+   *
+   * Must be unique among sibling items within the same hierarchy level. Case-insensitive.
+   */
   name: string;
+  /**
+   * Whether the fixed asset item is active.
+   *
+   * Inactive items are hidden in QuickBooks lists but preserved in historic data.
+   */
   isActive?: boolean | null;
+  /**
+   * Reference to the Class.
+   *
+   * Classes can be used to categorize objects into meaningful segments like departments or product lines.
+   */
   classId?: string | null;
+  /**
+   * Indicates the condition of the asset at the time of acquisition (e.g., "New" or "Used").
+   *
+   * Helps track asset history and initial valuation constraints.
+   */
   acquiredAs?: string | null;
+  /**
+   * A description of the asset specifically related to its purchase.
+   *
+   * Stamped on procurement forms and purchase documentation.
+   */
   purchaseDescription?: string | null;
+  /**
+   * The date on which the business purchased or acquired the asset.
+   *
+   * Tracks the acquisition calendar date.
+   */
   purchaseDate?: string | null;
+  /**
+   * The original purchase price or cost of acquiring the asset.
+   *
+   * Represents the core asset cost.
+   */
   purchaseCost?: number | null;
+  /**
+   * The name of the vendor or payee from whom the asset was purchased.
+   *
+   * Useful for warranty claims and supplier referencing.
+   */
   vendorOrPayeeName?: string | null;
+  /**
+   * The identifier of the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
+   *
+   * Must reference an account of type FixedAsset.
+   */
   assetAccountId: string;
+  /**
+   * A description of the sales transaction or the reason for the asset's disposal.
+   *
+   * Documenting the reason or parameters of the disposal.
+   */
   salesDescription?: string | null;
+  /**
+   * The final price for which the asset was sold.
+   *
+   * The gross sale amount realized.
+   */
   salesPrice?: number | null;
+  /**
+   * The identifier of the asset's posting income account.
+   *
+   * The general ledger revenue tracking account.
+   */
   incomeAccountId?: string | null;
+  /**
+   * The identifier of the sales tax code.
+   *
+   * Mapped sales tax code identifying if this item is taxable.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * A general description of the fixed asset.
+   *
+   * Main asset reference label.
+   */
   assetDescription?: string | null;
+  /**
+   * The physical location or department where the asset is currently kept.
+   *
+   * Identifies geography or cost center.
+   */
   location?: string | null;
+  /**
+   * The Purchase Order number associated with the acquisition of the asset.
+   *
+   * Links the asset back to purchase history.
+   */
   purchaseOrderNumber?: string | null;
+  /**
+   * The serial number or vehicle identification number (VIN) of the asset.
+   *
+   * Unique hardware identification tag.
+   */
   serialNumber?: string | null;
+  /**
+   * The date on which the manufacturer's or vendor's warranty for the asset expires.
+   *
+   * Helps track active warranty timelines.
+   */
   warrantyExpirationDate?: string | null;
+  /**
+   * Additional free-form notes or comments regarding the asset.
+   *
+   * Any miscellaneous asset-related observations.
+   */
   notes?: string | null;
+  /**
+   * A unique, company-assigned tracking number or barcode number for the asset.
+   *
+   * Internal asset tracking code.
+   */
   assetNumber?: string | null;
+  /**
+   * The cost basis of the asset used for calculating tax and depreciation.
+   *
+   * Often includes purchase price plus freight, installation, etc.
+   */
   costBasis?: number | null;
+  /**
+   * The total amount of depreciation accumulated for this asset up to the end of the most recent fiscal year.
+   *
+   * Accumulated depreciation value.
+   */
   yearEndAccumulatedDepreciation?: number | null;
+  /**
+   * The net book value of the asset at the end of the fiscal year.
+   *
+   * Typically Cost Basis minus Accumulated Depreciation.
+   */
   yearEndBookValue?: number | null;
+  /**
+   * External GUID for the fixed asset item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalid?: string | null;
 };
 
@@ -4090,6 +5966,9 @@ export type CreateItemGroupLineRequest = {
    * (Optional) The ListID or FullName of the inventory site location.
    */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) List of custom data extensions.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -4104,15 +5983,48 @@ export type CreateItemGroupRequest = {
    * **NOTE**: Item groups do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name: string;
+  /**
+   * The barcode request object linking barcode properties.
+   *
+   * Optional barcode configuration.
+   */
   barCode?: BarCodeRequest | null;
+  /**
+   * A general description of the item group.
+   *
+   * Primary reference description.
+   */
   description?: string | null;
   /**
    * Indicates whether this item group is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   *
+   * Inactive objects are hidden in list views.
    */
   isActive?: boolean | null;
+  /**
+   * Reference to the Unit of Measure Set associated with this group.
+   *
+   * Links the group to its available units.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Indicates whether the individual items within the group should be printed on transactions.
+   *
+   * If true, component items are printed. If false, only the group header is printed.
+   */
   shouldPrintItemsInGroup?: boolean | null;
+  /**
+   * The list of member items that comprise this group, along with their quantities and units.
+   *
+   * Define the constituent items.
+   */
   lines?: Array<ItemGroupLineDetailRequest> | null;
+  /**
+   * Fulfills the ICreateRequest interface.
+   * Used for tracking the "Add" job.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalId?: string | null;
 };
 
@@ -4249,8 +6161,18 @@ export type CreateItemLineRequest = {
    * (Optional) Overrides the default income/expense account associated with the item.
    */
   overrideItemAccountId?: string | null;
+  /**
+   * Creates a link to a transaction
+   * Used in CreateBillRequest CreateItemLineRequest;
+   */
   linkToTransaction?: LinkToTransactionLineRequest | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * (Optional) List of custom data extensions.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -4341,12 +6263,19 @@ export type CreateItemPaymentRequest = {
  */
 export type CreateItemReceiptRequest = {
   vendorId: string;
+  /**
+   * AP Account ListID (Optional - OR condition with LiabilityAccountId).
+   * At least one of APAccountId or LiabilityAccountId must be provided.
+   */
   payablesAccountId?: string | null;
   /**
    * Liability Account ListID (Optional - OR condition with APAccountId).
    * At least one of APAccountId or LiabilityAccountId must be provided.
    */
   liabilityAccountId?: string | null;
+  /**
+   * Transaction date (Optional - defaults to today).
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the transaction (Optional).
@@ -4372,7 +6301,13 @@ export type CreateItemReceiptRequest = {
    * Exchange rate for multi-currency transactions (Optional).
    */
   exchangeRate?: number | null;
+  /**
+   * External GUID for tracking (Optional - will be auto-generated if not provided).
+   */
   externalId?: string | null;
+  /**
+   * List of Transaction IDs (e.g., Purchase Orders) to link this receipt to.
+   */
   linkToTransactionIds?: Array<string> | null;
   /**
    * Expense line items for the item receipt.
@@ -4422,6 +6357,9 @@ export type CreateItemSalesTaxRequest = {
    * (Optional) The ListID of the QuickBooks Class associated with this item. (Flattened-ID Pattern)
    */
   classId?: string | null;
+  /**
+   * (Optional) A description for the sales tax item.
+   */
   description?: string | null;
   /**
    * (Optional) The tax rate as a percentage (e.g., 7.5 for 7.5%).
@@ -4435,6 +6373,9 @@ export type CreateItemSalesTaxRequest = {
    * (Optional) The ListID of the Sales Tax Return Line to be associated with this tax item. (Flattened-ID Pattern)
    */
   salesTaxReturnLineId?: string | null;
+  /**
+   * (Optional) A unique external GUID to identify this item in your system.
+   */
   externalId?: string | null;
 };
 
@@ -4455,18 +6396,34 @@ export type CreateItemSubtotalRequest = {
   /**
    * The name of the item.
    * Max Length: 31 characters.
+   *
+   * Must be unique among sibling items within the same hierarchy level. Case-insensitive.
    */
   name: string;
   /**
    * Whether the item is active.
+   *
+   * Inactive items are hidden in QuickBooks lists but preserved in historic data.
    */
   isActive?: boolean | null;
   /**
    * The barcode value of the item.
    * Max Length: 50 characters.
+   *
+   * Raw barcode text value.
    */
   barCodeValue?: string | null;
+  /**
+   * The barcode request object linking barcode properties.
+   *
+   * Optional barcode configuration.
+   */
   barCode?: BarCodeRequest | null;
+  /**
+   * External GUID for the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalId?: string | null;
 };
 
@@ -4474,6 +6431,9 @@ export type CreateItemSubtotalRequest = {
  * Request model for creating a new journal entry in QuickBooks.
  */
 export type CreateJournalEntryRequest = {
+  /**
+   * Transaction date (optional - defaults to today if not specified).
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the journal entry. (Max 20 characters)
@@ -4495,8 +6455,18 @@ export type CreateJournalEntryRequest = {
    * (Optional) The ListID or FullName of the currency.
    */
   currencyId?: string | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   * If not provided, a new GUID will be generated automatically.
+   */
   externalId?: string | null;
+  /**
+   * Journal debit line items for the entry.
+   */
   debitLines?: Array<CreateJournalLineRequest> | null;
+  /**
+   * Journal credit line items for the entry.
+   */
   creditLines?: Array<CreateJournalLineRequest> | null;
 };
 
@@ -4568,7 +6538,7 @@ export type CreateOtherNameRequest = {
   /**
    * The other-name's address.
    */
-  address?: Address | null;
+  address?: AddressRequest | null;
   addressBlock?: AddressBlock | null;
   /**
    * The other-name's primary telephone number.
@@ -4596,6 +6566,10 @@ export type CreateOtherNameRequest = {
   accountNumber?: string | null;
   notes?: string | null;
   customFields?: Array<DataExtRequest> | null;
+  /**
+   * Fulfills the ICreateRequest interface.
+   * Used for tracking the "Add" job.
+   */
   externalId?: string | null;
 };
 
@@ -4642,6 +6616,9 @@ export type CreatePayrollItemWageRequest = {
    * Indicates whether this payroll wage item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -4680,6 +6657,9 @@ export type CreatePriceLevelRequest = {
    * (Optional) The ListID of the currency associated with this price level. Only used with 'per item' price levels.
    */
   currencyId?: string | null;
+  /**
+   * (Optional) External GUID for tracking/deduplication.
+   */
   externalId?: string | null;
 };
 
@@ -4687,6 +6667,9 @@ export type CreatePriceLevelRequest = {
  * A reusable request DTO for adding an Item Group Line to a Purchase Order (PurchaseOrderLineGroupAdd).
  */
 export type CreatePurchaseOrderLineGroupRequest = {
+  /**
+   * (Required) The ListID or FullName of the item group being purchased.
+   */
   id: string;
   /**
    * (Optional) Quantity of the group to purchase.
@@ -4792,6 +6775,9 @@ export type CreatePurchaseOrderRequest = {
    * Follows the Flattened-ID Pattern for TemplateRef.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction. Defaults to today.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The document number. (Max 11 characters)
@@ -4823,6 +6809,9 @@ export type CreatePurchaseOrderRequest = {
    * Follows the Flattened-ID Pattern for ShipMethodRef.
    */
   shipMethodId?: string | null;
+  /**
+   * (Optional) Free On Board point. (Max 13 characters)
+   */
   shipmentOrigin?: string | null;
   /**
    * (Optional) Memo about the transaction. (Max 4095 characters)
@@ -4832,7 +6821,13 @@ export type CreatePurchaseOrderRequest = {
    * (Optional) Message displayed to the vendor. (Max 99 characters)
    */
   vendorMsg?: string | null;
+  /**
+   * (Optional) If true, the Purchase Order should be printed.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) If true, the Purchase Order should be emailed.
+   */
   isQueuedForEmail?: boolean | null;
   /**
    * (Optional) If true, the line item rates/amounts are inclusive of sales tax.
@@ -4843,14 +6838,30 @@ export type CreatePurchaseOrderRequest = {
    * Follows the Flattened-ID Pattern for SalesTaxCodeRef.
    */
   salesTaxCodeId?: string | null;
+  /**
+   * The Other1 associated with this object.
+   */
   otherCustomField1?: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
   otherCustomField2?: string | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Purchase Order.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) A list of non-group item lines to add to the purchase order.
+   */
   lines?: Array<CreatePurchaseOrderLineRequest> | null;
+  /**
+   * (Optional) A list of item group lines to add to the purchase order.
+   */
   lineGroups?: Array<CreatePurchaseOrderLineGroupRequest> | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   * Implemented from ICreateRequest.
+   */
   externalId?: string | null;
 };
 
@@ -4862,7 +6873,13 @@ export type CreateReceivePaymentRequest = {
    * The customer making the payment (required).
    */
   customerId: string;
+  /**
+   * Accounts Receivable account reference (optional - QB will use default if not provided).
+   */
   receivablesAccountId?: string | null;
+  /**
+   * Transaction date (defaults to today if not specified).
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the payment (max 20 chars).
@@ -4888,31 +6905,194 @@ export type CreateReceivePaymentRequest = {
    * Account to deposit the payment into.
    */
   depositToAccountId?: string | null;
+  /**
+   * Credit card transaction information (if payment method is credit card, v4.1+).
+   */
   creditCardTransactionInfo?: CreditCardTxnInfoRequest | null;
+  /**
+   * An optional, client-provided GUID for external tracking.
+   * If not provided, a new GUID will be generated automatically.
+   */
   externalId?: string | null;
   /**
    * If true, QuickBooks will automatically apply the payment to outstanding invoices.
    * Mutually exclusive with AppliedToTxns.
    */
   isAutoApply?: boolean | null;
+  /**
+   * List of invoices/transactions to apply this payment to.
+   * Mutually exclusive with IsAutoApply.
+   */
   appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 export type CreateSalesAndPurchaseRequest = {
+  /**
+   * Outbound transaction content visible when rendering standard billings or client quotes.
+   */
   salesDescription?: string | null;
+  /**
+   * Core financial base rate assigned during customer invoicing cycles.
+   */
   salesPrice?: number | null;
+  /**
+   * General ledger account targeted for tracking revenue streams.
+   */
   incomeAccountId?: string | null;
+  /**
+   * Inbound line description mapped when writing vendor liabilities or contractor logs.
+   */
   purchaseDescription?: string | null;
+  /**
+   * Expenditure threshold rate incurred when outsourcing this operation to independent suppliers.
+   */
   purchaseCost?: number | null;
+  /**
+   * Mapped specialized taxation profile applied for outlays within purchase environments.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * General ledger tracking account logging asset drops or structural service cost updates.
+   */
   expenseAccountId?: string | null;
+  /**
+   * Primary operational contact node utilized for sourcing this particular activity block.
+   */
   prefVendorId?: string | null;
 };
 
-export type CreateSalesOrPurchaseRequest = {
+/**
+ * Contains parameters for creating a new sales order line item.
+ */
+export type CreateSalesOrderLineRequest = {
+  /**
+   * The item associated with this line.
+   */
+  itemId?: string | null;
+  /**
+   * A description of the item on this line.
+   */
   description?: string | null;
+  /**
+   * The quantity of the item requested.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure used for the quantity.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The rate or price per unit of the item.
+   */
+  rate?: number | null;
+  /**
+   * The category associated with this line item.
+   */
+  classId?: string | null;
+};
+
+/**
+ * Contains parameters for creating a new sales order.
+ */
+export type CreateSalesOrderRequest = {
+  /**
+   * The customer or job placing this sales order.
+   */
+  customerId: string;
+  /**
+   * The category associated with this sales order.
+   */
+  classId?: string | null;
+  /**
+   * The template used to format this sales order.
+   */
+  templateId?: string | null;
+  /**
+   * The date of the sales order transaction.
+   */
+  transactionDate?: string | null;
+  /**
+   * A reference identifier for this sales order.
+   */
+  referenceNumber?: string | null;
+  /**
+   * The customer's billing address.
+   */
+  billingAddress?: AddressRequest | null;
+  /**
+   * The customer's shipping address.
+   */
+  shippingAddress?: AddressRequest | null;
+  /**
+   * The payment terms applied to this sales order.
+   */
+  termsId?: string | null;
+  /**
+   * The date when payment for this sales order is due.
+   */
+  dueDate?: string | null;
+  /**
+   * The sales representative associated with this sales order.
+   */
+  salesRepId?: string | null;
+  /**
+   * The Free On Board (FOB) shipping terms.
+   */
+  shipmentOrigin?: string | null;
+  /**
+   * The date the goods are expected to be shipped.
+   */
+  shipDate?: string | null;
+  /**
+   * The shipping method requested for the delivery.
+   */
+  shipMethodId?: string | null;
+  /**
+   * The sales tax item applied to this sales order.
+   */
+  itemSalesTaxId?: string | null;
+  /**
+   * A memo or note regarding the sales order.
+   */
+  memo?: string | null;
+  /**
+   * A predefined message to the customer printed on the sales order.
+   */
+  customerMessageId?: string | null;
+  /**
+   * Indicates whether the sales order is queued to be printed.
+   */
+  isToBePrinted?: boolean | null;
+  /**
+   * Indicates whether the sales order is queued to be emailed.
+   */
+  isToBeEmailed?: boolean | null;
+  /**
+   * The individual line items requested on this sales order.
+   */
+  lines?: Array<CreateSalesOrderLineRequest> | null;
+  /**
+   * The ExternalGuid associated with this object.
+   */
+  externalId?: string | null;
+};
+
+export type CreateSalesOrPurchaseRequest = {
+  /**
+   * Line card summary text applied during single-sided processing.
+   */
+  description?: string | null;
+  /**
+   * Monetary assignment per single unit transaction.
+   */
   price?: number | null;
+  /**
+   * Multiplier fraction value mapped for computing variable charges.
+   */
   pricePercent?: number | null;
+  /**
+   * Main general ledger registration index tracking balancing values for this transaction branch.
+   */
   accountId?: string | null;
 };
 
@@ -4920,6 +7100,9 @@ export type CreateSalesOrPurchaseRequest = {
  * A reusable request DTO for adding an Item Group Line to a Sales Receipt (SalesReceiptLineGroupAdd structure).
  */
 export type CreateSalesReceiptLineGroupRequest = {
+  /**
+   * (Required) The ListID or FullName of the item group.
+   */
   id: string;
   /**
    * (Optional) Quantity of the group.
@@ -4995,6 +7178,9 @@ export type CreateSalesReceiptLineRequest = {
    * (Optional) Lot number for the item. Mutually exclusive with SerialNumber. (Max 40 characters)
    */
   lotNumber?: string | null;
+  /**
+   * (Optional) Expiration date for the serial or lot number. (Max 1099 characters)
+   */
   expirationDate?: string | null;
   /**
    * (Optional) The date the service was performed.
@@ -5004,8 +7190,17 @@ export type CreateSalesReceiptLineRequest = {
    * (Optional) The ListID or FullName of the sales tax code.
    */
   salesTaxCodeId?: string | null;
+  /**
+   * (Optional) User-defined field 1. (Max 29 characters)
+   */
   otherCustomField1?: string | null;
+  /**
+   * (Optional) User-defined field 2. (Max 29 characters)
+   */
   otherCustomField2?: string | null;
+  /**
+   * (Optional) Credit card transaction info specific to this line item.
+   */
   creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
 };
 
@@ -5026,12 +7221,21 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The ListID or FullName of the Sales Receipt template to use.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction. Defaults to today.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The document number (e.g., receipt number). (Max 11 characters)
    */
   refNumber?: string | null;
+  /**
+   * (Optional) The billing address for the transaction.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address for the transaction.
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the transaction is pending.
@@ -5049,11 +7253,21 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The date the payment is due (if applicable).
    */
   dueDate?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales representative.
+   */
   salesRepresentativeId?: string | null;
   /**
    * (Optional) The ListID or FullName of the ship method.
    */
   shipMethodId?: string | null;
+  /**
+   * (Optional) The origin location from where the product associated with this sales receipt is
+   * shipped. This is the point at which ownership and liability for goods transfer from seller
+   * to buyer. Internally, QuickBooks uses the term "FOB" for this field, which stands for "freight
+   * on board". This field is informational and has no accounting implications.
+   * (Max 13 characters)
+   */
   shipmentOrigin?: string | null;
   /**
    * (Optional) The ListID or FullName of the sales tax item or group.
@@ -5063,8 +7277,17 @@ export type CreateSalesReceiptRequest = {
    * (Optional) General memo about the Sales Receipt. (Max 4095 characters)
    */
   memo?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the custom message for the customer.
+   */
   customerMessageId?: string | null;
+  /**
+   * (Optional) If true, the Sales Receipt should be printed.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) If true, the Sales Receipt should be emailed.
+   */
   isQueuedForEmail?: boolean | null;
   /**
    * (Optional) If true, tax is included in the item amounts (tax-inclusive pricing).
@@ -5078,14 +7301,29 @@ export type CreateSalesReceiptRequest = {
    * (Optional) The ListID or FullName of the account to deposit the payment to.
    */
   depositToAccountId?: string | null;
+  /**
+   * (Optional) Credit card transaction details from a processor for recording in QuickBooks.
+   */
   creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) User-defined field. (Max 29 characters)
+   */
   otherCustomerField?: string | null;
+  /**
+   * (Optional) A list of non-group line items for the sales portion of the transaction.
+   */
   lines?: Array<CreateSalesReceiptLineRequest> | null;
+  /**
+   * (Optional) A list of line items representing Item Groups.
+   */
   lineGroups?: Array<CreateSalesReceiptLineGroupRequest> | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -5156,7 +7394,13 @@ export type CreateSalesTaxPaymentCheckRequest = {
    * (Required) The ListID or FullName of the bank account.
    */
   bankAccountId: string;
+  /**
+   * (Optional) Specifies whether the check is to be printed.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) The reference number (check number). Max 11 chars.
+   */
   refNumber?: string | null;
   /**
    * (Optional) A memo for the transaction. Max 4095 chars.
@@ -5166,6 +7410,9 @@ export type CreateSalesTaxPaymentCheckRequest = {
    * (Optional) The address of the payee.
    */
   address?: AddressRequest | null;
+  /**
+   * (Optional) A unique external identifier.
+   */
   externalId?: string | null;
   /**
    * (Required) A list of sales tax items and the amounts being paid.
@@ -5175,23 +7422,64 @@ export type CreateSalesTaxPaymentCheckRequest = {
 
 export type CreateServiceItemRequest = {
   /**
-   * The case-insensitive name of this service item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two service items could both have the `name` "Web-Design", but they could have unique `fullName` values, such as "Consulting:Web-Design" and "Contracting:Web-Design".
+   * The unique local text classification for this service.
+   *
+   * This represents the final node name within the hierarchy tree and is not a globally unique full path identifier unless no parents exist.
    */
   name: string;
+  /**
+   * The hardware optical scanner classification properties linked to this item.
+   */
   barCode?: BarCodeRequest | null;
+  /**
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine.
+   *
+   * Must be GUID format to ensure uniqueness and prevent collisions with other potential external ID values. This is not a required field, but if provided, it must be unique across all items in the system. The system does not enforce uniqueness, so it is the responsibility of the client application to ensure that duplicate external IDs are not used. This field can be used for integration purposes, allowing clients to link QuickBooks items with corresponding records in their own systems using a consistent identifier.
+   */
   externalId?: string | null;
   /**
-   * Indicates whether this service item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   * Restricts visibility and operational usage of this item throughout menus and dashboards when disabled.
    */
   isActive?: boolean | null;
+  /**
+   * The segment reporting class used to organize financial transactions involving this service into custom business divisions.
+   */
   classId?: string | null;
+  /**
+   * The target category reference one tier higher in the directory struct, enabling parent-child item grouping.
+   */
   parentId?: string | null;
+  /**
+   * The general transaction tax identifier mapping standard default rates onto individual document lines.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The discrete unit grouping schema determining available transaction quantities and pricing increments for this item.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Authorizes full substitution of underlying unit structural sets on active historic documentation templates.
+   */
   forceUOMChange?: boolean | null;
+  /**
+   * Determines whether standard listed item values inherently incorporate line tax allocations.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * A series of unique user-defined field records mapping additional metadata properties onto the core structure.
+   */
   dataExt?: Array<QbdDataExt> | null;
+  /**
+   * Single-sided details mapping operational rules when this record is exclusively purchased or exclusively sold.
+   *
+   * This property is mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.CreateServiceItemRequest.SalesAndPurchase" />.
+   */
   salesOrPurchase?: CreateSalesOrPurchaseRequest | null;
+  /**
+   * Double-sided data matrix specifying independent client rates and vendor costs for flexible fulfillment models.
+   *
+   * This property is mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.CreateServiceItemRequest.SalesOrPurchase" />.
+   */
   salesAndPurchase?: CreateSalesAndPurchaseRequest | null;
 };
 
@@ -5200,6 +7488,10 @@ export type CreateServiceItemRequest = {
  * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
  */
 export type CreateSetCreditRequest = {
+  /**
+   * The TxnID of the credit transaction (e.g., Credit Memo) to apply.
+   * (Required)
+   */
   creditTransactionId: string;
   /**
    * The amount of the credit to apply.
@@ -5228,6 +7520,9 @@ export type CreateShipMethodRequest = {
    * Indicates whether this shipping method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -5255,6 +7550,9 @@ export type CreateSpecialItemRequest = {
    * (Optional) Bar Code details for the special item.
    */
   barCode?: BarCodeRequest | null;
+  /**
+   * (Optional) External GUID for tracking/deduplication.
+   */
   externalId?: string | null;
 };
 
@@ -5264,6 +7562,9 @@ export type CreateSpecialItemRequest = {
  * This model exists only for interface compatibility. The validator will reject all requests.
  */
 export type CreateTermRequest = {
+  /**
+   * External GUID (not used - Terms cannot be created).
+   */
   externalId?: string | null;
 };
 
@@ -5272,6 +7573,9 @@ export type CreateTermRequest = {
  * Corresponds to the TimeTrackingAdd QBXML message.
  */
 export type CreateTimeTrackingRequest = {
+  /**
+   * (Optional) The date the work was performed. Defaults to today.
+   */
   transactionDate?: string | null;
   /**
    * (Required) The ListID or FullName of the Entity (Employee, Vendor, or OtherName) that performed the work.
@@ -5309,6 +7613,9 @@ export type CreateTimeTrackingRequest = {
    * (Optional) Legacy flag to set time as billable. Use BillableStatus instead if possible.
    */
   isBillable?: boolean | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -5351,6 +7658,9 @@ export type CreateUnitOfMeasureSetRequest = {
    * The unit-of-measure set's default units to appear in the U/M field on transaction line items. You can specify separate defaults for purchases, sales, and shipping.
    */
   defaultUnits?: Array<DefaultUnitRequest> | null;
+  /**
+   * (Optional) External GUID for tracking/deduplication.
+   */
   externalId?: string | null;
 };
 
@@ -5363,6 +7673,10 @@ export type CreateVendorCreditRequest = {
    * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/P account.
+   * Defaults to the standard Accounts Payable account if not specified.
+   */
   payablesAccountId?: string | null;
   /**
    * (Optional) The date of the transaction. Defaults to the current date.
@@ -5388,6 +7702,9 @@ export type CreateVendorCreditRequest = {
    * (Optional) The exchange rate, if using multi-currency.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) A unique external identifier.
+   */
   externalId?: string | null;
   /**
    * (Optional) A list of expense lines to add to the vendor credit.
@@ -5525,6 +7842,10 @@ export type CreateVendorRequest = {
   isCompoundingTax?: boolean | null;
   defaultExpenseAccountIds?: Array<string> | null;
   currencyId?: string | null;
+  /**
+   * Fulfills the ICreateRequest interface.
+   * Used for tracking the "Add" job.
+   */
   externalId?: string | null;
 };
 
@@ -5546,6 +7867,9 @@ export type CreateVendorTypeRequest = {
    * Follows the Flattened-ID Pattern for ParentRef.
    */
   parentId?: string | null;
+  /**
+   * A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -5579,6 +7903,9 @@ export type CreateWorkersCompCodeRequest = {
    * Must have at least one entry.
    */
   rateEntries: Array<RateEntryRequest>;
+  /**
+   * A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -5586,108 +7913,271 @@ export type CreateWorkersCompCodeRequest = {
  * Represents a payment made against one or more vendor bills using a Credit Card.
  */
 export type CreditCardBillPayment = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  payablesAccount?: QbdRef | null;
-  appliedToTransactions?: Array<AppliedToTxn> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  creditCardAccount: QbdRef | null;
-  customFields?: Array<QbdDataExt>;
-};
-
-/**
- * Represents a Credit Card Charge transaction.
- */
-export type CreditCardCharge = {
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
   /**
    * The currency used for this transaction.
    *
    * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  currency?: QbdRef | null;
+  currency: QbdRef | null;
   /**
    * The market exchange rate between the transaction's currency and the home currency.
    *
    * Only applicable if multi-currency is enabled.
    */
-  exchangeRate?: number | null;
+  exchangeRate: number | null;
   /**
    * A user-defined reference number for this transaction (e.g., check number, invoice number).
    *
    * This value is case-sensitive and appears in various QuickBooks UI forms.
    * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
    */
-  refNumber?: string | null;
+  refNumber: string | null;
   /**
    * A memo or note for the transaction that appears in registers and reports.
    */
-  memo?: string | null;
-  transactionNumber?: string | null;
-  isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef | null;
+  memo: string | null;
+  /**
+   * The Accounts Payable (A/P) account associated with the bills being paid.
+   *
+   * **Important:** This A/P account must exactly match the `payablesAccount` used on the original vendor bills.
+   * If omitted, QuickBooks Desktop will use its default A/P account.
+   */
+  payablesAccount: QbdRef | null;
+  /**
+   * The bill or list of bills that this bill credit card payment is applied to.
+   */
+  appliedToTransactions: Array<AppliedToTxn> | null;
   /**
    * The total monetary amount of the transaction.
    *
    * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
    */
-  amount?: number | null;
+  amount: number | null;
   /**
    * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
    */
-  entity?: QbdRef | null;
+  entity: QbdRef | null;
   /**
    * The bank or credit card account used for this transaction.
    */
-  account?: QbdRef | null;
+  account: QbdRef | null;
   /**
    * The transaction amount converted into the QuickBooks company file's home currency.
    */
-  amountInHomeCurrency?: string | null;
+  amountInHomeCurrency: string | null;
   /**
    * Internal validation helper to check if the transaction contains at least one valid line item.
    */
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines?: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine>;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines?: Array<ItemLine>;
+  itemLines: Array<ItemLine>;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * The credit card account used to make this payment.
+   *
+   * **Required.** This transaction will increase the liability balance of this credit card account.
+   */
+  creditCardAccount: QbdRef | null;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
+};
+
+/**
+ * Represents a Credit Card Charge transaction.
+ */
+export type CreditCardCharge = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: string | null;
+  /**
+   * The IsTaxIncluded associated with this object.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The SalesTaxCode associated with this object.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -5695,59 +8185,177 @@ export type CreditCardCharge = {
  * Inherits common transaction properties from BaseTransactionDto.
  */
 export type CreditCardCredit = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The date the transaction occurred or was recorded.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
+  transactionDate: string | null;
   /**
-   * The total amount of the credit.
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  isTaxIncluded?: boolean | null;
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The transaction number, often auto-generated by QuickBooks.
+   */
+  transactionNumber: number | null;
+  /**
+   * Indicates if tax is included in the line items.
+   */
+  isTaxIncluded: boolean | null;
   /**
    * Reference to the sales tax code.
    */
-  salesTaxCode?: QbdRef | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  salesTaxCode: QbdRef | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents credit card information. Used in the Customer Resource for storing credit card details excludes the last two lines.
  */
 export type CreditCardInfo = {
-  objectType?: string;
-  creditCardNumber?: string | null;
-  expirationMonth?: number | null;
-  expirationYear?: number | null;
-  nameOnCard?: string | null;
-  creditCardAddress?: string | null;
-  creditCardPostalCode?: string | null;
+  objectType: string;
+  /**
+   * The creditCardNumber associated with this object.
+   */
+  creditCardNumber: string | null;
+  /**
+   * The expirationMonth associated with this object.
+   */
+  expirationMonth: number | null;
+  /**
+   * The expirationYear associated with this object.
+   */
+  expirationYear: number | null;
+  /**
+   * The nameOnCard associated with this object.
+   */
+  nameOnCard: string | null;
+  /**
+   * The creditCardAddress associated with this object.
+   */
+  creditCardAddress: string | null;
+  /**
+   * The creditCardPostalCode associated with this object.
+   */
+  creditCardPostalCode: string | null;
 };
 
 /**
  * credit card transaction details.
  */
 export type CreditCardTransactionInfo = {
+  /**
+   * The CreditCardTxnInputInfo associated with this object.
+   */
   request: CreditCardTransactionInputInfo;
+  /**
+   * The CreditCardTxnResultInfo associated with this object.
+   */
   response: CreditCardTransactionResultInfo;
 };
 
@@ -5755,6 +8363,9 @@ export type CreditCardTransactionInfo = {
  * DTO for credit card input details.
  */
 export type CreditCardTransactionInputInfo = {
+  /**
+   * The CreditCardNumber associated with this object.
+   */
   number: string;
   /**
    * The expirationMonth associated with this object.
@@ -5764,18 +8375,30 @@ export type CreditCardTransactionInputInfo = {
    * The expirationYear associated with this object.
    */
   expirationYear: number | null;
+  /**
+   * The NameOnCard associated with this object.
+   */
   name: string;
-  sddress?: string | null;
-  postalCode?: string | null;
+  /**
+   * The CreditCardAddress associated with this object.
+   */
+  sddress: string | null;
+  /**
+   * The CreditCardPostalCode associated with this object.
+   */
+  postalCode: string | null;
   /**
    * The commercialCardCode associated with this object.
    */
-  commercialCardCode?: string | null;
+  commercialCardCode: string | null;
   /**
    * The transactionMode associated with this object.
    */
-  transactionMode?: NullableTransactionMode | null;
-  transactionType?: NullableCreditCardTransactionType | null;
+  transactionMode: NullableTransactionMode | null;
+  /**
+   * The CreditCardTxnType associated with this object.
+   */
+  transactionType: NullableCreditCardTransactionType | null;
 };
 
 /**
@@ -5801,48 +8424,84 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The authorizationCode associated with this object.
    */
-  authorizationCode?: string | null;
+  authorizationCode: string | null;
   /**
    * The avsStreet associated with this object.
    */
-  avsStreet?: NullableAvsStreet | null;
+  avsStreet: NullableAvsStreet | null;
   /**
    * The avsZip associated with this object.
    */
-  avsZip?: NullableAvsZip | null;
+  avsZip: NullableAvsZip | null;
   /**
    * The cardSecurityCodeMatch associated with this object.
    */
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
+  cardSecurityCodeMatch: NullableCardSecurityCodeMatch | null;
   /**
    * The reconBatchID associated with this object.
    */
-  reconBatchID?: string | null;
+  reconBatchID: string | null;
   /**
    * The paymentGroupingCode associated with this object.
    */
-  paymentGroupingCode?: number | null;
+  paymentGroupingCode: number | null;
   /**
    * The paymentStatus associated with this object.
    */
   paymentStatus: PaymentStatus;
+  /**
+   * The TxnAuthorizationTime associated with this object.
+   */
   transactionAuthorizationTime: string | null;
-  transactionAuthorizationStamp?: number | null;
-  clientTransactionId?: string | null;
+  /**
+   * The TxnAuthorizationStamp associated with this object.
+   */
+  transactionAuthorizationStamp: number | null;
+  /**
+   * The ClientTransID associated with this object.
+   */
+  clientTransactionId: string | null;
 };
 
 /**
  * Request model for credit card transaction information.
  */
 export type CreditCardTxnInfoRequest = {
+  /**
+   * The CreditCardNumber associated with this object.
+   */
   creditCardNumber?: string | null;
+  /**
+   * The ExpirationMonth associated with this object.
+   */
   expirationMonth?: number | null;
+  /**
+   * The ExpirationYear associated with this object.
+   */
   expirationYear?: number | null;
+  /**
+   * The NameOnCard associated with this object.
+   */
   nameOnCard?: string | null;
+  /**
+   * The CreditCardAddress associated with this object.
+   */
   creditCardAddress?: string | null;
+  /**
+   * The CreditCardPostalCode associated with this object.
+   */
   creditCardPostalCode?: string | null;
+  /**
+   * The CommercialCardCode associated with this object.
+   */
   commercialCardCode?: string | null;
+  /**
+   * The TransactionMode associated with this object.
+   */
   transactionMode?: string | null;
+  /**
+   * The CVCNumber associated with this object.
+   */
   cvcNumber?: string | null;
 };
 
@@ -5850,61 +8509,242 @@ export type CreditCardTxnInfoRequest = {
  * Data Transfer Object for CreditMemoRet.
  */
 export type CreditMemo = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  receivablesAccount?: QbdRef | null;
-  template?: QbdRef | null;
-  billingAddress?: Address | null;
-  billingAddressBlock?: AddressBlock | null;
-  shippingAddress?: Address | null;
-  shippingAddressBlock?: AddressBlock | null;
-  isPending?: boolean | null;
-  poNumber?: string | null;
-  terms?: QbdRef | null;
-  dueDate?: string | null;
-  salesRepresentative?: QbdRef | null;
-  fob?: string | null;
-  shipDate?: string | null;
-  shipMethod?: QbdRef | null;
-  subtotal?: number | null;
-  itemSalesTax?: QbdRef | null;
-  salesTaxPercentage?: number | null;
-  salesTaxTotal?: number | null;
-  totalAmount?: number | null;
-  creditRemaining?: number | null;
-  creditRemainingInHomeCurrency?: number | null;
-  customerMsg?: QbdRef | null;
-  isToBePrinted?: boolean | null;
-  isToBeEmailed?: boolean | null;
-  isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef | null;
-  other?: string | null;
-  lines?: Array<CreditMemoLine> | null;
-  lineGroups?: Array<CreditMemoLineGroup> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer or customer-job associated with this credit memo.
+   */
+  customer: QbdRef | null;
+  /**
+   * The credit memo's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this credit memo's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The ARAccount associated with this object.
+   */
+  receivablesAccount: QbdRef | null;
+  /**
+   * The template associated with this object.
+   */
+  template: QbdRef | null;
+  /**
+   * The BillAddress associated with this object.
+   */
+  billingAddress: Address | null;
+  /**
+   * The BillAddressBlock associated with this object.
+   */
+  billingAddressBlock: AddressBlock | null;
+  /**
+   * The ShipAddress associated with this object.
+   */
+  shippingAddress: Address | null;
+  /**
+   * The ShipAddressBlock associated with this object.
+   */
+  shippingAddressBlock: AddressBlock | null;
+  /**
+   * Indicates whether this credit memo has not been completed.
+   */
+  isPending: boolean | null;
+  /**
+   * The PONumber associated with this object.
+   */
+  poNumber: string | null;
+  /**
+   * The credit memo's payment terms, defining when payment is due and any applicable discounts.
+   */
+  terms: QbdRef | null;
+  /**
+   * The date by which this credit memo must be paid, in ISO 8601 format (YYYY-MM-DD).
+   */
+  dueDate: string | null;
+  /**
+   * The SalesRep associated with this object.
+   */
+  salesRepresentative: QbdRef | null;
+  /**
+   * The FOB associated with this object.
+   */
+  fob: string | null;
+  /**
+   * (Optional) The date of shipment.
+   */
+  shipDate: string | null;
+  /**
+   * The shipMethod associated with this object.
+   */
+  shipMethod: QbdRef | null;
+  /**
+   * The subtotal of this credit memo, which is the sum of all credit memo lines before taxes and payments are applied, represented as a decimal string.
+   */
+  subtotal: number | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The sales tax percentage applied to this credit memo, represented as a decimal string.
+   */
+  salesTaxPercentage: number | null;
+  /**
+   * The total amount of sales tax charged for this credit memo, represented as a decimal string.
+   */
+  salesTaxTotal: number | null;
+  /**
+   * The total monetary amount of this credit memo, equivalent to the sum of the amounts in `lines` and `lineGroups`, represented as a decimal string.
+   */
+  totalAmount: number | null;
+  /**
+   * The remaining balance of this credit memo that has not yet been applied to other transactions or refunded to the customer. Represented as a decimal string.
+   */
+  creditRemaining: number | null;
+  creditRemainingInHomeCurrency: number | null;
+  /**
+   * The customerMsg associated with this object.
+   */
+  customerMsg: QbdRef | null;
+  /**
+   * (Optional) Indicates if the transaction is to be printed.
+   */
+  isToBePrinted: boolean | null;
+  /**
+   * (Optional) Indicates if the transaction is to be emailed.
+   */
+  isToBeEmailed: boolean | null;
+  /**
+   * (Optional) Indicates if tax is included in the amounts.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The customerSalesTaxCode associated with this object.
+   */
+  customerSalesTaxCode: QbdRef | null;
+  /**
+   * (Optional) Other custom field. (Max 29 characters)
+   */
+  other: string | null;
+  /**
+   * The CreditMemoLines associated with this object.
+   */
+  lines: Array<CreditMemoLine> | null;
+  /**
+   * The CreditMemoLineGroups associated with this object.
+   */
+  lineGroups: Array<CreditMemoLineGroup> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -5912,28 +8752,91 @@ export type CreditMemo = {
  * Based on CreditMemoLineAdd.
  */
 export type CreditMemoLine = {
-  objectType?: string;
+  objectType: string;
+  /**
+   * The TxnLineId associated with this object.
+   */
   id: string;
-  item?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  rate?: number | null;
-  ratePercent?: number | null;
-  class?: QbdRef | null;
-  amount?: number | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  expirationDate?: string | null;
-  serviceDate?: string | null;
-  salesTaxCode?: QbdRef | null;
-  otherCustomField1?: string | null;
-  otherCustomField2?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The item associated with this object.
+   */
+  item: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * (Optional) Quantity of the item.
+   */
+  quantity: number | null;
+  /**
+   * (Optional) Unit of measure.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * (Optional) Rate or price per unit.
+   */
+  rate: number | null;
+  /**
+   * (Optional) Rate expressed as a percentage.
+   */
+  ratePercent: number | null;
+  /**
+   * The class associated with this object.
+   */
+  class: QbdRef | null;
+  /**
+   * (Optional) Total amount for the line.
+   */
+  amount: number | null;
+  /**
+   * The inventorySite associated with this object.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The inventorySiteLocation associated with this object.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * (Optional) Serial number for the item.
+   */
+  serialNumber: string | null;
+  /**
+   * (Optional) Lot number for the item.
+   */
+  lotNumber: string | null;
+  /**
+   * The ExpirationDateForSerialLotNumber associated with this object.
+   */
+  expirationDate: string | null;
+  /**
+   * (Optional) Service date for the item.
+   */
+  serviceDate: string | null;
+  /**
+   * The salesTaxCode associated with this object.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The CreditCardTxnInfo associated with this object.
+   */
+  creditCardTransaction: CreditCardTransactionInfo | null;
+  /**
+   * The DataExtRet associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -5941,17 +8844,47 @@ export type CreditMemoLine = {
  * Based on CreditMemoLineGroupAdd.
  */
 export type CreditMemoLineGroup = {
+  /**
+   * The TxnLineId associated with this object.
+   */
   id: string;
-  objectType?: string;
-  itemGroup?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  shouldPrintItemsInGroup?: boolean | null;
-  totalAmount?: number | null;
-  lines?: Array<CreditMemoLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  objectType: string;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * (Optional) Quantity of the item.
+   */
+  quantity: number | null;
+  /**
+   * (Optional) Unit of measure.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The IsPrintItemsInGroup associated with this object.
+   */
+  shouldPrintItemsInGroup: boolean | null;
+  /**
+   * The TotalAmount associated with this object.
+   */
+  totalAmount: number | null;
+  /**
+   * The CreditMemoLines associated with this object.
+   */
+  lines: Array<CreditMemoLine> | null;
+  /**
+   * The DataExtRet associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -5959,35 +8892,79 @@ export type CreditMemoLineGroup = {
  * Used for multi-currency support in QuickBooks.
  */
 export type Currency = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  currencyCode?: string | null;
-  currencyFormat?: CurrencyFormat | null;
-  isUserDefinedCurrency?: boolean | null;
-  exchangeRate?: number | null;
-  asOfDate?: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  currencyCode: string | null;
+  currencyFormat: CurrencyFormat | null;
+  isUserDefinedCurrency: boolean | null;
+  exchangeRate: number | null;
+  asOfDate: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents the formatting rules for a currency.
  */
 export type CurrencyFormat = {
-  thousandSeparator?: string | null;
-  thousandSeparatorGrouping?: string | null;
-  decimalPlaces?: string | null;
-  decimalSeparator?: string | null;
+  /**
+   * Controls the thousands separator when displaying currency values (for example, "1,000,000"). Defaults to comma.
+   */
+  thousandSeparator: string | null;
+  /**
+   * Controls how digits are grouped for thousands when displaying currency values (for example, "10,000,000").
+   */
+  thousandSeparatorGrouping: string | null;
+  /**
+   * Controls the number of decimal places displayed for currency values. Use `0` to hide decimals or `2` to display cents.
+   */
+  decimalPlaces: string | null;
+  /**
+   * Controls the decimal separator when displaying currency values (for example, "1.00" vs "1,00"). Defaults to period.
+   */
+  decimalSeparator: string | null;
 };
 
 /**
@@ -6022,7 +8999,13 @@ export type CurrencyFormatRequest = {
  * Maps to AdditionalContactRef in QbXML.
  */
 export type CustomContactField = {
+  /**
+   * The contact's full name.
+   */
   name: string;
+  /**
+   * The Value associated with this object.
+   */
   value: string;
 };
 
@@ -6030,76 +9013,254 @@ export type CustomContactField = {
  * Represents a Customer or Job record retrieved from QuickBooks Desktop.
  */
 export type Customer = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  fullname?: string | null;
-  sublevel?: number | null;
-  companyName?: string | null;
-  salutation?: string | null;
-  firstName?: string | null;
-  middleName?: string | null;
-  lastName?: string | null;
-  jobTitle?: string | null;
-  billingAddress?: Address | null;
-  shippingAddress?: Address | null;
-  alternateShippingAddresses?: Array<ShipToAddress> | null;
-  phone?: string | null;
-  alternatePhone?: string | null;
-  fax?: string | null;
-  email?: string | null;
-  ccEmail?: string | null;
-  contact?: string | null;
-  alternateContact?: string | null;
   /**
-   * Custom contact fields (name/value pairs) for the customer.
-   * Maps to AdditionalContactRef in QbXML (0-8 allowed at customer level).
+   * The fully-qualified unique name for this object, formed by combining the names of its parent objects with its own `name`, separated by colons. Not case-sensitive.
+   *
+   * For example, if a customer is under "ABC Corporation" and has the name "Website Redesign Project", its FullName would be "ABC Corporation:Website Redesign Project".
    */
-  customContactFields?: Array<CustomContactField> | null;
+  fullname: string | null;
   /**
-   * Additional contacts for the customer (full contact objects).
-   * Maps to Contacts in QbXML.
+   * The nesting depth level of this customer in the hierarchy.
+   *
+   * A top-level customer has a sublevel of 0; each subsequent sublevel increases this number by 1. When sublevel is greater than 0, this object is typically a job (i.e., a sub-customer).
    */
-  additionalContacts?: Array<Contact> | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  customerType?: QbdRef | null;
-  terms?: QbdRef | null;
-  salesRep?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  itemSalesTax?: QbdRef | null;
-  preferredPaymentMethod?: QbdRef | null;
-  jobType?: QbdRef | null;
-  priceLevel?: QbdRef | null;
-  currency?: QbdRef | null;
-  balance?: number | null;
-  totalBalance?: number | null;
-  salesTaxCountry?: string | null;
-  resaleNumber?: string | null;
-  accountNumber?: string | null;
-  creditLimit?: number | null;
-  creditCard?: CreditCardInfo | null;
-  jobStatus?: string | null;
-  jobStartDate?: string | null;
-  jobProjectedEndDate?: string | null;
-  jobEndDate?: string | null;
-  jobDescription?: string | null;
-  notes?: string | null;
-  additionalNotes?: Array<AdditionalNote> | null;
-  preferredDeliveryMethod?: string | null;
-  taxRegistrationNumber?: string | null;
-  externalId?: string | null;
+  sublevel: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The name of the company associated with this customer. This name is used on invoices, checks, and other forms.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  companyName: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this customer, such as "Mr.", "Ms.", or "Dr.".
+   */
+  salutation: string | null;
+  /**
+   * The first name of the contact person for this customer.
+   */
+  firstName: string | null;
+  /**
+   * The middle name of the contact person for this customer.
+   */
+  middleName: string | null;
+  /**
+   * The last name of the contact person for this customer.
+   */
+  lastName: string | null;
+  /**
+   * The job title of the contact person for this customer.
+   */
+  jobTitle: string | null;
+  /**
+   * The customer's billing address.
+   */
+  billingAddress: Address | null;
+  /**
+   * The customer's default shipping address.
+   */
+  shippingAddress: Address | null;
+  /**
+   * A list of additional shipping addresses for this customer.
+   *
+   * Useful when the customer has multiple shipping locations. If `excludeAlternateShippingAddresses=true` is set on a customer list request, this field is `null` because the addresses were not fetched.
+   */
+  alternateShippingAddresses: Array<ShipToAddress> | null;
+  /**
+   * The customer's primary telephone number.
+   */
+  phone: string | null;
+  /**
+   * The customer's alternate telephone number.
+   */
+  alternatePhone: string | null;
+  /**
+   * The customer's fax number.
+   */
+  fax: string | null;
+  /**
+   * The customer's email address.
+   */
+  email: string | null;
+  /**
+   * An email address to carbon copy (CC) on communications with this customer.
+   */
+  ccEmail: string | null;
+  /**
+   * The name of the primary contact person for this customer.
+   */
+  contact: string | null;
+  /**
+   * The name of an alternate contact person for this customer.
+   */
+  alternateContact: string | null;
+  /**
+   * Additional custom contact fields for this customer, such as phone numbers or email addresses.
+   */
+  customContactFields: Array<CustomContactField> | null;
+  /**
+   * Additional alternate contacts for this customer.
+   */
+  additionalContacts: Array<Contact> | null;
+  /**
+   * The customer's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent customer one level above this one in the hierarchy.
+   *
+   * For example, if this customer has a FullName of "ABC Corporation:Website Redesign Project", its parent has a FullName of "ABC Corporation". If this customer is at the top level, this field will be null.
+   */
+  parent: QbdRef | null;
+  /**
+   * The customer's type, used for categorizing customers into meaningful segments, such as industry or region.
+   */
+  customerType: QbdRef | null;
+  /**
+   * The customer's payment terms, defining when payment is due and any applicable discounts.
+   */
+  terms: QbdRef | null;
+  /**
+   * The customer's sales representative.
+   */
+  salesRep: QbdRef | null;
+  /**
+   * The default sales-tax code for transactions with this customer, determining whether the transactions are taxable or non-taxable.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The sales-tax item used to calculate the actual tax amount for this customer's transactions by applying a specific tax rate collected for a single tax agency.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The customer's preferred payment method (e.g., cash, check, credit card).
+   */
+  preferredPaymentMethod: QbdRef | null;
+  /**
+   * The type or category of this customer's job, if this object is a job (i.e., sub-customer).
+   */
+  jobType: QbdRef | null;
+  /**
+   * The customer's custom price level that QuickBooks automatically applies to calculate item rates in new transactions for this customer.
+   */
+  priceLevel: QbdRef | null;
+  /**
+   * The customer's currency.
+   */
+  currency: QbdRef | null;
+  /**
+   * The current balance owed by this customer, excluding balances from any jobs (i.e., sub-customers).
+   */
+  balance: number | null;
+  /**
+   * The combined balance of this customer and all of this customer's jobs (i.e., sub-customers).
+   *
+   * If there are no sub-customers, TotalBalance and Balance are equal.
+   */
+  totalBalance: number | null;
+  /**
+   * The country for which sales tax is collected for this customer.
+   */
+  salesTaxCountry: string | null;
+  /**
+   * The customer's resale number, used if the customer is purchasing items for resale.
+   */
+  resaleNumber: string | null;
+  /**
+   * The customer's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   */
+  accountNumber: string | null;
+  /**
+   * The customer's credit limit. This is the maximum amount of money this customer can spend before being billed.
+   */
+  creditLimit: number | null;
+  /**
+   * The customer's credit card information, including card type, number, and expiration date.
+   */
+  creditCard: CreditCardInfo | null;
+  /**
+   * The status of this customer's job, if this object is a job (i.e., sub-customer).
+   */
+  jobStatus: string | null;
+  /**
+   * The date when work on this customer's job began, if applicable.
+   */
+  jobStartDate: string | null;
+  /**
+   * The projected completion date for this customer's job, if applicable.
+   */
+  jobProjectedEndDate: string | null;
+  /**
+   * The actual completion date of this customer's job, if applicable.
+   */
+  jobEndDate: string | null;
+  /**
+   * A brief description of this customer's job, if this object is a job (i.e., sub-customer).
+   */
+  jobDescription: string | null;
+  /**
+   * A note or comment about this customer.
+   */
+  notes: string | null;
+  /**
+   * Additional notes about this customer.
+   */
+  additionalNotes: Array<AdditionalNote> | null;
+  /**
+   * The preferred method for delivering invoices and other documents to this customer.
+   */
+  preferredDeliveryMethod: string | null;
+  /**
+   * The customer's tax registration number, for use in Canada or the UK.
+   */
+  taxRegistrationNumber: string | null;
+  /**
+   * A globally unique identifier (GUID) provided for tracking this object in your external system.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6107,23 +9268,66 @@ export type Customer = {
  * Used to classify vendors (e.g., "Materials", "Subcontractor").
  */
 export type CustomerType = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  fullname?: string | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The case-insensitive fully-qualified unique name of this customer type, formed by combining the names of its hierarchical parent objects with its own `name`, separated by colons. For example, if a customer type is under "Industry" and has the `name` "Healthcare", its `fullName` would be "Industry:Healthcare".
+   *
+   * **NOTE**: Unlike `name`, `fullName` is guaranteed to be unique across all customer type objects. However, `fullName` can still be arbitrarily changed by the QuickBooks user when they modify the underlying `name` field.
+   */
+  fullname: string | null;
+  /**
+   * The parent customer type one level above this one in the hierarchy. For example, if this customer type has a `fullName` of "Industry:Healthcare", its parent has a `fullName` of "Industry". If this customer type is at the top level, this field will be `null`.
+   */
+  parent: QbdRef | null;
+  /**
+   * The depth level of this customer type in the hierarchy. A top-level customer type has a `sublevel` of 0; each subsequent sublevel increases this number by 1. For example, a customer type with a `fullName` of "Industry:Healthcare" would have a `sublevel` of 1.
+   */
+  sublevel: number | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6135,7 +9339,13 @@ export type DataExtRequest = {
    * Use "0" for Custom Fields (user-defined). Use specific GUID for Private Data.
    */
   ownerId?: string;
+  /**
+   * Gets or inits the name of the data extension.
+   */
   name: string;
+  /**
+   * Gets or inits the value of the data extension.
+   */
   value: string;
 };
 
@@ -6146,24 +9356,68 @@ export type DataExtRequest = {
  * Note: Terms is a READ-ONLY resource in QuickBooks (query only).
  */
 export type DateDrivenTerm = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  dueDayOfMonth?: number | null;
-  gracePeriod?: number | null;
-  discountDayOfMonth?: number | null;
-  discountPercntage?: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The day of the month when full payment is due without discount.
+   */
+  dueDayOfMonth: number | null;
+  /**
+   * Number of days into next month before due date applies (Date Driven Terms).
+   */
+  gracePeriod: number | null;
+  /**
+   * The day of the month within which payment must be received to qualify for the discount specified by `discountPercentage`.
+   */
+  discountDayOfMonth: number | null;
+  /**
+   * Discount percentage (applies to both Standard and Date Driven Terms).
+   */
+  discountPercntage: number | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6171,9 +9425,12 @@ export type DateDrivenTerm = {
  */
 export type DefaultUnit = {
   /**
-   * Context for the default unit (Purchase, Sales, Shipping).
+   * Where this default unit is used as the default: purchase line items, sales line items, or shipping lines.
    */
   unitUsedFor: string;
+  /**
+   * The unit name for this default unit, as displayed in the U/M field. If the company file is enabled for multiple units per item, this appears as an available unit for the item. Must correspond to the base unit or a related unit defined in this set. Maximum length: 31 characters.
+   */
   unit: string;
 };
 
@@ -6202,20 +9459,20 @@ export type DefaultUnitRequest = {
  * Specialized response for Delete operations.
  */
 export type DeleteResponse = {
-  deleted?: boolean;
+  deleted: boolean;
   id: string;
   objectType: string;
-  refNumber?: string | null;
+  refNumber: string | null;
   status: string;
   /**
    * The unique identifier for this request. Include this ID when contacting
    * support so the request can be located in server-side logs.
    */
-  requestId?: string | null;
-  errorMessage?: string | null;
-  errorCode?: string | null;
-  suggestedAction?: string | null;
-  timestamp?: string;
+  requestId: string | null;
+  errorMessage: string | null;
+  errorCode: string | null;
+  suggestedAction: string | null;
+  timestamp: string;
 };
 
 /**
@@ -6223,53 +9480,195 @@ export type DeleteResponse = {
  * Used to record funds deposited into a bank account.
  */
 export type Deposit = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  depositToAccount?: QbdRef | null;
-  depositTotal?: number | null;
-  depositTotalInHomeCurrency?: number | null;
-  cashBackInfo?: CashBackInfo | null;
-  depositLines?: Array<DepositLine> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The account where the funds for this deposit have been deposited.
+   */
+  depositToAccount: QbdRef | null;
+  /**
+   * The depositTotal associated with this object.
+   */
+  depositTotal: number | null;
+  /**
+   * The depositTotalInHomeCurrency associated with this object.
+   */
+  depositTotalInHomeCurrency: number | null;
+  /**
+   * (Optional) Information about cash back requested from the deposit total.
+   */
+  cashBackInfo: CashBackInfo | null;
+  /**
+   * (Optional) A list of payment and manual lines making up the total deposit amount.
+   */
+  depositLines: Array<DepositLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Defines a single Deposit Line item to be added to the Deposit (uses discriminator pattern).
  */
 export type DepositLine = {
-  transactionType?: string | null;
-  transactionId?: string | null;
-  transactionLineId?: string | null;
-  paymentTransactionLineId?: string | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  memo?: string | null;
-  checkNumber?: string | null;
-  paymentMethod?: QbdRef | null;
-  class?: QbdRef | null;
-  amount?: number | null;
+  /**
+   * The TxnType associated with this object.
+   */
+  transactionType: string | null;
+  /**
+   * The TxnID associated with this object.
+   */
+  transactionId: string | null;
+  /**
+   * The TxnLineID associated with this object.
+   */
+  transactionLineId: string | null;
+  /**
+   * The PaymentTxnLineID associated with this object.
+   */
+  paymentTransactionLineId: string | null;
+  /**
+   * The entity associated with this object.
+   */
+  entity: QbdRef | null;
+  /**
+   * The account associated with this object.
+   */
+  account: QbdRef | null;
+  /**
+   * A memo or note for this deposit.
+   */
+  memo: string | null;
+  /**
+   * The CheckNumber associated with this object.
+   */
+  checkNumber: string | null;
+  /**
+   * The PaymentMethod associated with this object.
+   */
+  paymentMethod: QbdRef | null;
+  /**
+   * The Class associated with this object.
+   */
+  class: QbdRef | null;
+  /**
+   * The amount associated with this object.
+   */
+  amount: number | null;
 };
 
 /**
@@ -6316,6 +9715,9 @@ export type DepositManualLineRequest = {
  * Corresponds to the first OR block in DepositLineAdd/Mod.
  */
 export type DepositPaymentLineRequest = {
+  /**
+   * (Required) The TxnID of the payment transaction (e.g., ReceivePayment or SalesReceipt).
+   */
   id: string;
   /**
    * (Optional) The TxnLineID of the specific line within the payment transaction (if applicable, typically for Undeposited Funds line).
@@ -6339,9 +9741,32 @@ export type DictionaryStringString = {
   [key: string]: string;
 };
 
+/**
+ * Emergency contacts for an employee request.
+ */
 export type EmergencyContact = {
-  primaryContact?: AdditionalContact | null;
-  secondaryContact?: AdditionalContact | null;
+  /**
+   * The employee's primary emergency contact.
+   */
+  primaryContact: AdditionalContact | null;
+  /**
+   * The employee's secondary emergency contact.
+   */
+  secondaryContact: AdditionalContact | null;
+};
+
+/**
+ * Emergency contacts for an employee request.
+ */
+export type EmergencyContactRequest = {
+  /**
+   * The employee's primary emergency contact.
+   */
+  primaryContact?: AdditionalContactRequest | null;
+  /**
+   * The employee's secondary emergency contact.
+   */
+  secondaryContact?: AdditionalContactRequest | null;
 };
 
 /**
@@ -6349,98 +9774,332 @@ export type EmergencyContact = {
  * An employee represents a person employed by the company in QuickBooks.
  */
 export type Employee = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  salutation?: string | null;
-  firstName?: string | null;
-  middleName?: string | null;
-  lastName?: string | null;
-  jobTitle?: string | null;
-  supervisor?: QbdRef | null;
-  department?: string | null;
-  description?: string | null;
-  targetBonus?: number | null;
-  employeeAddress?: EmployeeAddress | null;
-  printAs?: string | null;
-  phone?: string | null;
-  mobile?: string | null;
-  pager?: string | null;
-  pagerPin?: string | null;
-  alternatePhone?: string | null;
-  fax?: string | null;
-  ssn?: string | null;
-  email?: string | null;
-  emergencyContacts?: EmergencyContact | null;
-  additionalContacts?: Array<CustomContactField> | null;
-  additionalNotes?: Array<AdditionalNote> | null;
-  employeeType?: string | null;
-  partOrFullTime?: string | null;
-  exempt?: string | null;
-  keyEmployee?: string | null;
-  gender?: string | null;
-  hiredDate?: string | null;
-  originalHireDate?: string | null;
-  adjustedServiceDate?: string | null;
-  releasedDate?: string | null;
-  birthDate?: string | null;
-  usCitizen?: string | null;
-  ethnicity?: string | null;
-  disabled?: string | null;
-  disabilityDesc?: string | null;
-  onFile?: string | null;
-  workAuthExpireDate?: string | null;
-  usVeteran?: string | null;
-  militaryStatus?: string | null;
-  accountNumber?: string | null;
-  notes?: string | null;
-  billingRate?: QbdRef | null;
-  employeePayrollInfo?: EmployeePayrollInfo | null;
-  externalId?: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The employee's formal salutation title that precedes their name, such as "Mr.", "Ms.", or "Dr.".
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
-};
-
-/**
- * Employee address information.
- */
-export type EmployeeAddress = {
-  line1?: string | null;
-  line2?: string | null;
-  line3?: string | null;
-  line4?: string | null;
-  line5?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
-  country?: string | null;
+  salutation: string | null;
   /**
-   * A note or comment about this employee.
+   * The employee's first name.
    */
-  note?: string | null;
+  firstName: string | null;
+  /**
+   * The employee's middle name.
+   */
+  middleName: string | null;
+  /**
+   * The employee's last name.
+   */
+  lastName: string | null;
+  /**
+   * The employee's job title.
+   */
+  jobTitle: string | null;
+  /**
+   * The employee's supervisor. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
+  supervisor: QbdRef | null;
+  /**
+   * The employee's department. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
+  department: string | null;
+  /**
+   * A description of this employee. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
+  description: string | null;
+  /**
+   * The target bonus for this employee, represented as a decimal string. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
+  targetBonus: number | null;
+  /**
+   * The employee's address. Found in the "employment job details" section of the employee's record in QuickBooks.
+   */
+  employeeAddress: Address | null;
+  /**
+   * The name to use when printing this employee from QuickBooks. By default, this is the same as the `name` field.
+   */
+  printAs: string | null;
+  /**
+   * The employee's primary telephone number.
+   */
+  phone: string | null;
+  /**
+   * The employee's mobile phone number.
+   */
+  mobile: string | null;
+  /**
+   * The employee's pager number.
+   */
+  pager: string | null;
+  /**
+   * The employee's pager PIN.
+   */
+  pagerPin: string | null;
+  /**
+   * The employee's alternate phone number.
+   */
+  alternatePhone: string | null;
+  /**
+   * The employee's fax number.
+   */
+  fax: string | null;
+  /**
+   * The employee's Social Security Number. The value can be with or without dashes.
+   *
+   * **NOTE**: This field cannot be changed after the employee is created.
+   */
+  ssn: string | null;
+  /**
+   * The employee's email address.
+   */
+  email: string | null;
+  /**
+   * Emergency contacts for the employee (QBD only, v13.0+).
+   */
+  emergencyContacts: EmergencyContact | null;
+  /**
+   * Additional contact references (may repeat, v12.0+).
+   */
+  additionalContacts: Array<CustomContactField> | null;
+  /**
+   * Additional notes about this employee.
+   */
+  additionalNotes: Array<AdditionalNote> | null;
+  /**
+   * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
+   *
+   * Officer, Owner, Regular [DEFAULT], Statutory
+   */
+  employeeType: NullableEmployeeType | null;
+  /**
+   * The employee's employment status.
+   *
+   * part_time or full_time
+   */
+  employmentStatus: NullableEmploymentStatus | null;
+  /**
+   * Whether this employee is exempt from overtime pay.
+   *
+   * exempt, non_exempt
+   */
+  overtimeExemptStatus: NullableOvertimeExemptStatus | null;
+  /**
+   * Whether this employee is a key employee.
+   *
+   * none, key_employee, not_key_employee
+   */
+  keyEmployeeStatus: NullableKeyEmployeeStatus | null;
+  /**
+   * This employee's gender.
+   */
+  gender: NullableGender | null;
+  /**
+   * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
+   */
+  hiredDate: string | null;
+  /**
+   * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
+   */
+  originalHireDate: string | null;
+  /**
+   * The adjusted service date for this employee, in ISO 8601 format (YYYY-MM-DD).
+   *
+   * This date accounts for previous employment periods or leaves that affect seniority.
+   */
+  adjustedServiceDate: string | null;
+  /**
+   * The date this employee was released, in ISO 8601 format (YYYY-MM-DD).
+   */
+  releasedDate: string | null;
+  /**
+   * This employee's date of birth, in ISO 8601 format (YYYY-MM-DD).
+   */
+  birthDate: string | null;
+  /**
+   * This employee's citizenship status.
+   *
+   * citizen, non_citizen
+   */
+  usCitizenshipStatus: NullableCitizenshipStatus | null;
+  /**
+   * This employee's ethnicity.
+   */
+  ethnicity: NullableEthnicity | null;
+  /**
+   * This employee's disability status.
+   *
+   * none, disabled, not_disabled
+   */
+  disabilityStatus: NullableDisabilityStatus | null;
+  /**
+   * This employee's disability description.
+   */
+  disabilityDescription: string | null;
+  /**
+   * Whether this employee's I-9 form is on file.
+   *
+   * on_file, not_on_file
+   */
+  i9OnFileStatus: NullableI9FileStatus | null;
+  /**
+   * This employee's work authorization expiration date.
+   */
+  workAuthorizationExpirationDate: string | null;
+  /**
+   * Whether this employee is a U.S. veteran.
+   *
+   * veteran, non_veteran
+   */
+  usVeteranStatus: NullableUsVeteranStatus | null;
+  /**
+   * This employee's military status if they are a U.S. veteran.
+   */
+  militaryStatus: NullableMilitaryStatus | null;
+  /**
+   * The employee's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
+  accountNumber: string | null;
+  /**
+   * The employee's notes.
+   */
+  notes: string | null;
+  /**
+   * The employee's billing rate, used to override service item rates in time tracking activities.
+   */
+  billingRate: QbdRef | null;
+  /**
+   * The employee's payroll information.
+   */
+  employeePayrollInfo: EmployeePayrollInfo | null;
+  /**
+   * This is the external id of the employee, used to identify the employee in external systems.
+   *
+   * GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Payroll information for an employee.
  */
 export type EmployeePayrollInfo = {
-  payPeriod?: string | null;
-  paySchedule?: QbdRef | null;
-  class?: QbdRef | null;
+  /**
+   * The employee's pay period.
+   */
+  payPeriod: NullablePayPeriod | null;
+  /**
+   * The employee's pay schedule.
+   */
+  paySchedule: QbdRef | null;
+  /**
+   * The employee's class.
+   */
+  class: QbdRef | null;
+  /**
+   * Whether to clear earnings.
+   */
+  clearEarnings: boolean | null;
+  /**
+   * Whether to clear non-earnings.
+   */
+  clearNonEarnings: boolean | null;
+  /**
+   * Whether to use time data to create paychecks.
+   */
+  useTimeDataToCreatePaychecks: NullableUseTimedataToCreatePaychecks | null;
+  /**
+   * The employee's sick hours.
+   */
+  sickHours: SickHours | null;
+  /**
+   * The employee's vacation hours.
+   */
+  vacationHours: VacationHours | null;
+};
+
+/**
+ * Payroll information for an employee request.
+ */
+export type EmployeePayrollInfoRequest = {
+  /**
+   * The pay period for this employee. Values: Daily, Weekly, Biweekly, Semimonthly, Monthly, Quarterly, Yearly.
+   */
+  payPeriod?: NullablePayPeriod | null;
+  /**
+   * ListID of the pay schedule for this employee.
+   */
+  payScheduleId?: string | null;
+  /**
+   * ListID of the class used to classify this employee's payroll transactions.
+   */
+  classId?: string | null;
+  /**
+   * Whether to clear earnings transactions for this employee.
+   */
   clearEarnings?: boolean | null;
+  /**
+   * Whether to clear non-earnings transactions for this employee.
+   */
   clearNonEarnings?: boolean | null;
-  useTimeDataToCreatePaychecks?: string | null;
-  sickHours?: SickHours | null;
-  vacationHours?: VacationHours | null;
+  /**
+   * Whether to use time data to create paychecks. Values: not_set, uses_time_data, does_not_use_time_date.
+   */
+  useTimeDataToCreatePaychecks?: NullableUseTimedataToCreatePaychecks | null;
+  /**
+   * Sick-hours accrual configuration for this employee.
+   */
+  sickHours?: SickHoursRequest | null;
+  /**
+   * Vacation-hours accrual configuration for this employee.
+   */
+  vacationHours?: VacationHoursRequest | null;
 };
 
 /**
@@ -6513,7 +10172,7 @@ export type ErrorDetail = {
   /**
    * QuickBooks Desktop integration-specific error code. Can be a COM HRESULT (e.g. "0x80040420") or QB XML status code (e.g. "3120"). Null for non-QBD errors.
    */
-  integrationCode?: string | null;
+  integrationCode: string | null;
   /**
    * Request ID for tracking and diagnostics (e.g. "req_abc123").
    */
@@ -6525,135 +10184,423 @@ export type ErrorDetail = {
  * Based on the EstimateAdd QBXML type.
  */
 export type Estimate = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  template?: QbdRef | null;
-  billingAddress?: Address | null;
-  shippingAddress?: Address | null;
-  isActive?: boolean | null;
-  poNumber?: string | null;
-  terms?: QbdRef | null;
-  dueDate?: string | null;
-  salesRepresentative?: QbdRef | null;
-  fob?: string | null;
-  subtotal?: number | null;
-  itemSalesTax?: QbdRef | null;
-  salesTaxPercentage?: number | null;
-  salesTaxTotal?: number | null;
-  totalAmountInHomeCurrency?: number | null;
-  customerMsg?: QbdRef | null;
-  isToBeEmailed?: boolean | null;
-  isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef | null;
-  linkedTransactions?: Array<LinkedTransaction> | null;
-  itemLines?: Array<EstimateItemLine> | null;
-  itemGroupLines?: Array<EstimateItemGroupLine> | null;
-  other?: string | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  expenseLines?: Array<ExpenseLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer or customer-job associated with this estimate.
+   */
+  customer: QbdRef | null;
+  /**
+   * The estimate's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this estimate's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The template associated with this object.
+   */
+  template: QbdRef | null;
+  /**
+   * The BillAddress associated with this object.
+   */
+  billingAddress: Address | null;
+  /**
+   * The ShipAddress associated with this object.
+   */
+  shippingAddress: Address | null;
+  /**
+   * Indicates whether this estimate is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   */
+  isActive: boolean | null;
+  /**
+   * The PONumber associated with this object.
+   */
+  poNumber: string | null;
+  /**
+   * The estimate's payment terms, defining when payment is due and any applicable discounts.
+   */
+  terms: QbdRef | null;
+  /**
+   * The date by which this estimate must be paid, in ISO 8601 format (YYYY-MM-DD).
+   */
+  dueDate: string | null;
+  /**
+   * The SalesRep associated with this object.
+   */
+  salesRepresentative: QbdRef | null;
+  /**
+   * The FOB associated with this object.
+   */
+  fob: string | null;
+  /**
+   * The subtotal of this estimate, which is the sum of all estimate lines before taxes and payments are applied, represented as a decimal string.
+   */
+  subtotal: number | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The sales tax percentage applied to this estimate, represented as a decimal string.
+   */
+  salesTaxPercentage: number | null;
+  /**
+   * The total amount of sales tax charged for this estimate, represented as a decimal string.
+   */
+  salesTaxTotal: number | null;
+  totalAmountInHomeCurrency: number | null;
+  /**
+   * The customerMsg associated with this object.
+   */
+  customerMsg: QbdRef | null;
+  /**
+   * (Optional) Whether the Estimate should be flagged to be emailed. (BOOLTYPE)
+   */
+  isToBeEmailed: boolean | null;
+  /**
+   * (Optional) Whether tax is included in the line item amounts. (BOOLTYPE)
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The customerSalesTaxCode associated with this object.
+   */
+  customerSalesTaxCode: QbdRef | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction> | null;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<EstimateItemLine> | null;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<EstimateItemGroupLine> | null;
+  /**
+   * (Optional) The Other field for the transaction. (STRTYPE)
+   */
+  other: string | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Maps to EstimateLineGroupRet
  */
 export type EstimateItemGroupLine = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  objectType?: string;
-  itemGroup?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  isPrintItemsInGroup?: boolean | null;
-  totalAmount?: number | null;
-  itemLines?: Array<EstimateItemLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The type of object. This value is always `"qbd_estimate"`.
+   */
+  objectType: string;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The IsPrintItemsInGroup associated with this object.
+   */
+  isPrintItemsInGroup: boolean | null;
+  /**
+   * The total monetary amount of this estimate, equivalent to the sum of the amounts in `lines` and `lineGroups`, represented as a decimal string.
+   */
+  totalAmount: number | null;
+  /**
+   * The itemLines associated with this object.
+   */
+  itemLines: Array<EstimateItemLine> | null;
+  /**
+   * The custom fields for the estimate object, added as user-defined data extensions, not included in the standard QuickBooks object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * Maps to EstimateLineRet
  */
 export type EstimateItemLine = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  objectType?: string;
-  item?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  rate?: number | null;
-  ratePercent?: number | null;
-  class?: QbdRef | null;
-  amount?: number | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  markupRate?: number | null;
-  markupRatePercent?: number | null;
-  other?: string | null;
-  other2?: string | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The type of object. This value is always `"qbd_estimate"`.
+   */
+  objectType: string;
+  /**
+   * The Item associated with this object.
+   */
+  item: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The Rate associated with this object.
+   */
+  rate: number | null;
+  /**
+   * The RatePercent associated with this object.
+   */
+  ratePercent: number | null;
+  /**
+   * The estimate's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this estimate's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The amount associated with this object.
+   */
+  amount: number | null;
+  /**
+   * The InventorySite associated with this object.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The InventorySiteLocation associated with this object.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The sales-tax code for this estimate, determining whether it is taxable or non-taxable. This can be overridden at the transaction-line level.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The MarkupRate associated with this object.
+   */
+  markupRate: number | null;
+  /**
+   * The MarkupRatePercent associated with this object.
+   */
+  markupRatePercent: number | null;
+  /**
+   * The Other1 associated with this object.
+   */
+  other: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  other2: string | null;
+  /**
+   * The custom fields for the estimate object, added as user-defined data extensions, not included in the standard QuickBooks object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * Expense line for general expenses like office supplies, utilities, etc.
  */
 export type ExpenseLine = {
+  /**
+   * The TxnLineId associated with this object.
+   */
   id: string;
-  objectType?: string;
-  account?: QbdRef | null;
-  amount?: number | null;
-  memo?: string | null;
-  class?: QbdRef | null;
-  customer?: QbdRef | null;
-  salesRepresentative?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  taxAmount?: number | null;
-  vendor?: QbdRef | null;
-  billableStatus?: NullableBillableStatus | null;
-  customFields?: Array<QbdDataExt> | null;
+  objectType: string;
+  /**
+   * Expense account (e.g., "Office Supplies")
+   */
+  account: QbdRef | null;
+  /**
+   * The monetary amount of this expense line, represented as a decimal string.
+   */
+  amount: number | null;
+  /**
+   * A memo or note for this expense line.
+   */
+  memo: string | null;
+  /**
+   * The expense line's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. If a class is specified for the entire parent transaction, it is automatically applied to all expense lines unless overridden here, at the transaction line level.
+   */
+  class: QbdRef | null;
+  /**
+   * The Customer associated with this object.
+   */
+  customer: QbdRef | null;
+  /**
+   * The SalesRep associated with this object.
+   */
+  salesRepresentative: QbdRef | null;
+  /**
+   * The sales-tax code for this expense line, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the parent transaction or the associated item.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The TaxAmount associated with this object.
+   */
+  taxAmount: number | null;
+  /**
+   * The Vendor associated with this object.
+   */
+  vendor: QbdRef | null;
+  /**
+   * The BillableStatus associated with this object.
+   */
+  billableStatus: NullableBillableStatus | null;
+  /**
+   * The DataExts associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
- * Represents the FixedAssetSalesInfo aggregate from QuickBooks XML.
- * Contains information about the sale of a fixed asset.
+ * Detailed sales or disposal parameters for a QuickBooks Fixed Asset Item.
  */
 export type FixedAssetSalesInfo = {
   /**
-   * Description of the sale.
+   * A description of the sales transaction or the reason for the asset's disposal.
+   *
+   * Documenting the reason or parameters of the disposal.
    */
-  salesDesc?: string | null;
+  salesDesc: string | null;
   /**
-   * Date the fixed asset was sold.
+   * The date on which the asset was sold or disposed of.
+   *
+   * Disposal transaction date.
    */
-  salesDate?: string | null;
+  salesDate: string | null;
   /**
-   * Sale price of the fixed asset.
+   * The final price for which the asset was sold.
+   *
+   * The gross sale amount realized.
    */
-  salesPrice?: number | null;
+  salesPrice: number | null;
   /**
-   * Expenses associated with the sale.
+   * Any expenses directly incurred in order to sell the asset (e.g., broker fees, delivery costs).
+   *
+   * Selling costs to deduct from net gain calculations.
    */
-  salesExpense?: number | null;
+  salesExpense: number | null;
 };
 
 /**
@@ -6661,35 +10608,141 @@ export type FixedAssetSalesInfo = {
  * Used to adjust quantity or value of inventory items.
  */
 export type InventoryAdjustment = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  account?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  lines?: Array<InventoryAdjustmentLine> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The site location where inventory for the item associated with this inventory adjustment is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The customer or customer-job associated with this inventory adjustment.
+   */
+  customer: QbdRef | null;
+  /**
+   * The inventory adjustment's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this inventory adjustment's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The InventoryAdjustmentLines associated with this object.
+   */
+  lines: Array<InventoryAdjustmentLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6697,16 +10750,46 @@ export type InventoryAdjustment = {
  * Only ONE of the adjustment properties (Quantity, Value, SerialNumber, LotNumber) should be populated.
  */
 export type InventoryAdjustmentLine = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  item?: QbdRef | null;
-  serialNumber?: string | null;
-  serialNumberAddedOrRemoved?: string | null;
-  lotNumber?: string | null;
-  expirationDate?: string | null;
-  inventorySiteLocation?: QbdRef | null;
-  quantityDifference?: number | null;
-  valueDifference?: number | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The Item associated with this object.
+   */
+  item: QbdRef | null;
+  /**
+   * The SerialNumber associated with this object.
+   */
+  serialNumber: string | null;
+  /**
+   * The SerialNumberAddedOrRemoved associated with this object.
+   */
+  serialNumberAddedOrRemoved: string | null;
+  /**
+   * The LotNumber associated with this object.
+   */
+  lotNumber: string | null;
+  /**
+   * The ExpirationDateForSerialLotNumber associated with this object.
+   */
+  expirationDate: string | null;
+  /**
+   * The InventorySiteLocation associated with this object.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The QuantityDifference associated with this object.
+   */
+  quantityDifference: number | null;
+  /**
+   * The ValueDifference associated with this object.
+   */
+  valueDifference: number | null;
+  /**
+   * The DataExts associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -6717,70 +10800,210 @@ export type InventoryAdjustmentLine = {
  * FIFO inventory accounting, Tracking quantity on hand, Categories to four levels, Taxable status of the item, Price and cost
  */
 export type InventoryItem = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  manufacturerPartNumber?: string | null;
   /**
-   * Indicates if sales tax is included in the item price.
+   * The manufacturer part number for the inventory item.
+   *
+   * Useful for cross-referencing supplier catalog numbers.
    */
-  isTaxIncluded?: boolean | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  cogsAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  assetAccount?: QbdRef | null;
-  reorderPoint?: number | null;
-  max?: number | null;
-  quantityOnHand?: number | null;
-  averageCost?: number | null;
-  quantityOnOrder?: number | null;
-  quantityOnSalesOrder?: number | null;
+  manufacturerPartNumber: string | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Indicates whether sales tax is included in the sales price.
+   *
+   * If true, newly drafted document values assume taxes are pre-calculated inside the listed value.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  isTaxIncluded: boolean | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * Customer-facing description printed on sales documents like invoices and sales receipts.
+   *
+   * Visible to customers on invoices.
    */
-  class?: QbdRef | null;
+  salesDesc: string | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The price at which this inventory item is sold to customers, represented as a decimal string.
+   *
+   * The standard base unit sales price.
    */
-  parent?: QbdRef | null;
+  salesPrice: number | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The income account used to track revenue from sales of this inventory item.
+   *
+   * Must be an Income account.
    */
-  sublevel?: number | null;
+  incomeAccount: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * Vendor-facing description printed on purchase forms like purchase orders or bills.
+   *
+   * Visible to suppliers.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  purchaseDesc: string | null;
   /**
-   * Sales tax code reference.
+   * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
+   *
+   * The standard procurement cost.
    */
-  salesTaxCode?: QbdRef | null;
+  purchaseCost: number | null;
+  /**
+   * The tax code applied to purchases of this inventory item. Applicable in regions where purchase taxes are used, such as Canada or the UK.
+   *
+   * Purchase taxation category reference.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The Cost of Goods Sold (COGS) account for this inventory item, tracking the original direct costs of producing goods sold.
+   *
+   * Must be a COGS or Expense account.
+   */
+  cogsAccount: QbdRef | null;
+  /**
+   * The preferred vendor from whom this inventory item is typically purchased.
+   *
+   * The default supplier reference.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The asset account used to track the current value of this inventory item in inventory.
+   *
+   * Must be an Inventory Asset account.
+   */
+  assetAccount: QbdRef | null;
+  /**
+   * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
+   *
+   * Reorder threshold.
+   */
+  reorderPoint: number | null;
+  /**
+   * The maximum quantity of this inventory item to hold in inventory.
+   *
+   * Target maximum stock level.
+   */
+  max: number | null;
+  /**
+   * The number of units of this inventory item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory item, you must use an inventory-adjustment instead of updating the inventory item directly.
+   *
+   * Current physical stock quantity. Read-only on updates.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The average cost per unit of this inventory item, represented as a decimal string.
+   *
+   * Computed average asset value per unit.
+   */
+  averageCost: number | null;
+  /**
+   * The number of units of this inventory item currently on order with vendors.
+   *
+   * Aggregated outstanding quantity on open purchase orders.
+   */
+  quantityOnOrder: number | null;
+  /**
+   * The number of units of this inventory item that have been sold (as recorded in sales orders) but not yet fulfilled or delivered to customers.
+   *
+   * Aggregated allocated quantity on open sales orders.
+   */
+  quantityOnSalesOrder: number | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
   /**
    * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
    */
-  description?: string | null;
-  externalId?: string | null;
+  description: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6788,29 +11011,73 @@ export type InventoryItem = {
  * Used for tracking inventory in multiple locations (Advanced Inventory).
  */
 export type InventorySite = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  parentSite?: QbdRef | null;
-  isDefaultSite?: boolean | null;
-  siteDesc?: string | null;
-  contact?: string | null;
-  phone?: string | null;
-  fax?: string | null;
-  email?: string | null;
-  siteAddress?: Address | null;
-  siteAddressBlock?: AddressBlock | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  parentSite: QbdRef | null;
+  isDefaultSite: boolean | null;
+  siteDesc: string | null;
+  /**
+   * The name of the primary contact person for this inventory site.
+   */
+  contact: string | null;
+  /**
+   * The inventory site's primary telephone number.
+   */
+  phone: string | null;
+  /**
+   * The inventory site's fax number.
+   */
+  fax: string | null;
+  /**
+   * The inventory site's email address.
+   */
+  email: string | null;
+  siteAddress: Address | null;
+  siteAddressBlock: AddressBlock | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6820,81 +11087,226 @@ export type InventorySite = {
  * from BaseTransactionDto.
  */
 export type Invoice = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The date the transaction occurred or was recorded.
    */
-  refNumber?: string | null;
-  memo?: string | null;
+  transactionDate: string | null;
   /**
-   * Reference to the Customer.
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  receivablesAccount?: QbdRef | null;
+  currency: QbdRef | null;
   /**
-   * Reference to the visual template for the invoice.
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
    */
-  template?: QbdRef | null;
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The customer to whom the invoice is addressed.
+   */
+  customer: QbdRef | null;
+  /**
+   * Class Reference.
+   */
+  class: QbdRef | null;
+  /**
+   * The Accounts Receivable (A/R) account associated with this invoice.
+   */
+  receivablesAccount: QbdRef | null;
+  /**
+   * Reference to the visual template (e.g., "Custom Invoice") used in QuickBooks.
+   */
+  template: QbdRef | null;
   /**
    * The date the invoice is due.
    */
-  dueDate?: string | null;
-  billingAddress?: Address | null;
-  shippingAddress?: Address | null;
-  isPending?: boolean | null;
-  isFinanceCharge?: boolean | null;
-  purchaseOrderNumber?: string | null;
+  dueDate: string | null;
   /**
-   * Reference to the payment terms (e.g., "Net 30").
+   * Billing Address.
    */
-  terms?: QbdRef | null;
-  salesRepresentative?: QbdRef | null;
-  shipmentOrigin?: string | null;
-  shippingDate?: string | null;
-  shippingMethod?: QbdRef | null;
-  itemSalesTax?: QbdRef | null;
-  customerMsg?: QbdRef | null;
-  isQueuedForPrint?: boolean | null;
-  isQueuedForEmail?: boolean | null;
-  isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef | null;
-  otherCustomField?: string | null;
+  billingAddress: Address | null;
   /**
-   * The total of all line items before sales tax.
+   * Shipping Address.
    */
-  subtotal?: number | null;
+  shippingAddress: Address | null;
   /**
-   * The total amount of sales tax.
+   * Indicates whether this invoice has not been completed or is in a draft version.
    */
-  salesTaxTotal?: number | null;
+  isPending: boolean | null;
   /**
-   * The remaining balance due on the invoice.
+   * Whether this invoice includes a finance charge. This field is immutable and can only be set during invoice creation.
    */
-  balanceRemaining?: number | null;
+  isFinanceCharge: boolean | null;
+  /**
+   * The PoNumber associated with this object.
+   */
+  purchaseOrderNumber: string | null;
+  /**
+   * Reference to the payment terms (e.g., "Net 30") applied to this invoice.
+   */
+  terms: QbdRef | null;
+  /**
+   * The SalesRep associated with this object.
+   */
+  salesRepresentative: QbdRef | null;
+  /**
+   * The Fob associated with this object.
+   */
+  shipmentOrigin: string | null;
+  /**
+   * The ShipDate associated with this object.
+   */
+  shippingDate: string | null;
+  /**
+   * The ShipMethod associated with this object.
+   */
+  shippingMethod: QbdRef | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The customerMsg associated with this object.
+   */
+  customerMsg: QbdRef | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * The IsToBeEmailed associated with this object.
+   */
+  isQueuedForEmail: boolean | null;
+  /**
+   * The isTaxIncluded associated with this object.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The customerSalesTaxCode associated with this object.
+   */
+  customerSalesTaxCode: QbdRef | null;
+  /**
+   * The Other associated with this object.
+   */
+  otherCustomField: string | null;
+  /**
+   * The total of all line items, before sales tax.
+   * The 'Amount' property (from BaseTransactionDto) represents the grand total.
+   */
+  subtotal: number | null;
+  /**
+   * The total amount of sales tax calculated for the invoice.
+   */
+  salesTaxTotal: number | null;
+  /**
+   * The remaining balance to be paid.
+   */
+  balanceRemaining: number | null;
   /**
    * Indicates if the invoice has been paid in full.
-   * Changed to 'set' to allow state to change after creation.
    */
-  isPaid?: boolean | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  isPaid: boolean | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The Accounts Receivable (A/R) account associated with this invoice.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -6945,54 +11357,132 @@ export type Item =
  * An amount or percentage to be subtracted from the total of a transaction.
  */
 export type ItemDiscount = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  discountRate?: number | null;
-  discountRatePercent?: number | null;
-  account?: QbdRef | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * The customer-facing description printed on sales documents when applying this discount item.
+   *
+   * **NOTE**: If omitted, QuickBooks will use the default description set on the item itself.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  itemDesc: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
+   *
+   * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
    */
-  class?: QbdRef | null;
+  discountRate: number | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The percentage amount to subtract from the total or subtotal when applying this discount item to a transaction.
+   *
+   * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
    */
-  parent?: QbdRef | null;
+  discountRatePercent: number | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The posting account to which transactions involving this discount item are posted for tracking discounts.
+   *
+   * Must be an Expense or Income account.
    */
-  sublevel?: number | null;
+  account: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  fullname: string | null;
   /**
-   * Sales tax code reference.
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  salesTaxCode?: QbdRef | null;
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
   /**
    * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
    */
-  description?: string | null;
-  externalId?: string | null;
+  description: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7000,153 +11490,426 @@ export type ItemDiscount = {
  * Used to track long-term business assets, their purchase details, depreciation, and eventual sale.
  */
 export type ItemFixedAsset = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  acquiredAs?: string | null;
-  purchaseDesc?: string | null;
-  purchaseDate?: string | null;
-  purchaseCost?: number | null;
-  vendorOrPayeeName?: string | null;
-  assetAccount?: QbdRef | null;
-  salesInfo?: FixedAssetSalesInfo | null;
-  assetDesc?: string | null;
-  location?: string | null;
-  poNumber?: string | null;
-  serialNumber?: string | null;
-  warrantyExpDate?: string | null;
-  notes?: string | null;
-  assetNumber?: string | null;
-  costBasis?: number | null;
-  yearEndAccumulatedDepreciation?: number | null;
-  yearEndBookValue?: number | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Indicates the condition of the asset at the time of acquisition (e.g., "New" or "Used").
+   *
+   * Helps track asset history and initial valuation constraints.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  acquiredAs: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * A description of the asset specifically related to its purchase.
+   *
+   * Stamped on procurement forms and purchase documentation.
    */
-  class?: QbdRef | null;
+  purchaseDesc: string | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The date on which the business purchased or acquired the asset.
+   *
+   * Tracks the acquisition calendar date.
    */
-  parent?: QbdRef | null;
+  purchaseDate: string | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The original purchase price or cost of acquiring the asset.
+   *
+   * Represents the core asset cost.
    */
-  sublevel?: number | null;
+  purchaseCost: number | null;
   /**
-   * Unit of measure set reference.
+   * The name of the vendor or payee from whom the asset was purchased.
+   *
+   * Useful for warranty claims and supplier referencing.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  vendorOrPayeeName: string | null;
   /**
-   * Sales tax code reference.
+   * A reference to the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
+   *
+   * Typically an Asset account.
    */
-  salesTaxCode?: QbdRef | null;
+  assetAccount: QbdRef | null;
+  /**
+   * An aggregate containing information about the sale or disposal of the asset.
+   *
+   * Only populated if the asset has been sold or retired.
+   */
+  salesInfo: FixedAssetSalesInfo | null;
+  /**
+   * A general description of the fixed asset.
+   *
+   * Main asset reference label.
+   */
+  assetDesc: string | null;
+  /**
+   * The physical location or department where the asset is currently kept.
+   *
+   * Identifies geography or cost center.
+   */
+  location: string | null;
+  /**
+   * The Purchase Order number associated with the acquisition of the asset.
+   *
+   * Links the asset back to purchase history.
+   */
+  poNumber: string | null;
+  /**
+   * The serial number or vehicle identification number (VIN) of the asset.
+   *
+   * Unique hardware identification tag.
+   */
+  serialNumber: string | null;
+  /**
+   * The date on which the manufacturer's or vendor's warranty for the asset expires.
+   *
+   * Helps track active warranty timelines.
+   */
+  warrantyExpDate: string | null;
+  /**
+   * Additional free-form notes or comments regarding the asset.
+   *
+   * Any miscellaneous asset-related observations.
+   */
+  notes: string | null;
+  /**
+   * A unique, company-assigned tracking number or barcode number for the asset.
+   *
+   * Internal asset tracking code.
+   */
+  assetNumber: string | null;
+  /**
+   * The cost basis of the asset used for calculating tax and depreciation (often includes purchase price plus freight, installation, etc.).
+   *
+   * Fully capitalized initial asset value.
+   */
+  costBasis: number | null;
+  /**
+   * The total amount of depreciation accumulated for this asset up to the end of the most recent fiscal year.
+   *
+   * Accumulated depreciation value.
+   */
+  yearEndAccumulatedDepreciation: number | null;
+  /**
+   * The net book value of the asset at the end of the fiscal year (typically Cost Basis minus Accumulated Depreciation).
+   *
+   * Current asset balance sheet value.
+   */
+  yearEndBookValue: number | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
   /**
    * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
    */
-  description?: string | null;
-  externalId?: string | null;
+  description: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Allows fast entry of a group of individual items that you often sell or purchase.
  */
 export type ItemGroup = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  shouldPrintItemsInGroup?: boolean | null;
-  specialItemType?: string | null;
-  lines?: Array<ItemGroupLineDetail> | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Indicates whether the individual items within the group should be printed on transactions (such as invoices or sales receipts) when this group item is used.
+   *
+   * If true, both the group item and its component items are printed. If false, only the group item is printed.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  shouldPrintItemsInGroup: boolean | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The type of special item for this item group.
    */
-  class?: QbdRef | null;
+  specialItemType: string | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The list of items that comprise this group, along with their default quantities and units of measure.
+   *
+   * Each group is composed of child item lines.
    */
-  parent?: QbdRef | null;
+  lines: Array<ItemGroupLineDetail> | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  sublevel?: number | null;
+  fullname: string | null;
   /**
-   * Unit of measure set reference.
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  barcode: string | null;
   /**
-   * Sales tax code reference.
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
    */
-  salesTaxCode?: QbdRef | null;
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
   /**
    * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
    */
-  description?: string | null;
-  externalId?: string | null;
+  description: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Item group line - for grouped items that expand into individual items
  */
 export type ItemGroupLine = {
+  /**
+   * The TxnLineId associated with this object.
+   */
   id: string;
-  objectType?: string;
-  itemGroup?: QbdRef | null;
-  description?: string | null;
-  quantity?: number;
-  totalAmount?: number;
-  unitOfMeasure?: string | null;
-  isPrintItemsInGroup?: boolean | null;
-  lines?: Array<ItemLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  objectType: string;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The Description associated with this object.
+   */
+  description: string | null;
+  /**
+   * The quantity of the item group associated with this item group line. This field cannot be cleared.
+   *
+   * **NOTE**: Do not use this field if the associated item group is a discount item group.
+   */
+  quantity: number;
+  /**
+   * The TotalAmount associated with this object.
+   */
+  totalAmount: number;
+  /**
+   * The unit-of-measure used for the `quantity` in this item group line. Must be a valid unit within the item's available units of measure.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The IsPrintItemsInGroup associated with this object.
+   */
+  isPrintItemsInGroup: boolean | null;
+  /**
+   * The ItemLines associated with this object.
+   */
+  lines: Array<ItemLine> | null;
+  /**
+   * The DataExts associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
- * Represents a line item detail request for ItemGroup operations.
+ * Represents a member item within a QuickBooks item group, including the item reference and quantity.
  */
 export type ItemGroupLineDetail = {
-  item?: QbdRef | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
+  /**
+   * Reference to the specific QuickBooks item that is a member of this group.
+   *
+   * Points to the individual child item.
+   */
+  item: QbdRef | null;
+  /**
+   * The default quantity of the item that is automatically added when the group item is used in a transaction.
+   *
+   * Quantity value.
+   */
+  quantity: number | null;
+  /**
+   * The unit of measure (e.g., "Each", "Hours") for the item quantity in this group.
+   *
+   * Unit of measure identifier.
+   */
+  unitOfMeasure: string | null;
 };
 
 /**
  * Represents a line item detail request for ItemGroup operations.
  */
 export type ItemGroupLineDetailRequest = {
+  /**
+   * The identifier of the specific QuickBooks item that is a member of this group.
+   *
+   * References an individual item.
+   */
   itemId: string;
+  /**
+   * The quantity of the item that is automatically added when the group item is used in a transaction.
+   *
+   * Quantity value.
+   */
   quantity?: number | null;
+  /**
+   * The unit of measure (e.g., "Each", "Hours") for the item quantity in this group.
+   *
+   * Unit of measure identifier.
+   */
   unitOfMeasure?: string | null;
 };
 
@@ -7155,77 +11918,213 @@ export type ItemGroupLineDetailRequest = {
  * Assemble finished goods from components.
  */
 export type ItemInventoryAssembly = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  sku?: string | null;
   /**
-   * Indicates if sales tax is included in the item price.
+   * Unified dynamic text override pointer matching base definitions.
+   *
+   * This property is explicitly omitted from direct JSON serialization contexts to prevent wire bloat,
+   * dynamically evaluating populated descriptors across single or dual-sided business mappings.
    */
-  isTaxIncluded?: boolean | null;
-  salesDescription?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDescription?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  cogsAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  assetAccount?: QbdRef | null;
-  buildPoint?: number | null;
-  max?: number | null;
-  quantityOnHand?: number | null;
-  totalValue?: number | null;
-  averageCost?: number | null;
-  quantityOnOrder?: number | null;
-  quantityOnSalesOrder?: number | null;
-  lines?: Array<ItemInventoryAssemblyLine> | null;
+  description: string | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * The specific manufacturing part number or manufacturer stock identification unit.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  sku: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * Indicates whether the standard base price configurations for this assembly inherently incorporate sales tax metrics.
    */
-  class?: QbdRef | null;
+  isTaxIncluded: boolean | null;
   /**
-   * Parent item reference for hierarchical items.
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
    */
-  parent?: QbdRef | null;
+  salesDescription: string | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The financial retail exchange rate billed to clients when this package item is finalized and sold.
    */
-  sublevel?: number | null;
+  salesPrice: number | null;
   /**
-   * Unit of measure set reference.
+   * The income account used to track revenue from sales of this inventory assembly item.
+   *
+   * The general ledger bookkeeping category tracking incoming top-line commercial revenue.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  incomeAccount: QbdRef | null;
   /**
-   * Sales tax code reference.
+   * Inbound line summary notation stamped during internal procurement cycles or component allocation events.
    */
-  salesTaxCode?: QbdRef | null;
+  purchaseDescription: string | null;
   /**
-   * General item description.
+   * The cumulative expenditure value baseline incurred to acquire or manufacture a singular finished node pack.
    */
-  description?: string | null;
-  externalId?: string | null;
+  purchaseCost: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Localized purchase taxation classification code utilized when compiling multi-jurisdictional tax returns.
+   *
+   * Applicable in regions where purchase taxes are used, such as Canada or the UK.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The Cost of Goods Sold (COGS) account for this inventory assembly item, tracking the original direct costs of producing goods sold.
+   *
+   * The localized operational expense tracking ledger used to calculate product manufacturing margins and outbound cost outlays.
+   */
+  cogsAccount: QbdRef | null;
+  /**
+   * The preferred vendor from whom this inventory assembly item is typically purchased.
+   *
+   * Mapped fallback default supplier profile selected for routing out core material components.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The asset account used to track the current value of this inventory assembly item in inventory.
+   *
+   * The active balance sheet asset ledger account representing the current monetary capital locked in stored physical stock.
+   */
+  assetAccount: QbdRef | null;
+  /**
+   * The threshold indicator limit that automates procurement triggers for component restocking activities.
+   *
+   * A null value indicates that no build point has been assigned.
+   */
+  buildPoint: number | null;
+  /**
+   * Maximum allowable value; ceiling threshold target configuration capping recommended warehouse allocation levels.
+   *
+   * Interpreted as an inclusive upper bound for validation and comparisons.
+   */
+  max: number | null;
+  /**
+   * The number of units of this inventory assembly item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory assembly item, you must use an inventory-adjustment instead of updating the inventory assembly item directly.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The aggregate balance value formulation calculated by evaluating available physical units against standard localized unit weights.
+   */
+  totalValue: number | null;
+  /**
+   * AverageCost is the total value of this item divided by QuantityOnHand. Initially the total value is the same as the QuantityOnHand times the PurchaseCost (so AverageCost equals PurchaseCost).
+   *
+   * The total value can be changed by an inventory adjustment so that it no longer matches QuantityOnHand times PurchaseCost.
+   */
+  averageCost: number | null;
+  /**
+   * The number of these items that have been ordered from vendors (as recorded in purchase orders) but not received.
+   */
+  quantityOnOrder: number | null;
+  /**
+   * The number of units of this inventory assembly item that have been sold (as recorded in sales orders) but not yet fulfilled or delivered to customers.
+   */
+  quantityOnSalesOrder: number | null;
+  /**
+   * The underlying bill of materials ledger list detailing exactly which subcomponents are consumed during building steps.
+   */
+  lines: Array<ItemInventoryAssemblyLine> | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
+/**
+ * A single item component formula definition line used inside the broader package asset configuration matrix.
+ */
 export type ItemInventoryAssemblyLine = {
-  inventoryItem?: QbdRef | null;
-  quantity?: number | null;
+  /**
+   * The inventory item referenced in this assembly line.
+   */
+  inventoryItem: QbdRef | null;
+  /**
+   * The fractional or whole multiplier capacity required to successfully manufacture one complete top-level item.
+   */
+  quantity: number | null;
 };
 
 /**
@@ -7236,41 +12135,211 @@ export type ItemInventoryAssemblyLine = {
  * FIFO inventory accounting, Tracking quantity on hand, Categories to four levels, Taxable status of the item, Price and cost
  */
 export type ItemInventoryItem = {
-  itemType?: ItemInventoryItemItemType;
+  itemType: ItemInventoryItemItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  manufacturerPartNumber?: string | null;
-  isTaxIncluded?: boolean | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  cogsAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  assetAccount?: QbdRef | null;
-  reorderPoint?: number | null;
-  max?: number | null;
-  quantityOnHand?: number | null;
-  averageCost?: number | null;
-  quantityOnOrder?: number | null;
-  quantityOnSalesOrder?: number | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * The manufacturer part number for the inventory item.
+   *
+   * Useful for cross-referencing supplier catalog numbers.
+   */
+  manufacturerPartNumber: string | null;
+  /**
+   * Indicates whether sales tax is included in the sales price.
+   *
+   * If true, newly drafted document values assume taxes are pre-calculated inside the listed value.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * Customer-facing description printed on sales documents like invoices and sales receipts.
+   *
+   * Visible to customers on invoices.
+   */
+  salesDesc: string | null;
+  /**
+   * The price at which this inventory item is sold to customers, represented as a decimal string.
+   *
+   * The standard base unit sales price.
+   */
+  salesPrice: number | null;
+  /**
+   * The income account used to track revenue from sales of this inventory item.
+   *
+   * Must be an Income account.
+   */
+  incomeAccount: QbdRef | null;
+  /**
+   * Vendor-facing description printed on purchase forms like purchase orders or bills.
+   *
+   * Visible to suppliers.
+   */
+  purchaseDesc: string | null;
+  /**
+   * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
+   *
+   * The standard procurement cost.
+   */
+  purchaseCost: number | null;
+  /**
+   * The tax code applied to purchases of this inventory item. Applicable in regions where purchase taxes are used, such as Canada or the UK.
+   *
+   * Purchase taxation category reference.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The Cost of Goods Sold (COGS) account for this inventory item, tracking the original direct costs of producing goods sold.
+   *
+   * Must be a COGS or Expense account.
+   */
+  cogsAccount: QbdRef | null;
+  /**
+   * The preferred vendor from whom this inventory item is typically purchased.
+   *
+   * The default supplier reference.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The asset account used to track the current value of this inventory item in inventory.
+   *
+   * Must be an Inventory Asset account.
+   */
+  assetAccount: QbdRef | null;
+  /**
+   * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
+   *
+   * Reorder threshold.
+   */
+  reorderPoint: number | null;
+  /**
+   * The maximum quantity of this inventory item to hold in inventory.
+   *
+   * Target maximum stock level.
+   */
+  max: number | null;
+  /**
+   * The number of units of this inventory item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory item, you must use an inventory-adjustment instead of updating the inventory item directly.
+   *
+   * Current physical stock quantity. Read-only on updates.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The average cost per unit of this inventory item, represented as a decimal string.
+   *
+   * Computed average asset value per unit.
+   */
+  averageCost: number | null;
+  /**
+   * The number of units of this inventory item currently on order with vendors.
+   *
+   * Aggregated outstanding quantity on open purchase orders.
+   */
+  quantityOnOrder: number | null;
+  /**
+   * The number of units of this inventory item that have been sold (as recorded in sales orders) but not yet fulfilled or delivered to customers.
+   *
+   * Aggregated allocated quantity on open sales orders.
+   */
+  quantityOnSalesOrder: number | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7285,28 +12354,133 @@ export enum ItemInventoryItemItemType {
  * An amount or percentage to be subtracted from the total of a transaction.
  */
 export type ItemItemDiscount = {
-  itemType?: ItemItemDiscountItemType;
+  itemType: ItemItemDiscountItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  discountRate?: number | null;
-  discountRatePercent?: number | null;
-  account?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * The customer-facing description printed on sales documents when applying this discount item.
+   *
+   * **NOTE**: If omitted, QuickBooks will use the default description set on the item itself.
+   */
+  itemDesc: string | null;
+  /**
+   * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
+   *
+   * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
+   */
+  discountRate: number | null;
+  /**
+   * The percentage amount to subtract from the total or subtotal when applying this discount item to a transaction.
+   *
+   * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
+   */
+  discountRatePercent: number | null;
+  /**
+   * The posting account to which transactions involving this discount item are posted for tracking discounts.
+   *
+   * Must be an Expense or Income account.
+   */
+  account: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7322,41 +12496,211 @@ export enum ItemItemDiscountItemType {
  * Used to track long-term business assets, their purchase details, depreciation, and eventual sale.
  */
 export type ItemItemFixedAsset = {
-  itemType?: ItemItemFixedAssetItemType;
+  itemType: ItemItemFixedAssetItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  acquiredAs?: string | null;
-  purchaseDesc?: string | null;
-  purchaseDate?: string | null;
-  purchaseCost?: number | null;
-  vendorOrPayeeName?: string | null;
-  assetAccount?: QbdRef | null;
-  salesInfo?: FixedAssetSalesInfo | null;
-  assetDesc?: string | null;
-  location?: string | null;
-  poNumber?: string | null;
-  serialNumber?: string | null;
-  warrantyExpDate?: string | null;
-  notes?: string | null;
-  assetNumber?: string | null;
-  costBasis?: number | null;
-  yearEndAccumulatedDepreciation?: number | null;
-  yearEndBookValue?: number | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Indicates the condition of the asset at the time of acquisition (e.g., "New" or "Used").
+   *
+   * Helps track asset history and initial valuation constraints.
+   */
+  acquiredAs: string | null;
+  /**
+   * A description of the asset specifically related to its purchase.
+   *
+   * Stamped on procurement forms and purchase documentation.
+   */
+  purchaseDesc: string | null;
+  /**
+   * The date on which the business purchased or acquired the asset.
+   *
+   * Tracks the acquisition calendar date.
+   */
+  purchaseDate: string | null;
+  /**
+   * The original purchase price or cost of acquiring the asset.
+   *
+   * Represents the core asset cost.
+   */
+  purchaseCost: number | null;
+  /**
+   * The name of the vendor or payee from whom the asset was purchased.
+   *
+   * Useful for warranty claims and supplier referencing.
+   */
+  vendorOrPayeeName: string | null;
+  /**
+   * A reference to the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
+   *
+   * Typically an Asset account.
+   */
+  assetAccount: QbdRef | null;
+  /**
+   * An aggregate containing information about the sale or disposal of the asset.
+   *
+   * Only populated if the asset has been sold or retired.
+   */
+  salesInfo: FixedAssetSalesInfo | null;
+  /**
+   * A general description of the fixed asset.
+   *
+   * Main asset reference label.
+   */
+  assetDesc: string | null;
+  /**
+   * The physical location or department where the asset is currently kept.
+   *
+   * Identifies geography or cost center.
+   */
+  location: string | null;
+  /**
+   * The Purchase Order number associated with the acquisition of the asset.
+   *
+   * Links the asset back to purchase history.
+   */
+  poNumber: string | null;
+  /**
+   * The serial number or vehicle identification number (VIN) of the asset.
+   *
+   * Unique hardware identification tag.
+   */
+  serialNumber: string | null;
+  /**
+   * The date on which the manufacturer's or vendor's warranty for the asset expires.
+   *
+   * Helps track active warranty timelines.
+   */
+  warrantyExpDate: string | null;
+  /**
+   * Additional free-form notes or comments regarding the asset.
+   *
+   * Any miscellaneous asset-related observations.
+   */
+  notes: string | null;
+  /**
+   * A unique, company-assigned tracking number or barcode number for the asset.
+   *
+   * Internal asset tracking code.
+   */
+  assetNumber: string | null;
+  /**
+   * The cost basis of the asset used for calculating tax and depreciation (often includes purchase price plus freight, installation, etc.).
+   *
+   * Fully capitalized initial asset value.
+   */
+  costBasis: number | null;
+  /**
+   * The total amount of depreciation accumulated for this asset up to the end of the most recent fiscal year.
+   *
+   * Accumulated depreciation value.
+   */
+  yearEndAccumulatedDepreciation: number | null;
+  /**
+   * The net book value of the asset at the end of the fiscal year (typically Cost Basis minus Accumulated Depreciation).
+   *
+   * Current asset balance sheet value.
+   */
+  yearEndBookValue: number | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7371,27 +12715,125 @@ export enum ItemItemFixedAssetItemType {
  * Allows fast entry of a group of individual items that you often sell or purchase.
  */
 export type ItemItemGroup = {
-  itemType?: ItemItemGroupItemType;
+  itemType: ItemItemGroupItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  shouldPrintItemsInGroup?: boolean | null;
-  specialItemType?: string | null;
-  lines?: Array<ItemGroupLineDetail> | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Indicates whether the individual items within the group should be printed on transactions (such as invoices or sales receipts) when this group item is used.
+   *
+   * If true, both the group item and its component items are printed. If false, only the group item is printed.
+   */
+  shouldPrintItemsInGroup: boolean | null;
+  /**
+   * The type of special item for this item group.
+   */
+  specialItemType: string | null;
+  /**
+   * The list of items that comprise this group, along with their default quantities and units of measure.
+   *
+   * Each group is composed of child item lines.
+   */
+  lines: Array<ItemGroupLineDetail> | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7407,43 +12849,200 @@ export enum ItemItemGroupItemType {
  * Assemble finished goods from components.
  */
 export type ItemItemInventoryAssembly = {
-  itemType?: ItemItemInventoryAssemblyItemType;
+  itemType: ItemItemInventoryAssemblyItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  sku?: string | null;
-  isTaxIncluded?: boolean | null;
-  salesDescription?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDescription?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  cogsAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  assetAccount?: QbdRef | null;
-  buildPoint?: number | null;
-  max?: number | null;
-  quantityOnHand?: number | null;
-  totalValue?: number | null;
-  averageCost?: number | null;
-  quantityOnOrder?: number | null;
-  quantityOnSalesOrder?: number | null;
-  lines?: Array<ItemInventoryAssemblyLine> | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base definitions.
+   *
+   * This property is explicitly omitted from direct JSON serialization contexts to prevent wire bloat,
+   * dynamically evaluating populated descriptors across single or dual-sided business mappings.
+   */
+  description: string | null;
+  /**
+   * The specific manufacturing part number or manufacturer stock identification unit.
+   */
+  sku: string | null;
+  /**
+   * Indicates whether the standard base price configurations for this assembly inherently incorporate sales tax metrics.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
+   */
+  salesDescription: string | null;
+  /**
+   * The financial retail exchange rate billed to clients when this package item is finalized and sold.
+   */
+  salesPrice: number | null;
+  /**
+   * The income account used to track revenue from sales of this inventory assembly item.
+   *
+   * The general ledger bookkeeping category tracking incoming top-line commercial revenue.
+   */
+  incomeAccount: QbdRef | null;
+  /**
+   * Inbound line summary notation stamped during internal procurement cycles or component allocation events.
+   */
+  purchaseDescription: string | null;
+  /**
+   * The cumulative expenditure value baseline incurred to acquire or manufacture a singular finished node pack.
+   */
+  purchaseCost: number | null;
+  /**
+   * Localized purchase taxation classification code utilized when compiling multi-jurisdictional tax returns.
+   *
+   * Applicable in regions where purchase taxes are used, such as Canada or the UK.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The Cost of Goods Sold (COGS) account for this inventory assembly item, tracking the original direct costs of producing goods sold.
+   *
+   * The localized operational expense tracking ledger used to calculate product manufacturing margins and outbound cost outlays.
+   */
+  cogsAccount: QbdRef | null;
+  /**
+   * The preferred vendor from whom this inventory assembly item is typically purchased.
+   *
+   * Mapped fallback default supplier profile selected for routing out core material components.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The asset account used to track the current value of this inventory assembly item in inventory.
+   *
+   * The active balance sheet asset ledger account representing the current monetary capital locked in stored physical stock.
+   */
+  assetAccount: QbdRef | null;
+  /**
+   * The threshold indicator limit that automates procurement triggers for component restocking activities.
+   *
+   * A null value indicates that no build point has been assigned.
+   */
+  buildPoint: number | null;
+  /**
+   * Maximum allowable value; ceiling threshold target configuration capping recommended warehouse allocation levels.
+   *
+   * Interpreted as an inclusive upper bound for validation and comparisons.
+   */
+  max: number | null;
+  /**
+   * The number of units of this inventory assembly item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory assembly item, you must use an inventory-adjustment instead of updating the inventory assembly item directly.
+   */
+  quantityOnHand: number | null;
+  /**
+   * The aggregate balance value formulation calculated by evaluating available physical units against standard localized unit weights.
+   */
+  totalValue: number | null;
+  /**
+   * AverageCost is the total value of this item divided by QuantityOnHand. Initially the total value is the same as the QuantityOnHand times the PurchaseCost (so AverageCost equals PurchaseCost).
+   *
+   * The total value can be changed by an inventory adjustment so that it no longer matches QuantityOnHand times PurchaseCost.
+   */
+  averageCost: number | null;
+  /**
+   * The number of these items that have been ordered from vendors (as recorded in purchase orders) but not received.
+   */
+  quantityOnOrder: number | null;
+  /**
+   * The number of units of this inventory assembly item that have been sold (as recorded in sales orders) but not yet fulfilled or delivered to customers.
+   */
+  quantityOnSalesOrder: number | null;
+  /**
+   * The underlying bill of materials ledger list detailing exactly which subcomponents are consumed during building steps.
+   */
+  lines: Array<ItemInventoryAssemblyLine> | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7458,38 +13057,159 @@ export enum ItemItemInventoryAssemblyItemType {
  * Materials or parts for which you do not track quantities. Materials or parts you buy but do not sell, or materials or parts you sell but do not buy, are non-inventory items. For example, if you sell a service that requires a part, but you do not want to track the part as an inventory item, you can set up the part as a non-inventory item. You can also use non-inventory items for one-time purchases or sales of items that you do not want to track at all. Non-inventory items are used on sales forms and purchase forms, and they affect your financial statements.
  */
 export type ItemItemNonInventory = {
-  itemType?: ItemItemNonInventoryItemType;
+  itemType: ItemItemNonInventoryItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  manufacturerPartNumber?: string | null;
-  isTaxIncluded?: boolean | null;
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base declarations.
+   */
+  description: string | null;
+  /**
+   * The specific manufacturing part number or manufacturer stock identification unit.
+   */
+  sku: string | null;
+  /**
+   * Indicates whether the standard base price configurations for this item inherently incorporate sales tax metrics.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The static currency baseline pricing rate or fee charge threshold value.
+   */
+  price: number | null;
+  /**
+   * A variable factor percentage multiplier applied to generate context-driven surcharges.
+   *
+   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemNonInventory.Models.ItemNonInventoryDto.Price" /> declarations.
+   */
+  pricePercent: number | null;
+  /**
+   * The financial tracking general ledger account reference link for balancing single-sided transaction entries.
+   */
+  account: QbdRef | null;
+  /**
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
+   */
+  salesDescription: string | null;
+  /**
+   * The billing fee threshold charge applied onto consumer-facing line components.
+   */
+  salesPrice: number | null;
+  /**
+   * The incoming revenue bookkeeping category general ledger reference context link.
+   */
+  incomeAccount: QbdRef | null;
+  /**
+   * Inbound line summary notation stamped during internal clearing cycles on supplier bills or partner check records.
+   */
+  purchaseDescription: string | null;
+  /**
+   * Cost valuation charge registered when sourcing this logistical charge element from third-party networks.
+   */
+  purchaseCost: number | null;
+  /**
+   * Localized purchase taxation classification code applied during multi-entity reporting logic loops.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The operational expense account parameter tracking absolute outbound costs on profit analysis tools.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * Mapped fallback default logistical entity or supplier profile linked for outsourcing tasks.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7501,42 +13221,167 @@ export enum ItemItemNonInventoryItemType {
 }
 
 /**
- * Miscellaneous charges.
- * Show freight, handling, or delivery charges on sales forms and purchase forms.
+ * Configurations for miscellaneous surcharges, handling fees, or pass-through transaction records.
  */
 export type ItemItemOtherCharge = {
-  itemType?: ItemItemOtherChargeItemType;
+  itemType: ItemItemOtherChargeItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  isTaxIncluded?: boolean | null;
-  specialItemType?: string | null;
-  itemOtherChargeDescription?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Indicates whether the standard base price configurations for this item inherently incorporate sales tax metrics.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * Unified cascade fallback text proxy mapping core polymorphic data calls.
+   *
+   * This property is explicitly omitted from direct JSON serialization contexts to prevent wire bloat,
+   * dynamically evaluating populated descriptors across single or dual-sided business mappings.
+   */
+  description: string | null;
+  /**
+   * Operational functional sub-classification parameter identifying specialized system system billing components.
+   *
+   * Resolves to null if the entry represents a normal user-defined pass-through adjustment fee line.
+   */
+  specialItemType: string | null;
+  /**
+   * The static currency baseline pricing rate or fee charge threshold value.
+   */
+  price: number | null;
+  /**
+   * A variable factor percentage multiplier applied to generate context-driven surcharges.
+   *
+   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemOtherCharge.Models.ItemOtherChargeDto.Price" /> declarations.
+   */
+  pricePercent: number | null;
+  /**
+   * The financial tracking general ledger account reference link for balancing single-sided transaction entries.
+   */
+  account: QbdRef | null;
+  /**
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
+   */
+  salesDescription: string | null;
+  /**
+   * The billing fee threshold charge applied onto consumer-facing line components.
+   */
+  salesPrice: number | null;
+  /**
+   * The incoming revenue bookkeeping category general ledger reference context link.
+   */
+  incomeAccount: QbdRef | null;
+  /**
+   * Inbound line summary notation stamped during internal clearing cycles on supplier bills or partner check records.
+   */
+  purchaseDescription: string | null;
+  /**
+   * Cost valuation charge registered when sourcing this logistical charge element from third-party networks.
+   */
+  purchaseCost: number | null;
+  /**
+   * Localized purchase taxation classification code applied during multi-entity reporting logic loops.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The operational expense account parameter tracking absolute outbound costs on profit analysis tools.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * Mapped fallback default logistical entity or supplier profile linked for outsourcing tasks.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7551,27 +13396,113 @@ export enum ItemItemOtherChargeItemType {
  * Used to split multiple payment types on a sales receipt.
  */
 export type ItemItemPayment = {
-  itemType?: ItemItemPaymentItemType;
+  itemType: ItemItemPaymentItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  depositToAccount?: QbdRef | null;
-  paymentMethod?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base declarations.
+   */
+  description: string | null;
+  /**
+   * The account to which the payment will be deposited. This is required for all payment types except for "Cash" and "Check".
+   */
+  depositToAccount: QbdRef | null;
+  /**
+   * The method of payment used for this item.
+   */
+  paymentMethod: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7586,28 +13517,117 @@ export enum ItemItemPaymentItemType {
  * Used to calculate a single sales tax.
  */
 export type ItemItemSalesTax = {
-  itemType?: ItemItemSalesTaxItemType;
+  itemType: ItemItemSalesTaxItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  taxRate?: number | null;
-  taxVendor?: QbdRef | null;
-  salesTaxReturnLine?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base declarations.
+   */
+  description: string | null;
+  /**
+   * The tax rate defined by this sales-tax item, represented as a decimal string. For example, "7.5" represents a 7.5% tax rate. This rate determines the amount of sales tax applied when this item is used in transactions. If a non-zero `taxRate` is specified, then the `taxVendor` field is required.
+   */
+  taxRate: number | null;
+  /**
+   * The tax agency (vendor) to whom collected sales taxes are owed for this sales-tax item. This field refers to a vendor in QuickBooks that represents the tax authority. If a non-zero `taxRate` is specified, then `taxVendor` is required.
+   */
+  taxVendor: QbdRef | null;
+  /**
+   * The specific line on the sales tax return form where the tax collected using this sales-tax item should be reported.
+   */
+  salesTaxReturnLine: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7624,26 +13644,109 @@ export type ItemItemSalesTax = {
  * invoice itself as line items.
  */
 export type ItemItemSalesTaxGroup = {
-  itemType?: ItemItemSalesTaxGroupItemType;
+  itemType: ItemItemSalesTaxGroupItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  itemSalesTax?: Array<QbdRef> | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base declarations.
+   */
+  description: string | null;
+  /**
+   * List of sales tax items that are part of this sales tax group. Each item in the list represents a single sales tax that is included in the group.
+   */
+  itemSalesTax: Array<QbdRef> | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7666,26 +13769,109 @@ export enum ItemItemSalesTaxItemType {
  * Used to calculate and display subtotals on sales forms. Show subtotal on invoice or PO.
  */
 export type ItemItemSubtotal = {
-  itemType?: ItemItemSubtotalItemType;
+  itemType: ItemItemSubtotalItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  specialItemType?: string | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified dynamic text override pointer matching base declarations.
+   */
+  description: string | null;
+  /**
+   * The type of special item for this subtotal item.
+   */
+  specialItemType: NullableSpecialItemType | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7700,106 +13886,270 @@ export enum ItemItemSubtotalItemType {
  * Item line - for inventory items, services, etc.
  */
 export type ItemLine = {
+  /**
+   * The TxnLineId associated with this object.
+   */
   id: string;
-  objectType?: string;
-  otherCustomField1?: string | null;
-  otherCustomField2?: string | null;
-  item?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  cost?: number | null;
-  amount?: number | null;
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  overrideItemAccount?: QbdRef | null;
-  billableStatus?: NullableBillableStatus | null;
-  itemGroup?: QbdRef | null;
-  unitOfMeasure?: string | null;
-  rate?: number | null;
-  salesTaxCode?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  serviceDate?: string | null;
-  customFields?: Array<QbdDataExt> | null;
+  objectType: string;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The item associated with this item line. This can refer to any good or service that the business buys or sells, including item types such as a service item, inventory item, or special calculation item like a discount item or sales-tax item.
+   */
+  item: QbdRef | null;
+  /**
+   * A description of this item line.
+   */
+  description: string | null;
+  /**
+   * The quantity of the item associated with this item line. This field cannot be cleared.
+   *
+   * **NOTE**: Do not use this field if the associated item is a discount item.
+   */
+  quantity: number | null;
+  /**
+   * The cost of this item line, represented as a decimal string. If both `quantity` and `amount` are specified but not `cost`, QuickBooks will use them to calculate `cost`.
+   */
+  cost: number | null;
+  /**
+   * The monetary amount of this item line, represented as a decimal string. If both `quantity` and `cost` are specified but not `amount`, QuickBooks will use them to calculate `amount`. If `amount`, `cost`, and `quantity` are all unspecified, then QuickBooks will calculate `amount` based on a `quantity` of `1` and the suggested `cost`. This field cannot be cleared.
+   */
+  amount: number | null;
+  /**
+   * The customer or customer-job associated with this item line.
+   */
+  customer: QbdRef | null;
+  /**
+   * The item line's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. If a class is specified for the entire parent transaction, it is automatically applied to all item lines unless overridden here, at the transaction line level.
+   */
+  class: QbdRef | null;
+  /**
+   * The OverrideItemAccount associated with this object.
+   */
+  overrideItemAccount: QbdRef | null;
+  /**
+   * The BillableStatus associated with this object.
+   */
+  billableStatus: NullableBillableStatus | null;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The unit-of-measure used for the `quantity` in this item line. Must be a valid unit within the item's available units of measure.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The Rate associated with this object.
+   */
+  rate: number | null;
+  /**
+   * The sales-tax code for this item line, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the parent transaction or the associated item.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The site location where inventory for the item associated with this item line is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location (e.g., bin or shelf) within the inventory site where the item associated with this item line is stored.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The serial number of the item associated with this item line. This is used for tracking individual units of serialized inventory items.
+   */
+  serialNumber: string | null;
+  /**
+   * The lot number of the item associated with this item line. Used for tracking groups of inventory items that are purchased or manufactured together.
+   */
+  lotNumber: string | null;
+  /**
+   * The ServiceDate associated with this object.
+   */
+  serviceDate: string | null;
+  /**
+   * The DataExts associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * Materials or parts for which you do not track quantities. Materials or parts you buy but do not sell, or materials or parts you sell but do not buy, are non-inventory items. For example, if you sell a service that requires a part, but you do not want to track the part as an inventory item, you can set up the part as a non-inventory item. You can also use non-inventory items for one-time purchases or sales of items that you do not want to track at all. Non-inventory items are used on sales forms and purchase forms, and they affect your financial statements.
  */
 export type ItemNonInventory = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * Manufacturer part number for the item.
+   * Unified dynamic text override pointer matching base declarations.
    */
-  manufacturerPartNumber?: string | null;
+  description: string | null;
   /**
-   * Indicates if sales tax is included in the item price.
+   * The specific manufacturing part number or manufacturer stock identification unit.
    */
-  isTaxIncluded?: boolean | null;
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
+  sku: string | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Indicates whether the standard base price configurations for this item inherently incorporate sales tax metrics.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  isTaxIncluded: boolean | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The static currency baseline pricing rate or fee charge threshold value.
    */
-  class?: QbdRef | null;
+  price: number | null;
   /**
-   * Parent item reference for hierarchical items.
+   * A variable factor percentage multiplier applied to generate context-driven surcharges.
+   *
+   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemNonInventory.Models.ItemNonInventoryDto.Price" /> declarations.
    */
-  parent?: QbdRef | null;
+  pricePercent: number | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The financial tracking general ledger account reference link for balancing single-sided transaction entries.
    */
-  sublevel?: number | null;
+  account: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  salesDescription: string | null;
   /**
-   * Sales tax code reference.
+   * The billing fee threshold charge applied onto consumer-facing line components.
    */
-  salesTaxCode?: QbdRef | null;
+  salesPrice: number | null;
   /**
-   * General item description.
+   * The incoming revenue bookkeeping category general ledger reference context link.
    */
-  description?: string | null;
-  externalId?: string | null;
+  incomeAccount: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Inbound line summary notation stamped during internal clearing cycles on supplier bills or partner check records.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  purchaseDescription: string | null;
+  /**
+   * Cost valuation charge registered when sourcing this logistical charge element from third-party networks.
+   */
+  purchaseCost: number | null;
+  /**
+   * Localized purchase taxation classification code applied during multi-entity reporting logic loops.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The operational expense account parameter tracking absolute outbound costs on profit analysis tools.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * Mapped fallback default logistical entity or supplier profile linked for outsourcing tasks.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 export type ItemNonInventorySalesAndPurchaseDetailsRequest = {
   salesDescription?: string | null;
+  /**
+   * The price at which this item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   incomeAccountId?: string | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   expenseAccountId?: string | null;
@@ -7808,88 +14158,188 @@ export type ItemNonInventorySalesAndPurchaseDetailsRequest = {
 
 export type ItemNonInventorySalesOrPurchaseDetailsRequest = {
   description?: string | null;
+  /**
+   * The price at which this item is purchased or sold, represented as a decimal string.
+   */
   price?: number | null;
   pricePercentage?: number | null;
   postingAccountId?: string | null;
 };
 
 /**
- * Miscellaneous charges.
- * Show freight, handling, or delivery charges on sales forms and purchase forms.
+ * Configurations for miscellaneous surcharges, handling fees, or pass-through transaction records.
  */
 export type ItemOtherCharge = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * Indicates if sales tax is included in the item price.
+   * Indicates whether the standard base price configurations for this item inherently incorporate sales tax metrics.
    */
-  isTaxIncluded?: boolean | null;
+  isTaxIncluded: boolean | null;
   /**
-   * Special item type designation.
-   * Possible values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal
+   * Unified cascade fallback text proxy mapping core polymorphic data calls.
+   *
+   * This property is explicitly omitted from direct JSON serialization contexts to prevent wire bloat,
+   * dynamically evaluating populated descriptors across single or dual-sided business mappings.
    */
-  specialItemType?: string | null;
-  itemOtherChargeDescription?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDesc?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
+  description: string | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Operational functional sub-classification parameter identifying specialized system system billing components.
+   *
+   * Resolves to null if the entry represents a normal user-defined pass-through adjustment fee line.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  specialItemType: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The static currency baseline pricing rate or fee charge threshold value.
    */
-  class?: QbdRef | null;
+  price: number | null;
   /**
-   * Parent item reference for hierarchical items.
+   * A variable factor percentage multiplier applied to generate context-driven surcharges.
+   *
+   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemOtherCharge.Models.ItemOtherChargeDto.Price" /> declarations.
    */
-  parent?: QbdRef | null;
+  pricePercent: number | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The financial tracking general ledger account reference link for balancing single-sided transaction entries.
    */
-  sublevel?: number | null;
+  account: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * Outbound line summary narrative visible explicitly on customer billings, proposals, or invoices.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  salesDescription: string | null;
   /**
-   * Sales tax code reference.
+   * The billing fee threshold charge applied onto consumer-facing line components.
    */
-  salesTaxCode?: QbdRef | null;
+  salesPrice: number | null;
   /**
-   * General item description.
+   * The incoming revenue bookkeeping category general ledger reference context link.
    */
-  description?: string | null;
-  externalId?: string | null;
+  incomeAccount: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Inbound line summary notation stamped during internal clearing cycles on supplier bills or partner check records.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  purchaseDescription: string | null;
+  /**
+   * Cost valuation charge registered when sourcing this logistical charge element from third-party networks.
+   */
+  purchaseCost: number | null;
+  /**
+   * Localized purchase taxation classification code applied during multi-entity reporting logic loops.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The operational expense account parameter tracking absolute outbound costs on profit analysis tools.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * Mapped fallback default logistical entity or supplier profile linked for outsourcing tasks.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 export type ItemOtherChargeSalesAndPurchaseDetailsRequest = {
   salesDescription?: string | null;
+  /**
+   * The price at which this item is sold to customers, represented as a decimal string.
+   */
   salesPrice?: number | null;
   incomeAccountId?: string | null;
   purchaseDescription?: string | null;
+  /**
+   * The cost at which this item is purchased from vendors, represented as a decimal string.
+   */
   purchaseCost?: number | null;
   purchaseTaxCodeId?: string | null;
   expenseAccountId?: string | null;
@@ -7898,6 +14348,9 @@ export type ItemOtherChargeSalesAndPurchaseDetailsRequest = {
 
 export type ItemOtherChargeSalesOrPurchaseDetailsRequest = {
   description?: string | null;
+  /**
+   * The price at which this item is purchased or sold, represented as a decimal string.
+   */
   price?: number | null;
   pricePercentage?: number | null;
   postingAccountId?: string | null;
@@ -7907,53 +14360,112 @@ export type ItemOtherChargeSalesOrPurchaseDetailsRequest = {
  * Used to split multiple payment types on a sales receipt.
  */
 export type ItemPayment = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  depositToAccount?: QbdRef | null;
-  paymentMethod?: QbdRef | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Unified dynamic text override pointer matching base declarations.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  description: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The account to which the payment will be deposited. This is required for all payment types except for "Cash" and "Check".
    */
-  class?: QbdRef | null;
+  depositToAccount: QbdRef | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The method of payment used for this item.
    */
-  parent?: QbdRef | null;
+  paymentMethod: QbdRef | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  sublevel?: number | null;
+  fullname: string | null;
   /**
-   * Unit of measure set reference.
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  barcode: string | null;
   /**
-   * Sales tax code reference.
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
    */
-  salesTaxCode?: QbdRef | null;
+  class: QbdRef | null;
   /**
-   * General item description.
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
    */
-  description?: string | null;
-  externalId?: string | null;
+  parent: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -7968,89 +14480,248 @@ export type ItemPayment = {
  * not during modification.
  */
 export type ItemReceipt = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  payablesAccount?: QbdRef | null;
-  liabilityAccount?: QbdRef | null;
-  isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  transactionNumber: number | null;
+  /**
+   * The AP account. This is an OR condition with LiabilityAccountRef.
+   */
+  payablesAccount: QbdRef | null;
+  /**
+   * The Liability account (e.g., for items received without a bill).
+   */
+  liabilityAccount: QbdRef | null;
+  isTaxIncluded: boolean | null;
+  salesTaxCode: QbdRef | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Used to calculate a single sales tax.
  */
 export type ItemSalesTax = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  taxRate?: number | null;
-  taxVendor?: QbdRef | null;
-  salesTaxReturnLine?: QbdRef | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Unified dynamic text override pointer matching base declarations.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  description: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The tax rate defined by this sales-tax item, represented as a decimal string. For example, "7.5" represents a 7.5% tax rate. This rate determines the amount of sales tax applied when this item is used in transactions. If a non-zero `taxRate` is specified, then the `taxVendor` field is required.
    */
-  class?: QbdRef | null;
+  taxRate: number | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The tax agency (vendor) to whom collected sales taxes are owed for this sales-tax item. This field refers to a vendor in QuickBooks that represents the tax authority. If a non-zero `taxRate` is specified, then `taxVendor` is required.
    */
-  parent?: QbdRef | null;
+  taxVendor: QbdRef | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The specific line on the sales tax return form where the tax collected using this sales-tax item should be reported.
    */
-  sublevel?: number | null;
+  salesTaxReturnLine: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  fullname: string | null;
   /**
-   * Sales tax code reference.
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  salesTaxCode?: QbdRef | null;
+  barcode: string | null;
   /**
-   * General item description.
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
    */
-  description?: string | null;
-  externalId?: string | null;
+  class: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -8067,88 +14738,262 @@ export type ItemSalesTax = {
  * invoice itself as line items.
  */
 export type ItemSalesTaxGroup = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  itemSalesTax?: Array<QbdRef> | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Unified dynamic text override pointer matching base declarations.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  description: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * List of sales tax items that are part of this sales tax group. Each item in the list represents a single sales tax that is included in the group.
    */
-  class?: QbdRef | null;
+  itemSalesTax: Array<QbdRef> | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  parent?: QbdRef | null;
+  fullname: string | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  sublevel?: number | null;
+  barcode: string | null;
   /**
-   * Unit of measure set reference.
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  class: QbdRef | null;
   /**
-   * Sales tax code reference.
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
    */
-  salesTaxCode?: QbdRef | null;
+  parent: QbdRef | null;
   /**
-   * General item description.
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
    */
-  description?: string | null;
-  externalId?: string | null;
+  sublevel: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
- * Services provided to or from others
+ * Services provided to or from others.
  */
 export type ItemServiceItem = {
-  itemType?: ItemServiceItemItemType;
+  itemType: ItemServiceItemItemType;
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
-  name?: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDescription?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
-  fullname?: string | null;
-  barcode?: string | null;
-  class?: QbdRef | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
-  unitOfMeasureSet?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  description?: string | null;
-  externalId?: string | null;
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * Unified diagnostic fallback proxy property mapped from base definitions.
+   *
+   * This property is explicitly ignored from JSON serialization parameters to prevent wire-bloat,
+   * dynamically routing internally to the active operational descriptor.
+   */
+  description: string | null;
+  /**
+   * The standard transaction rate or unit charge for this service.
+   */
+  price: number | null;
+  /**
+   * The standard line item price multiplier formulated as a percentage rather than a static monetary value.
+   *
+   * Configured as an operational alternative to <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.ServiceItemDto.Price" />.
+   */
+  pricePercent: number | null;
+  /**
+   * The default ledger tracking account for balancing single-sided transaction entries.
+   */
+  account: QbdRef | null;
+  /**
+   * The customer-facing description printed on sales documents such as invoices and receipts.
+   */
+  salesDescription: string | null;
+  /**
+   * The default rate billed to clients when this service is sold.
+   */
+  salesPrice: number | null;
+  /**
+   * The revenue tracking ledger account assigned for gathering client sales transactions.
+   */
+  incomeAccount: QbdRef | null;
+  /**
+   * The vendor-facing description printed on procurement documents such as supplier bills and purchase checks.
+   */
+  purchaseDesc: string | null;
+  /**
+   * The standard expenditure rate incurred when sourcing this service from external partners.
+   */
+  purchaseCost: number | null;
+  /**
+   * The specialized localized purchase taxation profile utilized primarily within multi-national reporting jurisdictions.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The financial expense ledger account used to log product or fulfillment costs.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * The designated default supplier or contractor selected for fulfilling this service.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -8163,125 +15008,326 @@ export enum ItemServiceItemItemType {
  * Used to calculate and display subtotals on sales forms. Show subtotal on invoice or PO.
  */
 export type ItemSubtotal = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  itemDesc?: string | null;
-  specialItemType?: string | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Unified dynamic text override pointer matching base declarations.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  description: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The type of special item for this subtotal item.
    */
-  class?: QbdRef | null;
+  specialItemType: NullableSpecialItemType | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
    */
-  parent?: QbdRef | null;
+  fullname: string | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
    */
-  sublevel?: number | null;
+  barcode: string | null;
   /**
-   * Unit of measure set reference.
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  class: QbdRef | null;
   /**
-   * Sales tax code reference.
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
    */
-  salesTaxCode?: QbdRef | null;
+  parent: QbdRef | null;
   /**
-   * General item description.
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
    */
-  description?: string | null;
-  externalId?: string | null;
+  sublevel: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents a JournalEntry transaction.
  */
 export type JournalEntry = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  isAdjustment?: boolean | null;
-  isHomeCurrencyAdjustment?: boolean | null;
-  isAmountsEnteredInHomeCurrency?: boolean | null;
-  debitLines?: Array<JournalLine> | null;
-  creditLines?: Array<JournalLine> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * Indicates whether this journal entry is an adjustment entry. When `true`, QuickBooks retains the original entry information to maintain an audit trail of the adjustments.
+   */
+  isAdjustment: boolean | null;
+  /**
+   * Indicates whether this journal entry is an adjustment made in the company's home currency for a transaction that was originally recorded in a foreign currency.
+   */
+  isHomeCurrencyAdjustment: boolean | null;
+  /**
+   * Indicates if amounts are entered in home currency.
+   */
+  isAmountsEnteredInHomeCurrency: boolean | null;
+  /**
+   * The journal entry's debit lines.
+   */
+  debitLines: Array<JournalLine> | null;
+  /**
+   * The journal entry's credit lines.
+   */
+  creditLines: Array<JournalLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents a single line (either debit or credit) in a JournalEntry.
  */
 export type JournalLine = {
-  objectType?: string;
+  objectType: string;
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  account?: QbdRef | null;
-  amount?: number | null;
-  memo?: string | null;
-  entity?: QbdRef | null;
-  class?: QbdRef | null;
-  itemSalesTax?: QbdRef | null;
-  billableStatus?: string | null;
+  /**
+   * The account associated with this object.
+   */
+  account: QbdRef | null;
+  /**
+   * (Required) Amount for the line.
+   */
+  amount: number | null;
+  /**
+   * Memo for the line. (Max 4095 characters)
+   */
+  memo: string | null;
+  /**
+   * The entity associated with this object.
+   */
+  entity: QbdRef | null;
+  /**
+   * The QbdClass associated with this object.
+   */
+  class: QbdRef | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * Billable status of the line (Billable, NotBillable, HasBeenBilled).
+   */
+  billableStatus: string | null;
 };
 
 /**
  * linked transactions that represent relationships between QuickBooks transactions.
  */
 export type LinkedTransaction = {
-  objectType?: string;
+  /**
+   * Computed type identifier for serialization - returns "LinkedTransaction"
+   */
+  objectType: string;
+  /**
+   * The unique identifier of the linked transaction
+   */
   transactionId: string;
+  /**
+   * The type of transaction (e.g., "Bill", "Invoice", "ReceivePayment", "Check", etc.)
+   */
   transactionType: string;
-  transactionDate?: string;
+  /**
+   * The date of the linked transaction
+   */
+  transactionDate: string;
   /**
    * Optional reference number of the linked transaction
    */
-  refNumber?: string | null;
+  refNumber: string | null;
   /**
    * The type of link - indicates whether the link represents an amount or quantity
    */
-  linkType?: string | null;
+  linkType: string | null;
   /**
    * The amount associated with this link
    */
-  amount?: number;
+  amount: number;
 };
 
 export type LinkToTransactionLineRequest = {
@@ -8321,6 +15367,12 @@ export enum NullableAccountType {
   OTHER_INCOME = "OtherIncome",
 }
 
+export enum NullableAccrualPeriod {
+  ACCRUES_ANNUALLY = "accrues_annually",
+  ACCRUES_HOURLY = "accrues_hourly",
+  ACCRUES_PER_PAYCHECK = "accrues_per_paycheck",
+}
+
 export enum NullableAvsStreet {
   PASS = "Pass",
   FAIL = "Fail",
@@ -8353,12 +15405,55 @@ export enum NullableCashFlowClassification {
   NOT_APPLICABLE = "NotApplicable",
 }
 
+export enum NullableCitizenshipStatus {
+  CITIZEN = "citizen",
+  NON_CITIZEN = "non_citizen",
+}
+
 export enum NullableCreditCardTransactionType {
   AUTHORIZATION = "Authorization",
   CAPTURE = "Capture",
   CHARGE = "Charge",
   REFUND = "Refund",
   VOICE_AUTHORIZATION = "VoiceAuthorization",
+}
+
+export enum NullableDisabilityStatus {
+  NONE = "none",
+  DISABLED = "disabled",
+  NOT_DISABLED = "not_disabled",
+}
+
+export enum NullableEmployeeType {
+  OFFICER = "officer",
+  OWNER = "owner",
+  REGULAR = "regular",
+  STATUTORY = "statutory",
+}
+
+export enum NullableEmploymentStatus {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+}
+
+export enum NullableEthnicity {
+  AMERICAN_INDIAN = "american_indian",
+  ASIAN = "asian",
+  BLACK = "black",
+  HAWAIIAN = "hawaiian",
+  HISPANIC = "hispanic",
+  WHITE = "white",
+  TWO_OR_MORE_RACES = "two_or_more_races",
+}
+
+export enum NullableGender {
+  MALE = "male",
+  FEMALE = "female",
+}
+
+export enum NullableI9FileStatus {
+  ON_FILE = "on_file",
+  NOT_ON_FILE = "not_on_file",
 }
 
 export enum NullableJobStatus {
@@ -8370,7 +15465,33 @@ export enum NullableJobStatus {
   NOT_AWARDED = "NotAwarded",
 }
 
+export enum NullableKeyEmployeeStatus {
+  NONE = "none",
+  KEY_EMPLOYEE = "key_employee",
+  NOT_KEY_EMPLOYEE = "not_key_employee",
+}
+
+export enum NullableMilitaryStatus {
+  ACTIVE = "active",
+  RESERVE = "reserve",
+}
+
+export enum NullableOvertimeExemptStatus {
+  EXEMPT = "exempt",
+  NON_EXEMPT = "non_exempt",
+}
+
 export type NullablePaidStatus = number;
+
+export enum NullablePayPeriod {
+  BIWEEKLY = "biweekly",
+  DAILY = "daily",
+  MONTHLY = "monthly",
+  QUARTERLY = "quarterly",
+  SEMIMONTHLY = "semimonthly",
+  WEEKLY = "weekly",
+  YEARLY = "yearly",
+}
 
 export enum NullableSpecialAccountType {
   ACCOUNTS_PAYABLE = "AccountsPayable",
@@ -8396,111 +15517,304 @@ export enum NullableSpecialAccountType {
   UNDEPOSITED_FUNDS = "UndepositedFunds",
 }
 
+export enum NullableSpecialItemType {
+  FINANCE_CHARGE = "FinanceCharge",
+  REIMBURSABLE_EXPENSE_GROUP = "ReimbursableExpenseGroup",
+  REIMBURSABLE_EXPENSE_SUBTOTAL = "ReimbursableExpenseSubtotal",
+}
+
 export enum NullableTransactionMode {
   CARD_NOT_PRESENT = "CardNotPresent",
   CARD_PRESENT = "CardPresent",
+}
+
+export enum NullableUseTimedataToCreatePaychecks {
+  DOES_NOT_USE_TIME_DATE = "does_not_use_time_date",
+  NOT_SET = "not_set",
+  USES_TIME_DATA = "uses_time_data",
+}
+
+export enum NullableUsVeteranStatus {
+  VETERAN = "veteran",
+  NON_VETERAN = "non_veteran",
 }
 
 /**
  * DTO for an OtherName list item.
  */
 export type OtherName = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  companyName?: string | null;
-  salutation?: string | null;
-  firstName?: string | null;
-  middleName?: string | null;
-  lastName?: string | null;
   /**
-   * The primary address for the "Other Name".
+   * The name of the company associated with this other-name. This name is used on invoices, checks, and other forms.
    */
-  address?: Address | null;
+  companyName: string | null;
   /**
-   * The address formatted as a 5-line block.
+   * The formal salutation title that precedes the name of the contact person for this other-name, such as "Mr.", "Ms.", or "Dr.".
    */
-  addressBlock?: AddressBlock | null;
-  phone?: string | null;
-  alternatePhone?: string | null;
-  fax?: string | null;
-  email?: string | null;
-  contact?: string | null;
-  alternateContact?: string | null;
-  accountNumber?: string | null;
-  notes?: string | null;
+  salutation: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The first name of the contact person for this other-name.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  firstName: string | null;
+  /**
+   * The middle name of the contact person for this other-name.
+   */
+  middleName: string | null;
+  /**
+   * The last name of the contact person for this other-name.
+   */
+  lastName: string | null;
+  /**
+   * The other-name's address.
+   */
+  address: Address | null;
+  addressBlock: AddressBlock | null;
+  /**
+   * The other-name's primary telephone number.
+   */
+  phone: string | null;
+  alternatePhone: string | null;
+  /**
+   * The other-name's fax number.
+   */
+  fax: string | null;
+  /**
+   * The other-name's email address.
+   */
+  email: string | null;
+  /**
+   * The name of the primary contact person for this other-name.
+   */
+  contact: string | null;
+  alternateContact: string | null;
+  /**
+   * The other-name's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
+  accountNumber: string | null;
+  notes: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents an open bill that needs to be paid.
  */
 export type PayableBill = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  amountDue?: number | null;
-  exchangeRate?: number | null;
   /**
-   * Amount due in home currency. This is a direct property for now.
+   * The date the transaction occurred or was recorded.
    */
-  amountDueInHomeCurrency?: string | null;
+  transactionDate: string | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionType?: string | null;
-  payablesAccount?: QbdRef | null;
-  dueDate?: string | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  currency: QbdRef | null;
+  amountDue: number | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  amountDueInHomeCurrency: string | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  transactionType: string | null;
+  payablesAccount: QbdRef | null;
+  dueDate: string | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * DTO for the PaymentMethod list item.
  */
 export type PaymentMethod = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of payment method (e.g., "Cash", "Visa", "ECheck").
+   * This payment method's type.
    */
-  paymentMethodType?: string | null;
+  paymentMethodType: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 export enum PaymentStatus {
@@ -8513,60 +15827,115 @@ export enum PaymentStatus {
  * NOTE: Direct creation of this item via QBXML is generally unsupported/read-only by the QuickBooks SDK.
  */
 export type PayrollItemNonWage = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  /**
-   * The specific type of non-wage item (e.g., Addition, CompanyContribution, Deduction, DirectDeposit, Tax).
-   */
   nonWageType: string;
+  expenseAccount: QbdRef | null;
+  liabilityAccount: QbdRef | null;
   /**
-   * The expense account associated with this payroll item.
+   * Indicates whether the list item is currently active.
    */
-  expenseAccount?: QbdRef | null;
+  isActive: boolean;
   /**
-   * The liability account associated with this payroll item.
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  liabilityAccount?: QbdRef | null;
-  /**
-   * Indicates whether the list item is active. Common to all list types.
-   */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Request record for creating a new PayrollItemWage in QuickBooks.
  */
 export type PayrollItemWage = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of wage (e.g., Bonus, Commission, HourlyOvertime, HourlyRegular, etc.).
+   * Categorizes how this payroll wage item calculates pay - can be hourly (regular, overtime, sick, or vacation), salary (regular, sick, or vacation), bonus, or commission based.
    */
   wageType: string;
   /**
-   * The expense account associated with this wage item.
+   * The expense account used to track wage expenses paid through this payroll wage item.
    */
   expenseAccount: QbdRef;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -8574,24 +15943,70 @@ export type PayrollItemWage = {
  * Inherits id, name, isActive from BaseListDto.
  */
 export type PriceLevel = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  priceLevelType?: string | null;
-  fixedPercentage?: number | null;
-  perItemPriceLevels?: Array<PriceLevelPerItem> | null;
-  currency?: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The price level's type.
+   */
+  priceLevelType: string | null;
+  /**
+   * The fixed percentage adjustment applied to all items for this price level (instead of a per-item price level). Once you create the price level, you cannot change this.
+   *
+   * When this price level is applied to a customer, it automatically adjusts the `rate` and `amount` columns for applicable line items in sales orders and invoices for that customer. This value supports both positive and negative values - a value of "20" increases prices by 20%, while "-10" decreases prices by 10%.
+   */
+  fixedPercentage: number | null;
+  /**
+   * The per-item price level configurations for this price level.
+   */
+  perItemPriceLevels: Array<PriceLevelPerItem> | null;
+  /**
+   * The price level's currency. For built-in currencies, the name and code are standard ISO 4217 international values. For user-defined currencies, all values are editable.
+   */
+  currency: QbdRef | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -8599,9 +16014,18 @@ export type PriceLevel = {
  * Maps to PriceLevelPerItemRet in QBXML.
  */
 export type PriceLevelPerItem = {
-  item?: QbdRef | null;
-  customPrice?: number | null;
-  customPricePercent?: number | null;
+  /**
+   * The item this pricing rule applies to.
+   */
+  item: QbdRef | null;
+  /**
+   * The custom price for this item (mutually exclusive with CustomPricePercent).
+   */
+  customPrice: number | null;
+  /**
+   * The custom price as a percentage (mutually exclusive with CustomPrice).
+   */
+  customPricePercent: number | null;
 };
 
 /**
@@ -8636,125 +16060,417 @@ export type PriceLevelPerItemRequest = {
  * Used to request items or services from a vendor.
  */
 export type PurchaseOrder = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  vendor?: QbdRef | null;
-  class?: QbdRef | null;
-  inventorySite?: QbdRef | null;
-  shipToEntity?: QbdRef | null;
-  template?: QbdRef | null;
-  vendorAddress?: Address | null;
-  vendorAddressBlock?: AddressBlock | null;
-  shipAddress?: Address | null;
-  shipAddressBlock?: AddressBlock | null;
-  terms?: QbdRef | null;
-  dueDate?: string | null;
-  expectedDate?: string | null;
-  shipmentMethod?: QbdRef | null;
-  shipmentOrigin?: string | null;
-  totalAmount?: number | null;
-  isManuallyClosed?: boolean | null;
-  isFullyReceived?: boolean | null;
-  vendorMessage?: string | null;
-  isQueuedForPrint?: boolean | null;
-  isQueuedForEmailed?: boolean | null;
-  isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef | null;
-  otherCustomField1?: string | null;
-  otherCustomField2?: string | null;
-  lines?: Array<PurchaseOrderLine> | null;
-  lineGroups?: Array<PurchaseOrderLineGroup> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The vendor who sent this purchase order for goods or services purchased.
+   */
+  vendor: QbdRef | null;
+  /**
+   * The purchase order's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this purchase order's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The site location where inventory for the item associated with this purchase order is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The customer, vendor, employee, or other entity to whom this purchase order is to be shipped.
+   */
+  shipToEntity: QbdRef | null;
+  /**
+   * The template associated with this object.
+   */
+  template: QbdRef | null;
+  /**
+   * The address of the vendor who sent this purchase order.
+   */
+  vendorAddress: Address | null;
+  /**
+   * The vendorAddressBlock associated with this object.
+   */
+  vendorAddressBlock: AddressBlock | null;
+  /**
+   * (Optional) The shipping address for the Purchase Order.
+   */
+  shipAddress: Address | null;
+  /**
+   * The shipAddressBlock associated with this object.
+   */
+  shipAddressBlock: AddressBlock | null;
+  /**
+   * The purchase order's payment terms, defining when payment is due and any applicable discounts.
+   */
+  terms: QbdRef | null;
+  /**
+   * The date by which this purchase order must be paid, in ISO 8601 format (YYYY-MM-DD).
+   */
+  dueDate: string | null;
+  /**
+   * The date on which shipment of this purchase order is expected to be completed, in ISO 8601 format (YYYY-MM-DD).
+   */
+  expectedDate: string | null;
+  /**
+   * The ShipMethod associated with this object.
+   */
+  shipmentMethod: QbdRef | null;
+  /**
+   * The FOB associated with this object.
+   */
+  shipmentOrigin: string | null;
+  /**
+   * The total monetary amount of this purchase order, equivalent to the sum of the amounts in `lines` and `lineGroups`, represented as a decimal string.
+   */
+  totalAmount: number | null;
+  /**
+   * Indicates whether this purchase order has been manually marked as closed, even if all items have not been received or the sale has not been cancelled. Once the purchase order is marked as closed, all of its line items become closed as well. You cannot change `isManuallyClosed` to `false` after the purchase order has been fully received.
+   */
+  isManuallyClosed: boolean | null;
+  /**
+   * Indicates whether all items in this purchase order have been received and none of them were closed manually.
+   */
+  isFullyReceived: boolean | null;
+  /**
+   * The VendorMsg associated with this object.
+   */
+  vendorMessage: string | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * The IsToBeEmailed associated with this object.
+   */
+  isQueuedForEmailed: boolean | null;
+  /**
+   * (Optional) If true, the line item rates/amounts are inclusive of sales tax.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The sales-tax code for this purchase order, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the vendor. This can be overridden on the purchase order's individual lines.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The PurchaseOrderLines associated with this object.
+   */
+  lines: Array<PurchaseOrderLine> | null;
+  /**
+   * The PurchaseOrderLineGroups associated with this object.
+   */
+  lineGroups: Array<PurchaseOrderLineGroup> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * adds an Item Line to a Purchase Order (PurchaseOrderLineAdd).
  */
 export type PurchaseOrderLine = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  item?: QbdRef | null;
-  manufacturerPartNumber?: string | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  rate?: number | null;
-  class?: QbdRef | null;
-  amount?: number | null;
-  inventorySiteLocation?: QbdRef | null;
-  customer?: QbdRef | null;
-  serviceDate?: string | null;
-  salesTaxCode?: QbdRef | null;
-  receivedQuantity?: number | null;
-  unbilledQuantity?: number | null;
-  isBilled?: boolean | null;
-  isManuallyClosed?: boolean | null;
-  otherCustomField1?: string | null;
-  otherCustomField2?: string | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The Item associated with this object.
+   */
+  item: QbdRef | null;
+  /**
+   * The ManufacturerPartNumber associated with this object.
+   */
+  manufacturerPartNumber: string | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The Rate associated with this object.
+   */
+  rate: number | null;
+  /**
+   * The purchase order's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this purchase order's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The amount associated with this object.
+   */
+  amount: number | null;
+  /**
+   * The InventorySiteLocation associated with this object.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The Customer associated with this object.
+   */
+  customer: QbdRef | null;
+  /**
+   * The ServiceDate associated with this object.
+   */
+  serviceDate: string | null;
+  /**
+   * The sales-tax code for this purchase order, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the vendor. This can be overridden on the purchase order's individual lines.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The ReceivedQuantity associated with this object.
+   */
+  receivedQuantity: number | null;
+  /**
+   * The UnbilledQuantity associated with this object.
+   */
+  unbilledQuantity: number | null;
+  /**
+   * The IsBilled associated with this object.
+   */
+  isBilled: boolean | null;
+  /**
+   * Indicates whether this purchase order has been manually marked as closed, even if all items have not been received or the sale has not been cancelled. Once the purchase order is marked as closed, all of its line items become closed as well. You cannot change `isManuallyClosed` to `false` after the purchase order has been fully received.
+   */
+  isManuallyClosed: boolean | null;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The DataExtRet associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * A reusable request DTO for adding an Item Group Line to a Purchase Order (PurchaseOrderLineGroupAdd).
  */
 export type PurchaseOrderLineGroup = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  objectType?: string;
-  itemGroup?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  isPrintItemsInGroup?: boolean | null;
-  totalAmount?: number | null;
-  lines?: Array<PurchaseOrderLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  objectType: string;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The IsPrintItemsInGroup associated with this object.
+   */
+  isPrintItemsInGroup: boolean | null;
+  /**
+   * The total monetary amount of this purchase order, equivalent to the sum of the amounts in `lines` and `lineGroups`, represented as a decimal string.
+   */
+  totalAmount: number | null;
+  /**
+   * The PurchaseOrderLines associated with this object.
+   */
+  lines: Array<PurchaseOrderLine> | null;
+  /**
+   * The DataExt associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * Represents a custom data extension (Custom Field) in QuickBooks.
  */
 export type QbdDataExt = {
-  ownerId?: string | null;
-  name?: string | null;
-  type?: string | null;
-  value?: string | null;
+  /**
+   * The identifier for the owner of the data.
+   *
+   * Use `"0"` for public custom fields visible in the QuickBooks UI.
+   * For private data, this must be a valid GUID specific to your application.
+   */
+  ownerId: string | null;
+  /**
+   * The name of the custom field or private data extension.
+   *
+   * Must be unique for the specified `ownerId`. For public custom fields, this name is visible as a label in the QuickBooks UI.
+   */
+  name: string | null;
+  /**
+   * The data type of the extension.
+   *
+   * For public custom fields, this value is strictly limited to 255-character strings (e.g., `STR255TYPE`).
+   */
+  type: string | null;
+  /**
+   * The actual value stored in the custom field or private data extension.
+   *
+   * The maximum length and format depend on the field's data type.
+   */
+  value: string | null;
 };
 
 /**
- *     A lightweight reference to another QuickBooks Desktop object.
- * <example>
- * ```{
- * "id": "123",
- * "fullname": "Acme Corp"
- * }```
- * </example>
+ * A reference to another QuickBooks Desktop object.
  */
 export type QbdRef = {
+  /**
+   * The unique QuickBooks id of the referenced object.
+   */
   id: string;
-  fullname?: string | null;
+  /**
+   * The fully-qualified name of the referenced object, including any parent names separated by colons. Case-sensitive.
+   *
+   * Includes the entire parent hierarchy, with each level separated by colons, ending in the object's own name. For nested sub-items, it would be "Grandparent:Parent:Child"
+   */
+  fullname: string | null;
 };
 
 /**
@@ -8795,86 +16511,216 @@ export type RateHistory = {
   /**
    * The rate value.
    */
-  rate?: number | null;
+  rate: number | null;
   /**
    * The effective date of this rate.
    */
-  effectiveDate?: string | null;
+  effectiveDate: string | null;
 };
 
 /**
  * Represents a Receive Payment transaction (ReceivePaymentRet).
  */
 export type ReceivePayment = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  receivablesAccount?: QbdRef | null;
-  paymentMethod?: QbdRef | null;
-  depositToAccount?: QbdRef | null;
-  creditCardTransaction?: CreditCardTransactionInfo | null;
-  unusedPayment?: number | null;
-  unusedCredits?: number | null;
-  appliedToTransactions?: Array<AppliedToTxn> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The txnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer or customer-job to which the payment for this receive-payment is credited.
+   */
+  customer: QbdRef | null;
+  /**
+   * The ARAccount associated with this object.
+   */
+  receivablesAccount: QbdRef | null;
+  /**
+   * The receive-payment's payment method (e.g., cash, check, credit card).
+   */
+  paymentMethod: QbdRef | null;
+  /**
+   * The account where the funds for this receive-payment will be or have been deposited.
+   */
+  depositToAccount: QbdRef | null;
+  /**
+   * The CreditCardTxnInfo associated with this object.
+   */
+  creditCardTransaction: CreditCardTransactionInfo | null;
+  /**
+   * The amount of this receive-payment that remains unapplied to any transactions. This occurs in two cases: (1) When the sum of `paymentAmount` amounts in `applyToTransactions` is less than `totalAmount`, leaving a portion of the payment unused, or (2) When a payment is received that equals the exact amount of an invoice, but credits or discounts are also applied, resulting in excess payment.
+   */
+  unusedPayment: number | null;
+  /**
+   * The amount of credit that remains unused after applying credits to this receive-payment. This occurs when the `applyCredit.appliedAmount` specified for a credit memo (`applyCredit.creditMemoId`) in the `applyToTransactions` array is less than the total available credit amount for that credit memo.
+   */
+  unusedCredits: number | null;
+  /**
+   * List of invoices/transactions to apply this payment to. Mutually exclusive with IsAutoApply.
+   */
+  appliedToTransactions: Array<AppliedToTxn> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * DTO for a transaction that a refund is applied to.
  */
 export type RefundAppliedToTransaction = {
+  /**
+   * The TxnID associated with this object.
+   */
   id: string;
-  objectType?: string;
-  transactionType?: string | null;
-  transactionDate?: string | null;
+  objectType: string;
+  /**
+   * The TxnType associated with this object.
+   */
+  transactionType: string | null;
+  /**
+   * The TxnDate associated with this object.
+   */
+  transactionDate: string | null;
   /**
    * The RefNumber associated with this object.
    */
-  refNumber?: string | null;
+  refNumber: string | null;
   /**
    * The CreditRemaining associated with this object.
    */
-  creditRemaining?: number | null;
+  creditRemaining: number | null;
   /**
    * The RefundAmount associated with this object.
    */
-  refundAmount?: number | null;
+  refundAmount: number | null;
   /**
    * The CreditRemainingInHomeCurrency associated with this object.
    */
-  creditRemainingInHomeCurrency?: number | null;
+  creditRemainingInHomeCurrency: number | null;
   /**
    * The RefundAmountInHomeCurrency associated with this object.
    */
-  refundAmountInHomeCurrency?: number | null;
+  refundAmountInHomeCurrency: number | null;
 };
 
 /**
  * Represents a linkage between the refund and an existing credit transaction.
  */
 export type RefundAppliedToTransactionRequest = {
+  /**
+   * (Required) The TxnID of the credit transaction (e.g., Credit Memo) to apply to.
+   */
   id: string;
   /**
    * (Required) The amount of the refund applied to this specific transaction.
@@ -8886,9 +16732,20 @@ export type RefundAppliedToTransactionRequest = {
  * DTO for a related unit with conversion ratio.
  */
 export type RelatedUnit = {
+  /**
+   * The case-insensitive unique name of this unit-of-measure set, unique across all unit-of-measure sets. To ensure this set appears in the QuickBooks UI for companies configured with a single unit per item, prefix the name with "By the" (e.g., "By the Barrel").
+   *
+   * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
+   */
   name: string;
+  /**
+   * The related unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
+   */
   abbreviation: string;
-  conversionRatio?: number;
+  /**
+   * The number of base units in this related unit, represented as a decimal string. For example, if the base unit is "box" and this related unit is "case" with `conversionRatio` = "10", that means there are 10 boxes in one case.
+   */
+  conversionRatio: number;
 };
 
 /**
@@ -8932,56 +16789,128 @@ export type Report = {
   /**
    * The unique nexus identifier for the report object in the REST API.
    */
-  id?: string | null;
-  objectType?: string;
+  id: string | null;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  title?: string | null;
-  subtitle?: string | null;
-  basis?: string | null;
-  period?: string | null;
-  rowCount?: number | null;
-  columnCount?: number | null;
-  headerRowCount?: number | null;
-  columns?: Array<ReportColumnDescription> | null;
-  data?: ReportData | null;
-  customFields?: Array<QbdDataExt>;
+  /**
+   * The primary title of the report as returned by QuickBooks Desktop
+   * (for example, "Profit &amp; Loss" or "A/P Aging Detail").
+   */
+  title: string | null;
+  /**
+   * The subtitle of the report, which usually contains period or as-of
+   * information such as "As of December 15, 2003".
+   */
+  subtitle: string | null;
+  /**
+   * The accounting basis used for the report, typically Accrual, Cash, or None
+   * when the distinction does not apply to the selected report type.
+   */
+  basis: string | null;
+  /**
+   * The reporting period represented by the result. Depending on the QuickBooks
+   * report type, this may also be reflected in the subtitle or column headers.
+   */
+  period: string | null;
+  /**
+   * Total number of rows returned in the report.
+   */
+  rowCount: number | null;
+  /**
+   * Total number of data columns returned in the report.
+   */
+  columnCount: number | null;
+  /**
+   * Number of header rows required to render the report's column titles.
+   * Some reports use multiple title rows for grouped or nested columns.
+   */
+  headerRowCount: number | null;
+  /**
+   * Metadata describing each column in the report, including identifiers,
+   * titles, column kinds, and data types.
+   */
+  columns: Array<ReportColumnDescription> | null;
+  /**
+   * The body of the report, expressed as hierarchical rows and values
+   * returned by QuickBooks Desktop.
+   */
+  data: ReportData | null;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents a single column's data within a row (maps ColData QBXML element).
  */
 export type ReportColData = {
-  columnId?: string | null;
   /**
-   * The data value for this cell (can be string, number, etc.).
+   * The ID of the column.
    */
-  value?: string | null;
+  columnId: string | null;
   /**
-   * Data type of the value (e.g., "string", "number", "date").
+   * The value of the column.
    */
-  dataType?: string | null;
+  value: string | null;
   /**
-   * Optional additional attributes (e.g., formatting hints, negative indicators).
+   * The data type of the column.
    */
-  attributes?: DictionaryStringString | null;
+  dataType: string | null;
+  /**
+   * The attributes of the column.
+   */
+  attributes: DictionaryStringString | null;
 };
 
 /**
  * Describes a column in the report (maps ColDesc QBXML element).
  */
 export type ReportColumnDescription = {
+  /**
+   * The ID of the column.
+   */
   id: string;
   /**
-   * Data type of the column (e.g., "string", "number", "date").
+   * The data type of the column.
    */
-  dataType?: string | null;
-  type?: string | null;
+  dataType: string | null;
   /**
-   * Hierarchical titles for this column (can be nested for grouped headers).
+   * The type of the column.
    */
-  columnTitles?: Array<ReportColumnTitle> | null;
+  type: string | null;
+  /**
+   * The column titles for the report.
+   */
+  columnTitles: Array<ReportColumnTitle> | null;
 };
 
 /**
@@ -8990,17 +16919,17 @@ export type ReportColumnDescription = {
  */
 export type ReportColumnTitle = {
   /**
-   * The title row number (for multi-row headers).
+   * The title row of the column.
    */
-  titleRow?: number | null;
+  titleRow: number | null;
   /**
-   * The title text for this column or column group.
+   * The value of the column title.
    */
-  value?: string | null;
+  value: string | null;
   /**
-   * Nested column titles for hierarchical headers (e.g., "Q1" under "2024").
+   * The sub-titles for the column.
    */
-  subTitles?: Array<ReportColumnTitle> | null;
+  subTitles: Array<ReportColumnTitle> | null;
 };
 
 /**
@@ -9008,10 +16937,9 @@ export type ReportColumnTitle = {
  */
 export type ReportData = {
   /**
-   * All rows in the report in their original sequence.
-   * Includes TextRow, DataRow, SubtotalRow, and TotalRow.
+   * The rows in the report.
    */
-  rows?: Array<ReportRow> | null;
+  rows: Array<ReportRow> | null;
 };
 
 /**
@@ -9019,35 +16947,47 @@ export type ReportData = {
  */
 export type ReportRow = {
   /**
-   * The type of row: "TextRow", "DataRow", "SubtotalRow", or "TotalRow".
+   * The type of the row.
    */
-  type?: string;
+  type: string;
   /**
-   * Optional row number for positioning.
+   * The row number of the row.
    */
-  rowNumber?: number | null;
+  rowNumber: number | null;
   /**
-   * For TextRow: The text content of the row.
+   * The value of the row.
    */
-  value?: string | null;
-  info?: ReportRowData | null;
-  values?: Array<ReportColData> | null;
-  rows?: Array<ReportRow> | null;
+  value: string | null;
+  /**
+   * The row data for the row.
+   */
+  info: ReportRowData | null;
+  /**
+   * The column data for the row.
+   */
+  values: Array<ReportColData> | null;
+  /**
+   * The nested rows for the row.
+   */
+  rows: Array<ReportRow> | null;
 };
 
 /**
  * Container for row metadata (maps RowData QBXML element within a DataRow).
  */
 export type ReportRowData = {
-  type?: string | null;
   /**
-   * Optional row value or label.
+   * The type of the row.
    */
-  value?: string | null;
+  type: string | null;
   /**
-   * Row number (optional, for reference).
+   * The value of the row.
    */
-  rowNumber?: number | null;
+  value: string | null;
+  /**
+   * The row number of the row.
+   */
+  rowNumber: number | null;
 };
 
 /**
@@ -9057,9 +16997,313 @@ export type RotatePublishableKeyResponse = {
   /**
    * The new publishable key — update all auth flow URLs with this.
    */
-  publishableKey?: string;
-  message?: string;
-  rotatedAt?: string;
+  publishableKey: string;
+  message: string;
+  rotatedAt: string;
+};
+
+/**
+ * Represents inventory that is on back order for a customer.
+ */
+export type SalesOrder = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The customer or job placing this sales order.
+   */
+  customer: QbdRef | null;
+  /**
+   * The category associated with this sales order.
+   */
+  class: QbdRef | null;
+  /**
+   * The template used to format this sales order.
+   */
+  template: QbdRef | null;
+  /**
+   * A reference identifier for this sales order.
+   */
+  referenceNumber: string | null;
+  /**
+   * The customer's billing address.
+   */
+  billingAddress: Address | null;
+  /**
+   * The customer's shipping address.
+   */
+  shippingAddress: Address | null;
+  /**
+   * The payment terms applied to this sales order.
+   */
+  terms: QbdRef | null;
+  /**
+   * The date when payment for this sales order is due.
+   */
+  dueDate: string | null;
+  /**
+   * The sales representative associated with this sales order.
+   */
+  salesRep: QbdRef | null;
+  /**
+   * The Free On Board (FOB) shipping terms.
+   */
+  shipmentOrigin: string | null;
+  /**
+   * The date the goods are expected to be shipped.
+   */
+  shipDate: string | null;
+  /**
+   * The shipping method requested for the delivery.
+   */
+  shipMethod: QbdRef | null;
+  /**
+   * The subtotal amount before taxes or discounts are applied.
+   */
+  subtotal: number | null;
+  /**
+   * The sales tax item applied to this sales order.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The sales tax percentage applied.
+   */
+  salesTaxPercentage: string | null;
+  /**
+   * The total amount of sales tax applied.
+   */
+  salesTaxTotal: number | null;
+  /**
+   * The total monetary amount of the sales order.
+   */
+  totalAmount: number | null;
+  /**
+   * A predefined message to the customer printed on the sales order.
+   */
+  customerMessage: QbdRef | null;
+  /**
+   * Indicates whether this sales order has been completely converted to an invoice.
+   */
+  isFullyInvoiced: boolean | null;
+  /**
+   * Indicates whether this sales order has been manually closed without being fully invoiced.
+   */
+  isManuallyClosed: boolean | null;
+  /**
+   * The individual line items requested on this sales order.
+   */
+  lines: Array<SalesOrderLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
+};
+
+/**
+ * Represents an individual line item on a sales order.
+ */
+export type SalesOrderLine = {
+  /**
+   * The TxnLineId associated with this object.
+   */
+  id: string;
+  objectType: string;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The item associated with this line.
+   */
+  item: QbdRef | null;
+  /**
+   * A description of the item on this line.
+   */
+  description: string | null;
+  /**
+   * The quantity of the item associated with this item line. This field cannot be cleared.
+   *
+   * **NOTE**: Do not use this field if the associated item is a discount item.
+   */
+  quantity: number | null;
+  /**
+   * The cost of this item line, represented as a decimal string. If both `quantity` and `amount` are specified but not `cost`, QuickBooks will use them to calculate `cost`.
+   */
+  cost: number | null;
+  /**
+   * The monetary amount of this item line, represented as a decimal string. If both `quantity` and `cost` are specified but not `amount`, QuickBooks will use them to calculate `amount`. If `amount`, `cost`, and `quantity` are all unspecified, then QuickBooks will calculate `amount` based on a `quantity` of `1` and the suggested `cost`. This field cannot be cleared.
+   */
+  amount: number | null;
+  /**
+   * The customer or customer-job associated with this item line.
+   */
+  customer: QbdRef | null;
+  /**
+   * The item line's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. If a class is specified for the entire parent transaction, it is automatically applied to all item lines unless overridden here, at the transaction line level.
+   */
+  class: QbdRef | null;
+  /**
+   * The OverrideItemAccount associated with this object.
+   */
+  overrideItemAccount: QbdRef | null;
+  /**
+   * The BillableStatus associated with this object.
+   */
+  billableStatus: NullableBillableStatus | null;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The unit-of-measure used for the `quantity` in this item line. Must be a valid unit within the item's available units of measure.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The Rate associated with this object.
+   */
+  rate: number | null;
+  /**
+   * The sales-tax code for this item line, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the parent transaction or the associated item.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The site location where inventory for the item associated with this item line is stored.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location (e.g., bin or shelf) within the inventory site where the item associated with this item line is stored.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The serial number of the item associated with this item line. This is used for tracking individual units of serialized inventory items.
+   */
+  serialNumber: string | null;
+  /**
+   * The lot number of the item associated with this item line. Used for tracking groups of inventory items that are purchased or manufactured together.
+   */
+  lotNumber: string | null;
+  /**
+   * The ServiceDate associated with this object.
+   */
+  serviceDate: string | null;
+  /**
+   * The DataExts associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -9067,107 +17311,397 @@ export type RotatePublishableKeyResponse = {
  * Used for immediate payment sales.
  */
 export type SalesReceipt = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  class?: QbdRef | null;
-  template?: QbdRef | null;
-  billingAddress?: Address | null;
-  billingAddressBlock?: AddressBlock | null;
-  shippingAddress?: Address | null;
-  shippingAddressBlock?: AddressBlock | null;
-  isPending?: boolean | null;
-  checkNumber?: string | null;
-  paymentMethod?: QbdRef | null;
-  dueDate?: string | null;
-  salesRepresentative?: QbdRef | null;
-  shipDate?: string | null;
-  shipMethod?: QbdRef | null;
-  shipmentOrigin?: string | null;
-  subtotal?: number | null;
-  itemSalesTax?: QbdRef | null;
-  salesTaxPercentage?: number | null;
-  salesTaxTotal?: number | null;
-  totalAmount?: number | null;
-  totalAmountInHomeCurrency?: number | null;
-  customerMessage?: QbdRef | null;
-  isQueuedForPrint?: boolean | null;
-  isQueuedForEmail?: boolean | null;
-  isTaxIncluded?: boolean | null;
-  customerSalesTaxCode?: QbdRef | null;
-  depositToAccount?: QbdRef | null;
-  creditCardTransaction?: CreditCardTransactionInfo | null;
-  otherCustomField?: string | null;
-  lines?: Array<SalesReceiptLine> | null;
-  lineGroups?: Array<SalesReceiptLineGroup> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The txnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer or customer-job to which the payment for this sales receipt is credited.
+   */
+  customer: QbdRef | null;
+  /**
+   * The sales receipt's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this sales receipt's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The template associated with this object.
+   */
+  template: QbdRef | null;
+  /**
+   * The BillAddress associated with this object.
+   */
+  billingAddress: Address | null;
+  /**
+   * The BillAddressBlock associated with this object.
+   */
+  billingAddressBlock: AddressBlock | null;
+  /**
+   * The ShipAddress associated with this object.
+   */
+  shippingAddress: Address | null;
+  /**
+   * The ShipAddressBlock associated with this object.
+   */
+  shippingAddressBlock: AddressBlock | null;
+  /**
+   * Indicates whether this sales receipt has not been completed.
+   */
+  isPending: boolean | null;
+  /**
+   * The check number of a check received for this sales receipt.
+   */
+  checkNumber: string | null;
+  /**
+   * The sales receipt's payment method (e.g., cash, check, credit card).
+   */
+  paymentMethod: QbdRef | null;
+  /**
+   * The date by which this sales receipt must be paid, in ISO 8601 format (YYYY-MM-DD).
+   *
+   * **NOTE**: For sales receipts, this field is often `null` because sales receipts are generally used for point-of-sale payments, where full payment is received at the time of purchase.
+   */
+  dueDate: string | null;
+  /**
+   * The SalesRep associated with this object.
+   */
+  salesRepresentative: QbdRef | null;
+  /**
+   * The shipDate associated with this object.
+   */
+  shipDate: string | null;
+  /**
+   * The shipMethod associated with this object.
+   */
+  shipMethod: QbdRef | null;
+  /**
+   * The FOB associated with this object.
+   */
+  shipmentOrigin: string | null;
+  /**
+   * The subtotal of this sales receipt, which is the sum of all sales receipt lines before taxes and payments are applied, represented as a decimal string.
+   */
+  subtotal: number | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * The sales tax percentage applied to this sales receipt, represented as a decimal string.
+   */
+  salesTaxPercentage: number | null;
+  /**
+   * The total amount of sales tax charged for this sales receipt, represented as a decimal string.
+   */
+  salesTaxTotal: number | null;
+  /**
+   * The Total associated with this object.
+   */
+  totalAmount: number | null;
+  /**
+   * The total monetary amount of this sales receipt converted to the home currency of the QuickBooks company file. Represented as a decimal string.
+   */
+  totalAmountInHomeCurrency: number | null;
+  /**
+   * The CustomerMsg associated with this object.
+   */
+  customerMessage: QbdRef | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * The IsToBeEmailed associated with this object.
+   */
+  isQueuedForEmail: boolean | null;
+  /**
+   * (Optional) If true, tax is included in the item amounts (tax-inclusive pricing).
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The customerSalesTaxCode associated with this object.
+   */
+  customerSalesTaxCode: QbdRef | null;
+  /**
+   * The account where the funds for this sales receipt will be or have been deposited.
+   */
+  depositToAccount: QbdRef | null;
+  /**
+   * The CreditCardTxnInfo associated with this object.
+   */
+  creditCardTransaction: CreditCardTransactionInfo | null;
+  /**
+   * The Other associated with this object.
+   */
+  otherCustomField: string | null;
+  /**
+   * The SalesReceiptLines associated with this object.
+   */
+  lines: Array<SalesReceiptLine> | null;
+  /**
+   * The SalesReceiptLineGroups associated with this object.
+   */
+  lineGroups: Array<SalesReceiptLineGroup> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * A reusable request DTO for adding an Item Line to a Sales Receipt (SalesReceiptLineAdd structure).
  */
 export type SalesReceiptLine = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  objectType?: string | null;
-  item?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUOMSet?: QbdRef | null;
-  rate?: number | null;
-  ratePercent?: number | null;
-  class?: QbdRef | null;
-  amount?: number | null;
-  inventorySite?: QbdRef | null;
-  inventorySiteLocation?: QbdRef | null;
-  serialNumber?: string | null;
-  lotNumber?: string | null;
-  expirationDate?: string | null;
-  serviceDate?: string | null;
-  salesTaxCode?: QbdRef | null;
-  otherCustomField1?: string | null;
-  otherCustomField2?: string | null;
-  creditCardTransaction?: CreditCardTransactionInfo | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The type of object. This value is always `"qbd_sales_receipt"`.
+   */
+  objectType: string | null;
+  /**
+   * The Item associated with this object.
+   */
+  item: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUOMSet: QbdRef | null;
+  /**
+   * The Rate associated with this object.
+   */
+  rate: number | null;
+  /**
+   * The RatePercent associated with this object.
+   */
+  ratePercent: number | null;
+  /**
+   * The sales receipt's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. A class defined here is automatically used in this sales receipt's line items unless overridden at the line item level.
+   */
+  class: QbdRef | null;
+  /**
+   * The amount associated with this object.
+   */
+  amount: number | null;
+  /**
+   * The InventorySite associated with this object.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The InventorySiteLocation associated with this object.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The SerialNumber associated with this object.
+   */
+  serialNumber: string | null;
+  /**
+   * The LotNumber associated with this object.
+   */
+  lotNumber: string | null;
+  /**
+   * The ExpirationDateForSerialLotNumber associated with this object.
+   */
+  expirationDate: string | null;
+  /**
+   * The ServiceDate associated with this object.
+   */
+  serviceDate: string | null;
+  /**
+   * The sales-tax code for this sales receipt, determining whether it is taxable or non-taxable. This can be overridden at the transaction-line level.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The Other1 associated with this object.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The CreditCardTxnInfo associated with this object.
+   */
+  creditCardTransaction: CreditCardTransactionInfo | null;
+  /**
+   * The DataExtRet associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
  * A reusable request DTO for adding an Item Group Line to a Sales Receipt (SalesReceiptLineGroupAdd structure).
  */
 export type SalesReceiptLineGroup = {
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  objectType?: string | null;
-  itemGroup?: QbdRef | null;
-  description?: string | null;
-  quantity?: number | null;
-  unitOfMeasure?: string | null;
-  overrideUnitOfMeasureSet?: QbdRef | null;
-  shouldPrintItemsInGroup?: boolean | null;
-  totalAmount?: number | null;
-  lines?: Array<SalesReceiptLine> | null;
-  customFields?: Array<QbdDataExt> | null;
+  /**
+   * The type of object. This value is always `"qbd_sales_receipt"`.
+   */
+  objectType: string | null;
+  /**
+   * The ItemGroup associated with this object.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The Desc associated with this object.
+   */
+  description: string | null;
+  /**
+   * The Quantity associated with this object.
+   */
+  quantity: number | null;
+  /**
+   * The UnitOfMeasure associated with this object.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The OverrideUOMSet associated with this object.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The IsPrintItemsInGroup associated with this object.
+   */
+  shouldPrintItemsInGroup: boolean | null;
+  /**
+   * The total monetary amount of this sales receipt, equivalent to the sum of the amounts in `lines` and `lineGroups`, represented as a decimal string.
+   */
+  totalAmount: number | null;
+  /**
+   * The SalesReceiptLines associated with this object.
+   */
+  lines: Array<SalesReceiptLine> | null;
+  /**
+   * The DataExtRet associated with this object.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -9175,24 +17709,59 @@ export type SalesReceiptLineGroup = {
  * Used to categorize items as taxable or non-taxable.
  */
 export type SalesTaxCode = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  isTaxable?: boolean;
-  desc?: string | null;
-  itemPurchaseTax?: QbdRef | null;
-  itemSalesTax?: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * Indicates whether this sales-tax code is tracking taxable sales. This field cannot be modified once the sales-tax code has been used in a transaction.
+   */
+  isTaxable: boolean;
+  desc: string | null;
+  itemPurchaseTax: QbdRef | null;
+  itemSalesTax: QbdRef | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9200,45 +17769,160 @@ export type SalesTaxCode = {
  * Queries for payments that have been made for sales tax owed (for example, to a state sales tax authority).
  */
 export type SalesTaxPaymentCheck = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  address?: Address | null;
-  addressBlock?: AddressBlock | null;
-  isQueuedForPrint?: boolean | null;
-  lines?: Array<SalesTaxPaymentCheckLine> | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The address that is printed on the check.
+   */
+  address: Address | null;
+  /**
+   * The addressBlock associated with this object.
+   */
+  addressBlock: AddressBlock | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * The SalesTaxPaymentCheckLines associated with this object.
+   */
+  lines: Array<SalesTaxPaymentCheckLine> | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents a line item on a SalesTaxPaymentCheck.
  */
 export type SalesTaxPaymentCheckLine = {
-  objectType?: string;
+  objectType: string;
+  /**
+   * The TxnLineID associated with this object.
+   */
   id: string;
-  itemSalesTax?: QbdRef | null;
-  amount?: number | null;
+  /**
+   * The itemSalesTax associated with this object.
+   */
+  itemSalesTax: QbdRef | null;
+  /**
+   * (Required) The amount of the payment for this line.
+   */
+  amount: number | null;
 };
 
 /**
@@ -9252,65 +17936,156 @@ export type SerialNumberAdjustmentRequest = {
 };
 
 /**
- * Services provided to or from others
+ * Services provided to or from others.
  */
 export type ServiceItem = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  desc?: string | null;
-  price?: number | null;
-  pricePercent?: number | null;
-  account?: QbdRef | null;
-  salesDescription?: string | null;
-  salesPrice?: number | null;
-  incomeAccount?: QbdRef | null;
-  purchaseDesc?: string | null;
-  purchaseCost?: number | null;
-  purchaseTaxCode?: QbdRef | null;
-  expenseAccount?: QbdRef | null;
-  preferredVendor?: QbdRef | null;
   /**
-   * Fully qualified name including parent hierarchy (e.g., "Parent:Child").
+   * Unified diagnostic fallback proxy property mapped from base definitions.
+   *
+   * This property is explicitly ignored from JSON serialization parameters to prevent wire-bloat,
+   * dynamically routing internally to the active operational descriptor.
    */
-  fullname?: string | null;
-  barcode?: string | null;
+  description: string | null;
   /**
-   * Class reference for categorization/departmental tracking.
+   * The standard transaction rate or unit charge for this service.
    */
-  class?: QbdRef | null;
+  price: number | null;
   /**
-   * Parent item reference for hierarchical items.
+   * The standard line item price multiplier formulated as a percentage rather than a static monetary value.
+   *
+   * Configured as an operational alternative to <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.ServiceItemDto.Price" />.
    */
-  parent?: QbdRef | null;
+  pricePercent: number | null;
   /**
-   * Level in the item hierarchy (0 for top-level).
+   * The default ledger tracking account for balancing single-sided transaction entries.
    */
-  sublevel?: number | null;
+  account: QbdRef | null;
   /**
-   * Unit of measure set reference.
+   * The customer-facing description printed on sales documents such as invoices and receipts.
    */
-  unitOfMeasureSet?: QbdRef | null;
+  salesDescription: string | null;
   /**
-   * Sales tax code reference.
+   * The default rate billed to clients when this service is sold.
    */
-  salesTaxCode?: QbdRef | null;
+  salesPrice: number | null;
   /**
-   * General item description.
+   * The revenue tracking ledger account assigned for gathering client sales transactions.
    */
-  description?: string | null;
-  externalId?: string | null;
+  incomeAccount: QbdRef | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The vendor-facing description printed on procurement documents such as supplier bills and purchase checks.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  purchaseDesc: string | null;
+  /**
+   * The standard expenditure rate incurred when sourcing this service from external partners.
+   */
+  purchaseCost: number | null;
+  /**
+   * The specialized localized purchase taxation profile utilized primarily within multi-national reporting jurisdictions.
+   */
+  purchaseTaxCode: QbdRef | null;
+  /**
+   * The financial expense ledger account used to log product or fulfillment costs.
+   */
+  expenseAccount: QbdRef | null;
+  /**
+   * The designated default supplier or contractor selected for fulfilling this service.
+   */
+  preferredVendor: QbdRef | null;
+  /**
+   * The full name of the item, including parent item names for hierarchical items.
+   *
+   * Guaranteed to be unique across all item objects in QuickBooks. Collapsed hierarchy representation using colon delimiters.
+   */
+  fullname: string | null;
+  /**
+   * The barcode value associated with the item.
+   *
+   * Used for hardware optical scanners to identify the product.
+   */
+  barcode: string | null;
+  /**
+   * The class associated with the item.
+   *
+   * Classes are used to track separate financial segments like department, location, or product lines.
+   */
+  class: QbdRef | null;
+  /**
+   * The parent item for hierarchical items.
+   *
+   * Reference to the parent item. Returns null if this item is at the top level of the hierarchy.
+   */
+  parent: QbdRef | null;
+  /**
+   * The sublevel of the item in the hierarchy.
+   *
+   * The hierarchical depth of the item. A top-level item has a sublevel of 0.
+   */
+  sublevel: number | null;
+  /**
+   * The unit of measure set associated with the item.
+   *
+   * Specifies the measurement standards (e.g. weight, length, volume, time) used for quantity tracking.
+   */
+  unitOfMeasureSet: QbdRef | null;
+  /**
+   * The sales tax code associated with the item.
+   *
+   * Determines whether sales tax is normally calculated for this item.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The external ID associated with the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9318,13 +18093,30 @@ export type ServiceItem = {
  * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
  */
 export type SetCredit = {
+  /**
+   * The TxnID associated with this object.
+   */
   id: string;
+  /**
+   * The AppliedAmount associated with this object.
+   */
   amount: number;
-  override?: boolean | null;
+  /**
+   * The override associated with this object.
+   */
+  override: boolean | null;
 };
 
 export type SetCreditRequest = {
+  /**
+   * Gets the credit transaction identifier (Required).
+   *
+   * Corresponds to the JSON property 'creditTransactionId'.
+   */
   creditTransactionId: string;
+  /**
+   * Gets the transaction line identifier.
+   */
   id?: string | null;
   /**
    * Amount applied to an account, invoice, or payment (Optional).
@@ -9344,38 +18136,108 @@ export type SetCreditRequest = {
  * Corresponds to the ShipMethodAdd QBXML message.
  */
 export type ShipMethod = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents an additional shipping destination associated with a customer profile.
  */
 export type ShipToAddress = {
-  line1?: string | null;
-  line2?: string | null;
-  line3?: string | null;
-  line4?: string | null;
-  line5?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postalCode?: string | null;
-  country?: string | null;
-  note?: string | null;
+  /**
+   * The first line of the address.
+   */
+  line1: string | null;
+  /**
+   * The second line of the address.
+   */
+  line2: string | null;
+  /**
+   * The third line of the address.
+   */
+  line3: string | null;
+  /**
+   * The fourth line of the address.
+   */
+  line4: string | null;
+  /**
+   * The fifth line of the address.
+   */
+  line5: string | null;
+  /**
+   * The city, district, suburb, town, or village name of the address.
+   */
+  city: string | null;
+  /**
+   * The state, county, province, or region name of the address.
+   */
+  state: string | null;
+  /**
+   * The postal code or ZIP code of the address.
+   */
+  postalCode: string | null;
+  /**
+   * The country name of the address.
+   */
+  country: string | null;
+  /**
+   * A note written at the bottom of the address in the form in which it appears, such as the invoice form.
+   */
+  note: string | null;
+  /**
+   * A unique, custom label designating this specific shipping address (e.g., "Warehouse 1", "North Branch").
+   *
+   * This name must be unique across all alternate shipping addresses for this specific customer.
+   */
   name: string;
-  isDefaultShippingAddress?: boolean | null;
+  /**
+   * Indicates whether QuickBooks considers this the primary shipping destination for the customer.
+   */
+  isDefaultShippingAddress: boolean | null;
 };
 
 /**
@@ -9395,10 +18257,25 @@ export type ShipToAddressRequest = {
    * Optional - defaults to false.
    */
   defaultShipTo?: boolean | null;
+  /**
+   * (Optional) Address line 1.
+   */
   line1?: string | null;
+  /**
+   * (Optional) Address line 2.
+   */
   line2?: string | null;
+  /**
+   * (Optional) Address line 3.
+   */
   line3?: string | null;
+  /**
+   * (Optional) Address line 4.
+   */
   line4?: string | null;
+  /**
+   * (Optional) Address line 5.
+   */
   line5?: string | null;
   /**
    * (Optional) City.
@@ -9422,14 +18299,79 @@ export type ShipToAddressRequest = {
   note?: string | null;
 };
 
+/**
+ * Sick-hours accrual configuration on an employee request.
+ */
 export type SickHours = {
+  /**
+   * The total number of sick hours currently available for the employee to use, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M. Defaults to 0.
+   */
+  hoursAvailable: string | null;
+  /**
+   * How frequently the employee's sick hours are accrued.
+   */
+  accrualPeriod: NullableAccrualPeriod | null;
+  /**
+   * The number of sick hours the employee has accrued, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  hoursAccrued: string | null;
+  /**
+   * The maximum number of sick hours the employee can accrue, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  maximumHours: string | null;
+  /**
+   * Whether the employee's sick hours are reset each new year.
+   */
+  isResettingHoursEachNewYear: boolean | null;
+  /**
+   * The number of sick hours the employee has used, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  hoursUsed: string | null;
+  /**
+   * The date the employee's sick hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
+  yearBeginsDate: string | null;
+  /**
+   * The date the employee's sick hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
+  accrualStartDate: string | null;
+};
+
+/**
+ * Sick-hours accrual configuration on an employee request.
+ */
+export type SickHoursRequest = {
+  /**
+   * The total number of sick hours currently available, in ISO 8601 duration format (PTnHnMnS).
+   */
   hoursAvailable?: string | null;
-  accrualPeriod?: string | null;
+  /**
+   * How frequently sick hours accrue. Values: BeginningOfYear, EveryHourOnPaycheck, EveryPaycheck.
+   */
+  accrualPeriod?: NullableAccrualPeriod | null;
+  /**
+   * The number of sick hours accrued, in ISO 8601 duration format (PTnHnMnS).
+   */
   hoursAccrued?: string | null;
+  /**
+   * The maximum number of sick hours that can accrue, in ISO 8601 duration format (PTnHnMnS).
+   */
   maximumHours?: string | null;
+  /**
+   * Whether the employee's sick hours are reset each new year.
+   */
   isResettingHoursEachNewYear?: boolean | null;
+  /**
+   * The number of sick hours used, in ISO 8601 duration format (PTnHnMnS).
+   */
   hoursUsed?: string | null;
+  /**
+   * The date sick hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
   yearBeginsDate?: string | null;
+  /**
+   * The date sick hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
   accrualStartDate?: string | null;
 };
 
@@ -9440,24 +18382,56 @@ export type SickHours = {
  * Note: SpecialItem is a CREATE-ONLY resource (no query/update in QBXML schema).
  */
 export type SpecialItem = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of special item: "FinanceCharge", "ReimbursableExpenseGroup", or "ReimbursableExpenseSubtotal".
+   * The type of special item: FinanceCharge, ReimbursableExpenseGroup, or ReimbursableExpenseSubtotal.
    */
-  specialItemType?: string | null;
+  specialItemType: NullableSpecialItemType | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9474,8 +18448,14 @@ export type StandardErrorResponse = {
  * Tax line information mappings for federal tax form reporting.
  */
 export type TaxLineInfo = {
-  taxLineId: number;
-  taxLineName?: string | null;
+  /**
+   * The specific numerical identifier for the tax line.
+   */
+  taxLineId: number | null;
+  /**
+   * The human-readable name of the tax line.
+   */
+  taxLineName: string | null;
 };
 
 /**
@@ -9483,17 +18463,17 @@ export type TaxLineInfo = {
  */
 export type TenantMeResponse = {
   id: string;
-  name?: string;
-  slug?: string;
-  status?: string;
+  name: string;
+  slug: string;
+  status: string;
   /**
    * The tenant-level publishable key (pk_nxus_live_... or pk_nxus_test_...).
    * Use as the ?pk= query parameter in your hosted QWC setup page URLs.
    * Safe to share with clients and embed in frontend code.
    */
-  publishableKey?: string;
+  publishableKey: string;
   createdAt: string;
-  updatedAt?: string | null;
+  updatedAt: string | null;
 };
 
 /**
@@ -9503,26 +18483,76 @@ export type TenantMeResponse = {
  * Note: Terms is a READ-ONLY resource in QuickBooks (query only).
  */
 export type Term = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  dueDays?: number | null;
-  discountDays?: number | null;
-  dueDayOfMonth?: number | null;
-  gracePeriodDays?: number | null;
-  discountDayOfMonth?: number | null;
-  discountPercentage?: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * Number of days until payment is due (Standard Terms).
+   */
+  dueDays: number | null;
+  /**
+   * Number of days within which discount applies (Standard Terms).
+   */
+  discountDays: number | null;
+  /**
+   * Day of the month payment is due (Date Driven Terms).
+   */
+  dueDayOfMonth: number | null;
+  /**
+   * Number of days into next month before due date applies (Date Driven Terms).
+   */
+  gracePeriodDays: number | null;
+  /**
+   * The day of the month within which payment must be received to qualify for the discount specified by `discountPercentage`.
+   */
+  discountDayOfMonth: number | null;
+  /**
+   * Discount percentage (applies to both Standard and Date Driven Terms).
+   */
+  discountPercentage: number | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9530,40 +18560,161 @@ export type Term = {
  * Used to record time worked by an entity.
  */
 export type TimeTracking = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  customer?: QbdRef | null;
-  itemService?: QbdRef | null;
-  duration?: string | null;
-  class?: QbdRef | null;
-  payrollItemWage?: QbdRef | null;
-  notes?: string | null;
-  billableStatus?: string | null;
-  isBillable?: boolean | null;
-  isBilled?: boolean | null;
-  amount?: number | null;
-  entity?: QbdRef | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer associated with this object.
+   */
+  customer: QbdRef | null;
+  /**
+   * The itemService associated with this object.
+   */
+  itemService: QbdRef | null;
+  /**
+   * (Required) The duration of the work performed, formatted as an XML TimeIntervalType string (e.g., "PT8H0M0S" for 8 hours).
+   */
+  duration: string | null;
+  /**
+   * The class associated with this object.
+   */
+  class: QbdRef | null;
+  /**
+   * The payrollItemWage associated with this object.
+   */
+  payrollItemWage: QbdRef | null;
+  /**
+   * (Optional) General notes about the time entry. Max 4095 chars.
+   */
+  notes: string | null;
+  /**
+   * (Optional) Status indicating if the time is billable (Billable, NotBillable, HasBeenBilled).
+   */
+  billableStatus: string | null;
+  /**
+   * (Optional) Legacy flag to set time as billable. Use BillableStatus instead if possible.
+   */
+  isBillable: boolean | null;
+  /**
+   * The isBilled associated with this object.
+   */
+  isBilled: boolean | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
+   */
+  entity: QbdRef | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9571,32 +18722,129 @@ export type TimeTracking = {
  * This is often used when the specific type (Check, Invoice, etc.) is not known.
  */
 export type Transaction = {
-  id: string;
-  objectType?: string;
-  createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionType?: string | null;
-  transactionLineId?: string | null;
-  entity?: QbdRef | null;
-  amount?: number | null;
-  account?: QbdRef | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
+  createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The date the transaction occurred or was recorded.
+   */
+  transactionDate: string | null;
+  /**
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
+   */
+  currency: QbdRef | null;
+  /**
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
+   */
+  exchangeRate: number | null;
+  /**
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
+   */
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The type of transaction returned by the query (e.g., Invoice, ReceivePayment, Check).
+   */
+  transactionType: string | null;
+  /**
+   * The unique identifier for a specific line item within the transaction.
+   */
+  transactionLineId: string | null;
+  /**
+   * The entity associated with this transaction (Customer, Vendor, Employee, etc.)
+   */
+  entity: QbdRef | null;
+  /**
+   * The total monetary amount of the transaction.
+   *
+   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
+   */
+  amount: number | null;
+  /**
+   * The bank or credit card account used for this transaction.
+   */
+  account: QbdRef | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -9604,42 +18852,79 @@ export type Transaction = {
  * Inherits id, name, isActive from BaseListDto.
  */
 export type UnitOfMeasureSet = {
-  id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The unique identifier assigned by QuickBooks to this object.
    */
-  name?: string | null;
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
   /**
-   * The type of measurement (e.g., Area, Count, Length, Other, Time, Volume, Weight).
+   * The unit-of-measure set's type. Use "other" for a custom type defined in QuickBooks.
    */
-  unitOfMeasureType?: string | null;
+  unitOfMeasureType: string | null;
   /**
-   * The fundamental unit for this set (e.g., "Inch").
+   * The unit-of-measure set's base unit used to track and price item quantities. If the company file is enabled for a single unit of measure per item, the base unit is the only unit available on transaction line items. If enabled for multiple units per item, the base unit is the default unless overridden by the set's default units.
    */
-  baseUnit?: BaseUnit | null;
+  baseUnit: BaseUnit | null;
   /**
-   * Other units related to the base unit by a conversion ratio (e.g., "Foot" = 12 * "Inch").
+   * The unit-of-measure set's related units, each specifying how many base units they represent (conversion ratio).
    */
-  relatedUnits?: Array<RelatedUnit> | null;
+  relatedUnits: Array<RelatedUnit> | null;
   /**
-   * Specifies which unit to use by default for specific actions (Purchase, Sales, Shipping).
+   * The unit-of-measure set's default units to appear in the U/M field on transaction line items. You can specify separate defaults for purchases, sales, and shipping.
    */
-  defaultUnits?: Array<DefaultUnit> | null;
+  defaultUnits: Array<DefaultUnit> | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * Indicates whether the list item is currently active.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Contains parameters to modify an existing financial account.
  */
 export type UpdateAccountRequest = {
+  /**
+   * The current revision number of the object, used for optimistic concurrency.
+   *
+   * Provide the most recent revision number to ensure you're working with the latest data; otherwise, the update will fail.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive name of this account.
@@ -9705,7 +18990,7 @@ export type UpdateAdditionalNoteRequest = {
   /**
    * The ID of the note to modify (required for updates).
    */
-  noteId: number;
+  noteID?: number;
   /**
    * A note or comment about this employee.
    */
@@ -9718,6 +19003,9 @@ export type UpdateAdditionalNoteRequest = {
  * Based on the ARRefundCreditCardMod QBXML type.
  */
 export type UpdateArRefundCreditCardRequest = {
+  /**
+   * (Required) The EditSequence of the transaction being modified (for concurrency control).
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the customer receiving the refund.
@@ -9727,7 +19015,13 @@ export type UpdateArRefundCreditCardRequest = {
    * (Optional) The ListID or FullName of the account the refund is coming from.
    */
   refundFromAccountId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account involved.
+   */
   receivablesAccountId?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number for the refund.
@@ -9745,11 +19039,17 @@ export type UpdateArRefundCreditCardRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
+  /**
+   * (Optional) Information about the credit card transaction if processed outside QuickBooks.
+   */
   creditCardTransaction?: CreditCardTransactionInfo | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) List of credit transactions (e.g., Credit Memos) to apply this refund to.
+   */
   refundAppliedToTransactions?: Array<RefundAppliedToTransactionRequest> | null;
 };
 
@@ -9761,6 +19061,12 @@ export type UpdateBillPaymentOrCreditRequest = {
 };
 
 export type UpdateBillRequest = {
+  /**
+   * The concurrency identifier for the record.
+   *
+   * Maps to QuickBooks `EditSequence`. This value changes every time the record is modified.
+   * If the value provided doesn't match the current value in QB, the update will fail.
+   */
   revisionNumber: string;
   /**
    * The unique identifier of the vendor associated with this bill.
@@ -9772,7 +19078,15 @@ export type UpdateBillRequest = {
    * An optional override for the vendor's billing address.
    */
   vendorAddress?: AddressRequest | null;
+  /**
+   * The Accounts Payable (A/P) account used to track the amount owed.
+   *
+   * If omitted, QuickBooks will use its default A/P account.
+   */
   payablesAccountId?: string | null;
+  /**
+   * The transaction date of the bill.
+   */
   transactionDate?: string | null;
   /**
    * The date by which the bill must be paid.
@@ -9844,6 +19158,9 @@ export type UpdateBillRequest = {
  * Based on the BuildAssemblyMod QBXML type.
  */
 export type UpdateBuildAssemblyRequest = {
+  /**
+   * (Required) The current EditSequence of the transaction to ensure concurrency.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the inventory site.
@@ -9861,7 +19178,13 @@ export type UpdateBuildAssemblyRequest = {
    * (Optional) Lot number for the built assembly.
    */
   lotNumber?: string | null;
+  /**
+   * (Optional) Expiration date for the serial/lot number.
+   */
   expirationDate?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number for the build.
@@ -9890,11 +19213,17 @@ export type UpdateBuildAssemblyRequest = {
  * Based on the ChargeMod QBXML type.
  */
 export type UpdateChargeRequest = {
+  /**
+   * (Required) The current EditSequence of the transaction to ensure concurrency.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the customer.
    */
   customerId?: string | null;
+  /**
+   * (Optional) The transaction date.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number (e.g., Invoice #).
@@ -9940,6 +19269,9 @@ export type UpdateChargeRequest = {
    * (Optional) Description of the charge.
    */
   description?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account.
+   */
   receivablesAccountId?: string | null;
   /**
    * (Optional) The ListID or FullName of the class.
@@ -9963,8 +19295,19 @@ export type UpdateChargeRequest = {
  * Request model for updating an existing Check transaction used to pay bills.
  */
 export type UpdateCheckBillPaymentRequest = {
+  /**
+   * (Required) The current EditSequence of the transaction to ensure concurrency.
+   * Max length: 16 characters.
+   */
   revisionNumber: string;
+  /**
+   * (Optional) The ListID of the payee.
+   * Max length: 209 characters.
+   */
   payeeId?: string | null;
+  /**
+   * (Optional) The transaction date.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) A memo for the check.
@@ -10003,6 +19346,9 @@ export type UpdateCheckBillPaymentRequest = {
    * (Optional) The amount in the home currency.
    */
   amountInHomeCurrency?: number | null;
+  /**
+   * (Optional) Indicates if the check is queued for printing.
+   */
   isQueuedForPrint?: boolean | null;
   /**
    * (Optional) List of transactions to apply updates to.
@@ -10014,11 +19360,17 @@ export type UpdateCheckBillPaymentRequest = {
  * Request model for updating an existing check payment
  */
 export type UpdateCheckRequest = {
+  /**
+   * Edit sequence value for optimistic locking (required)
+   */
   revisionNumber: string;
   /**
    * Check number
    */
   refNumber?: string | null;
+  /**
+   * Transaction date
+   */
   traansactionDate?: string | null;
   /**
    * Bank account
@@ -10032,6 +19384,9 @@ export type UpdateCheckRequest = {
    * Memo/description
    */
   memo?: string | null;
+  /**
+   * Whether this check should be marked for printing
+   */
   isQueuedForPrint?: boolean | null;
   /**
    * Payee address
@@ -10079,6 +19434,11 @@ export type UpdateCheckRequest = {
  * Contains parameters to modify an existing class.
  */
 export type UpdateClassRequest = {
+  /**
+   * The current revision number of the object, used for optimistic concurrency.
+   *
+   * Provide the most recent revision number to ensure you're working with the latest data; otherwise, the update will fail.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive name of this class.
@@ -10118,16 +19478,25 @@ export type UpdateConnectionRequest = {
  * Note: QuickBooks typically doesn't support modifying bill payments directly
  */
 export type UpdateCreditCardBillPaymentRequest = {
+  /**
+   * Edit sequence value for optimistic locking (required)
+   */
   revisionNumber: string;
   /**
    * Reference number for the payment
    */
   refNumber?: string | null;
+  /**
+   * Transaction date
+   */
   transactionDate?: string | null;
   /**
    * Vendor/payee being paid
    */
   payeeId?: string | null;
+  /**
+   * Accounts Payable account reference
+   */
   payablesAccountId?: string | null;
   /**
    * Credit card account being charged
@@ -10141,6 +19510,10 @@ export type UpdateCreditCardBillPaymentRequest = {
    * Memo/description for the payment
    */
   memo?: string | null;
+  /**
+   * Bills being paid by this credit card payment
+   * If provided, will replace existing applied bills
+   */
   applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
@@ -10158,6 +19531,9 @@ export type UpdateCreditCardCreditRequest = {
    * Payee Entity ListID (Optional for updates).
    */
   payeeId?: string | null;
+  /**
+   * Transaction date (Optional).
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the transaction (Optional).
@@ -10207,6 +19583,9 @@ export type UpdateCreditCardCreditRequest = {
  * Based on the CreditCardChargeModRq QBXML.
  */
 export type UpdateCreditCardRequest = {
+  /**
+   * (Required) The optimistic concurrency token. Must match the current EditSequence in QuickBooks.
+   */
   revisionNumber: string;
   /**
    * (Optional) Change the Credit Card account used for the charge.
@@ -10216,6 +19595,9 @@ export type UpdateCreditCardRequest = {
    * (Optional) Change the Payee (Vendor, Customer, Employee). Cannot be cleared.
    */
   payeeId?: string | null;
+  /**
+   * (Optional) Change the transaction date. Cannot be cleared.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) Modify or clear the reference number.
@@ -10268,7 +19650,14 @@ export type UpdateCreditCardRequest = {
  * Aggregate containing credit card input and result information for a payment (Mod).
  */
 export type UpdateCreditCardTransactionInfoRequest = {
+  /**
+   * (Optional) Modifiable information about the credit card itself.
+   */
   creditCardTxnInputInfoMod?: UpdateCreditCardTransactionInputInfoRequest | null;
+  /**
+   * (Optional) Modifiable information about the result from the credit card processing gateway.
+   * Note: This object is only included if external transaction data changes.
+   */
   creditCardTxnResultInfoMod?: UpdateCreditCardTransactionResultInfoRequest | null;
 };
 
@@ -10338,6 +19727,9 @@ export type UpdateCreditCardTransactionResultInfoRequest = {
  * Based on CreditMemoLineGroupMod.
  */
 export type UpdateCreditMemoLineGroupRequest = {
+  /**
+   * (Required) The TxnLineID of the group line to modify.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the Item Group.
@@ -10366,6 +19758,9 @@ export type UpdateCreditMemoLineGroupRequest = {
  * Based on CreditMemoLineMod.
  */
 export type UpdateCreditMemoLineRequest = {
+  /**
+   * (Required) The TxnLineID of the line to modify.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item.
@@ -10435,7 +19830,13 @@ export type UpdateCreditMemoLineRequest = {
    * (Optional) The ListID or FullName of the account to override the item's default account.
    */
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) Other custom field 1. Max length: 29.
+   */
   otherCustomField1?: string | null;
+  /**
+   * (Optional) Other custom field 2. Max length: 29.
+   */
   otherCustomField2?: string | null;
 };
 
@@ -10444,6 +19845,9 @@ export type UpdateCreditMemoLineRequest = {
  * Based on CreditMemoModRq.
  */
 export type UpdateCreditMemoRequest = {
+  /**
+   * (Required) The current EditSequence of the transaction to ensure concurrency.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the customer.
@@ -10453,17 +19857,29 @@ export type UpdateCreditMemoRequest = {
    * (Optional) The ListID or FullName of the class.
    */
   classId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/R account.
+   */
   receiveablesAccountId?: string | null;
   /**
    * (Optional) The ListID or FullName of the template.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The reference number.
    */
   refNumber?: string | null;
+  /**
+   * (Optional) The billing address.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address.
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Indicates if the credit memo is pending.
@@ -10481,7 +19897,13 @@ export type UpdateCreditMemoRequest = {
    * (Optional) The due date.
    */
   dueDate?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * (Optional) Free On Board (FOB) terms.
+   */
   shippingOrigin?: string | null;
   /**
    * (Optional) The date of shipment.
@@ -10499,8 +19921,17 @@ export type UpdateCreditMemoRequest = {
    * (Optional) A memo for the transaction.
    */
   memo?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the customer message.
+   */
   customerMessageId?: string | null;
+  /**
+   * (Optional) Indicates if the transaction is to be printed.
+   */
   isQueuedToPrint?: boolean | null;
+  /**
+   * (Optional) Indicates if the transaction is to be emailed.
+   */
   isQueuedToEmail?: boolean | null;
   /**
    * (Optional) Indicates if tax is included in the amounts.
@@ -10510,6 +19941,9 @@ export type UpdateCreditMemoRequest = {
    * (Optional) The ListID or FullName of the customer sales tax code.
    */
   customerSalesTaxCodeId?: string | null;
+  /**
+   * (Optional) Other custom field.
+   */
   otherCustomField?: string | null;
   /**
    * (Optional) The exchange rate for the transaction.
@@ -10519,6 +19953,9 @@ export type UpdateCreditMemoRequest = {
    * (Optional) List of modifications for standard item lines.
    */
   lines?: Array<UpdateCreditMemoLineRequest> | null;
+  /**
+   * (Optional) List of modifications for grouped item lines.
+   */
   lineGroups?: Array<UpdateCreditMemoLineGroupRequest> | null;
 };
 
@@ -10527,6 +19964,10 @@ export type UpdateCreditMemoRequest = {
  * Corresponds to the CurrencyMod QBXML message.
  */
 export type UpdateCurrencyRequest = {
+  /**
+   * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
+   * Implemented from IUpdateRequest.
+   */
   revisionNumber: string;
   /**
    * (Optional) The new name of the currency. Cannot be changed for built-in QuickBooks currencies. (Max 64 characters)
@@ -10550,6 +19991,11 @@ export type UpdateCurrencyRequest = {
  * Represents a request to modify an existing customer or project (job) in QuickBooks Desktop.
  */
 export type UpdateCustomerRequest = {
+  /**
+   * The current revision number assigned by QuickBooks to this customer record.
+   *
+   * **Required for updates.** This ensures optimistic concurrency. You must provide the most recent revision number obtained from a prior GET request. If the record has been modified in QuickBooks since you last fetched it, this update request will be rejected to prevent data loss.
+   */
   revisionNumber: string;
   /**
    * The primary identifier name for the customer or job.
@@ -10657,7 +20103,13 @@ export type UpdateCustomerRequest = {
    * The professional title of the primary contact.
    */
   jobTitle?: string | null;
+  /**
+   * The default billing location for invoices and statements.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * The default shipping location for products.
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * A collection of secondary shipping locations.
@@ -10685,6 +20137,9 @@ export type UpdateCustomerRequest = {
    * The full name of the primary contact individual.
    */
   contact?: string | null;
+  /**
+   * The full name of a secondary or emergency contact individual.
+   */
   alternateContact?: string | null;
   /**
    * User-defined contact data points (e.g., Skype ID, secondary emails).
@@ -10729,7 +20184,7 @@ export type UpdateCustomerRequest = {
   /**
    * A collection of modifications to individual, distinct internal notes attached to the customer record.
    */
-  additionalNotes?: Array<AdditionalNoteMod> | null;
+  additionalNotes?: Array<UpdateAdditionalNoteRequest> | null;
   /**
    * The default medium for sending invoices and estimates.
    */
@@ -10767,6 +20222,9 @@ export type UpdateCustomerTypeRequest = {
  * This model exists only for interface compatibility. The validator will reject all requests.
  */
 export type UpdateDateDrivenTermRequest = {
+  /**
+   * The EditSequence (not used - Terms cannot be modified).
+   */
   revisionNumber: string;
 };
 
@@ -10774,6 +20232,9 @@ export type UpdateDateDrivenTermRequest = {
  * Defines a single Deposit Line item to be modified on the Deposit (uses discriminator pattern and TxnLineId).
  */
 export type UpdateDepositLineRequest = {
+  /**
+   * (Required) The unique ID for this line item within the transaction.
+   */
   transactionLineId: string;
   /**
    * (Optional) Modification details for a payment line (PaymentTxnID, OverrideMemo, etc.).
@@ -10792,7 +20253,14 @@ export type UpdateDepositLineRequest = {
  * Corresponds to the DepositMod QBXML message.
  */
 export type UpdateDepositRequest = {
+  /**
+   * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
+   * Implemented from IUpdateRequest.
+   */
   revisionNumber: string;
+  /**
+   * (Optional) The new date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The ListID or FullName of the bank account where the funds are deposited.
@@ -10803,6 +20271,9 @@ export type UpdateDepositRequest = {
    * (Optional) New general memo about the Deposit. (Max 4095 characters)
    */
   memo?: string | null;
+  /**
+   * (Optional) Modification to the cash back information.
+   */
   cashBackInfo?: CashBackInfoRequest | null;
   /**
    * (Optional) The ListID or FullName of the currency for the transaction.
@@ -10813,7 +20284,13 @@ export type UpdateDepositRequest = {
    * (Optional) New exchange rate if this is a foreign currency Deposit.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) A list of modifications for the existing Deposit lines.
+   */
   depositLines?: Array<UpdateDepositLineRequest> | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -10821,6 +20298,9 @@ export type UpdateDepositRequest = {
  * Request model for updating an existing employee.
  */
 export type UpdateEmployeeRequest = {
+  /**
+   * Required for QuickBooks "Mod" operations for optimistic concurrency.
+   */
   revisionNumber: string;
   /**
    * Indicates whether this employee is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
@@ -10858,7 +20338,10 @@ export type UpdateEmployeeRequest = {
    * A description of this employee. Found in the "employment job details" section of the employee's record in QuickBooks.
    */
   description?: string | null;
-  employeeAddress?: EmployeeAddress | null;
+  /**
+   * The employee's address.
+   */
+  employeeAddress?: AddressRequest | null;
   /**
    * The name to use when printing this employee from QuickBooks. By default, this is the same as the `name` field.
    */
@@ -10879,7 +20362,10 @@ export type UpdateEmployeeRequest = {
    * The employee's pager PIN.
    */
   pagerPin?: string | null;
-  altPhone?: string | null;
+  /**
+   * The employee's alternate phone number.
+   */
+  alternatePhone?: string | null;
   /**
    * The employee's fax number.
    */
@@ -10897,24 +20383,30 @@ export type UpdateEmployeeRequest = {
   /**
    * Additional contact references (may repeat, v12.0+).
    */
-  additionalContacts?: Array<AdditionalContact> | null;
+  additionalContacts?: Array<AdditionalContactRequest> | null;
   /**
    * Emergency contacts for the employee (QBD only, v13.0+).
    */
-  emergencyContacts?: EmergencyContact | null;
+  emergencyContacts?: EmergencyContactRequest | null;
   /**
    * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
    */
-  employeeType?: string | null;
-  partOrFullTime?: string | null;
+  employeeType?: NullableEmployeeType | null;
+  /**
+   * The employee's employment status.
+   */
+  employmentStatus?: NullableEmploymentStatus | null;
   /**
    * This employee's gender.
    */
-  gender?: string | null;
+  gender?: NullableGender | null;
   /**
    * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
    */
   hiredDate?: string | null;
+  /**
+   * The date this employee was released, in ISO 8601 format (YYYY-MM-DD).
+   */
   releasedDate?: string | null;
   /**
    * This employee's date of birth, in ISO 8601 format (YYYY-MM-DD).
@@ -10926,6 +20418,9 @@ export type UpdateEmployeeRequest = {
    * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
    */
   accountNumber?: string | null;
+  /**
+   * Additional notes about this employee.
+   */
   notes?: string | null;
   /**
    * Additional notes about this employee.
@@ -10935,13 +20430,22 @@ export type UpdateEmployeeRequest = {
    * ListID of the billing rate.
    */
   billingRateId?: string | null;
-  suffix?: string | null;
   /**
    * The target bonus for this employee, represented as a decimal string. Found in the "employment job details" section of the employee's record in QuickBooks.
    */
   targetBonus?: number | null;
-  exempt?: string | null;
-  keyEmployee?: string | null;
+  /**
+   * Whether this employee is exempt from overtime pay.
+   *
+   * exempt, non_exempt
+   */
+  overtimeExemptStatus?: NullableOvertimeExemptStatus | null;
+  /**
+   * Whether this employee is a key employee.
+   *
+   * none, key_employee, not_key_employee
+   */
+  keyEmployeeStatus?: NullableKeyEmployeeStatus | null;
   /**
    * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -10950,21 +20454,53 @@ export type UpdateEmployeeRequest = {
    * The adjusted service date for this employee, in ISO 8601 format (YYYY-MM-DD). This date accounts for previous employment periods or leaves that affect seniority.
    */
   adjustedServiceDate?: string | null;
-  usCitizen?: string | null;
+  /**
+   * This employee's citizenship status.
+   *
+   * citizen, non_citizen
+   */
+  usCitizenshipStatus?: NullableCitizenshipStatus | null;
   /**
    * This employee's ethnicity.
    */
-  ethnicity?: string | null;
-  disabled?: string | null;
-  disabilityDesc?: string | null;
-  onFile?: string | null;
-  workAuthExpireDate?: string | null;
-  usVeteran?: string | null;
+  ethnicity?: NullableEthnicity | null;
+  /**
+   * This employee's disability status.
+   */
+  disabilityStatus?: NullableDisabilityStatus | null;
+  /**
+   * This employee's disability description.
+   */
+  disabilityDescription?: string | null;
+  /**
+   * This employee's I-9 file status.
+   *
+   * on_file, not_on_file
+   */
+  i9OnFileStatus?: NullableI9FileStatus | null;
+  /**
+   * This employee's work authorization expiration date.
+   */
+  workAuthorizationExpirationDate?: string | null;
+  /**
+   * Whether this employee is a U.S. veteran.
+   *
+   * veteran, non_veteran
+   */
+  usVeteranStatus?: NullableUsVeteranStatus | null;
   /**
    * This employee's military status if they are a U.S. veteran.
    */
-  militaryStatus?: string | null;
-  employeePayrollInfo?: EmployeePayrollInfo | null;
+  militaryStatus?: NullableMilitaryStatus | null;
+  /**
+   * This employee's payroll information.
+   */
+  employeePayrollInfo?: EmployeePayrollInfoRequest | null;
+  /**
+   * This is the external id of the employee, used to identify the employee in external systems.
+   *
+   * GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   */
   externalId?: string | null;
 };
 
@@ -10973,6 +20509,9 @@ export type UpdateEmployeeRequest = {
  * Corresponds to EstimateLineGroupMod.
  */
 export type UpdateEstimateLineGroupRequest = {
+  /**
+   * (Required) The TxnLineID of the specific group line you want to modify. (IDTYPE)
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item group. (ItemGroupRef, Flattened-ID Pattern)
@@ -10986,6 +20525,9 @@ export type UpdateEstimateLineGroupRequest = {
    * (Optional) Unit of measure for the quantity. (STRTYPE)
    */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the Override Unit of Measure Set. (OverrideUOMSetRef, Flattened-ID Pattern)
+   */
   overrideUnitOfMSetId?: string | null;
   /**
    * (Optional) The ListID or FullName of the Inventory Site. (InventorySiteRef, Flattened-ID Pattern)
@@ -10995,6 +20537,9 @@ export type UpdateEstimateLineGroupRequest = {
    * (Optional) The ListID or FullName of the Inventory Site Location. (InventorySiteLocationRef, Flattened-ID Pattern)
    */
   inventorySiteLocationId?: string | null;
+  /**
+   * (Optional) A list of modifications for the child lines *within* this group. (EstimateLineMod)
+   */
   lines?: Array<UpdateEstimateLineRequest> | null;
 };
 
@@ -11008,7 +20553,13 @@ export type UpdateEstimateLineRequest = {
    * (Required) The TxnLineID of the specific line item being modified or deleted. (IDTYPE)
    */
   txnLineId: string;
+  /**
+   * (Required for Mod) The TxnLineID of the specific line item being modified or deleted. (IDTYPE)
+   */
   id?: string | null;
+  /**
+   * The type of object. This value is always `"qbd_estimate"`.
+   */
   objectType?: string | null;
   /**
    * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
@@ -11082,6 +20633,9 @@ export type UpdateEstimateLineRequest = {
    * (Optional) Custom field 2. Max 29 chars.
    */
   other2?: string | null;
+  /**
+   * (Optional, Add only) List of custom data extensions.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -11092,6 +20646,9 @@ export type UpdateEstimateLineRequest = {
  * TxnDate, IsActive, CreateChangeOrder, DueDate, ItemSalesTaxRef
  */
 export type UpdateEstimateRequest = {
+  /**
+   * (Required) The EditSequence number for optimistic locking. (STRTYPE)
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the customer or job. Cannot be cleared. (CustomerRef, Flattened-ID Pattern)
@@ -11113,7 +20670,13 @@ export type UpdateEstimateRequest = {
    * (Optional) The sequential reference number for the Estimate (e.g., Estimate Number). (STRTYPE)
    */
   refNumber?: string | null;
+  /**
+   * (Optional) Billing address information. (BillAddress)
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) Shipping address information. (ShipAddress)
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) Whether the Estimate is active. Cannot be cleared. (BOOLTYPE)
@@ -11167,12 +20730,21 @@ export type UpdateEstimateRequest = {
    * (Optional) The ListID or FullName of the Customer Sales Tax Code. (CustomerSalesTaxCodeRef, Flattened-ID Pattern)
    */
   customerSalesTaxCodeId?: string | null;
+  /**
+   * (Optional) The Other field for the transaction. (STRTYPE)
+   */
   otherCustomField?: string | null;
   /**
    * (Optional) The exchange rate for multi-currency transactions. (FLOATTYPE)
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) List of modifications for standard Estimate lines (EstimateLineMod). Use the inner 'TxnLineId' to specify Add/Mod/Delete.
+   */
   lines?: Array<UpdateEstimateLineRequest> | null;
+  /**
+   * (Optional) List of modifications for item group lines (EstimateLineGroupMod). Use the inner 'TxnLineId' to specify the group line to modify.
+   */
   lineGroups?: Array<UpdateEstimateLineGroupRequest> | null;
 };
 
@@ -11181,6 +20753,10 @@ export type UpdateEstimateRequest = {
  * Based on the ExpenseLineMod QBXML type.
  */
 export type UpdateExpenseLineRequest = {
+  /**
+   * (Required) The TxnLineID of the specific line you want to modify.
+   * When modifying an existing QbdObject tht does not have a line item yet, use "-1" to add the first line.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the expense account.
@@ -11214,6 +20790,9 @@ export type UpdateExpenseLineRequest = {
    * (Optional) Billable status (Billable, NotBillable, HasBeenBilled).
    */
   billableStatus?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
 };
 
@@ -11237,12 +20816,19 @@ export type UpdateInventoryAdjustmentLineRequest = {
  * Corresponds to the InventoryAdjustmentMod QBXML message.
  */
 export type UpdateInventoryAdjustmentRequest = {
+  /**
+   * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
+   * Implemented from IUpdateRequest.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the Inventory Adjustment account.
    * Follows the Flattened-ID Pattern for AccountRef.
    */
   accountId?: string | null;
+  /**
+   * (Optional) The new date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The new document number. (Max 11 characters)
@@ -11267,7 +20853,13 @@ export type UpdateInventoryAdjustmentRequest = {
    * (Optional) New general memo about the Inventory Adjustment. (Max 4095 characters)
    */
   memo?: string | null;
+  /**
+   * (Optional) A list of line item modifications for the adjustment.
+   */
   inventoryAdjustmentLines?: Array<UpdateInventoryAdjustmentLineRequest> | null;
+  /**
+   * (Optional) A GUID specified by the client to track the request asynchronously.
+   */
   externalId?: string | null;
 };
 
@@ -11280,40 +20872,102 @@ export type UpdateInventoryItemRequest = {
    * The case-insensitive name of this inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory items could both have the `name` "Cabinet", but they could have unique `fullName` values, such as "Kitchen:Cabinet" and "Inventory:Cabinet".
    */
   name: string;
+  /**
+   * The barcode associated with this inventory item.
+   */
   barcode?: BarCodeRequest | null;
+  /**
+   * The unique QuickBooks ListID of the Class linked to this inventory item.
+   */
   classId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the parent inventory item, if this is a sub-item.
+   */
   parentId?: string | null;
+  /**
+   * The manufacturer part number for the inventory item.
+   *
+   * Stored as SKU in the database layer.
+   */
   sku?: string | null;
+  /**
+   * The unique QuickBooks ListID of the unit of measure set associated with this inventory item.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Indicates whether to force a unit of measure change.
+   */
   forceUOMChange?: boolean | null;
+  /**
+   * Indicates whether sales tax is included in the sales price.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * The unique QuickBooks ListID of the sales tax code associated with this inventory item.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * Customer-facing description printed on sales documents like invoices and sales receipts.
+   */
   salesDescription?: string | null;
   /**
    * The price at which this inventory item is sold to customers, represented as a decimal string.
    */
   salesPrice?: number | null;
+  /**
+   * The unique QuickBooks ListID of the income account used to track revenue from sales of this inventory item.
+   */
   incomeAccountId?: string | null;
+  /**
+   * Indicates whether to apply the income account reference to existing transactions retroactively.
+   */
   applyIncomeAccountRefToExistingTxns?: boolean | null;
+  /**
+   * Vendor-facing description printed on purchase forms like purchase orders or bills.
+   */
   purchaseDescription?: string | null;
   /**
    * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
    */
   purchaseCost?: number | null;
+  /**
+   * The unique QuickBooks ListID of the purchase tax code.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the Cost of Goods Sold (COGS) account.
+   */
   cogsAccountId?: string | null;
+  /**
+   * Indicates whether to apply the COGS account reference to existing transactions retroactively.
+   */
   applyCOGSAccountRefToExistingTxns?: boolean | null;
+  /**
+   * The unique QuickBooks ListID of the preferred vendor from whom this inventory item is typically purchased.
+   */
   preferredVendorId?: string | null;
+  /**
+   * The unique QuickBooks ListID of the asset account used to track the current value of this inventory item in inventory.
+   */
   assetAccountId?: string | null;
   /**
    * The minimum quantity of this inventory item at which QuickBooks prompts for reordering.
    */
   reorderPoint?: number | null;
+  /**
+   * The maximum quantity of this inventory item to hold in inventory.
+   */
   maximumQuantityOnHand?: number | null;
   /**
    * Indicates whether this inventory item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * Fulfills the IUpdateRequest interface.
+   * Required for QuickBooks "Mod" operations for optimistic concurrency.
+   *
+   * The concurrency sequencing token validated prior to modification.
+   */
   revisionNumber: string;
 };
 
@@ -11361,6 +21015,9 @@ export type UpdateInventorySiteRequest = {
  * Matches InvoiceModRq in QBXML.
  */
 export type UpdateInvoiceRequest = {
+  /**
+   * Edit sequence value for optimistic locking (required).
+   */
   revisionNumber: string;
   /**
    * Customer ListID (optional for updates).
@@ -11370,19 +21027,37 @@ export type UpdateInvoiceRequest = {
    * Class ListID.
    */
   classId?: string | null;
+  /**
+   * AR Account ListID.
+   */
   receivablesAccountId?: string | null;
   /**
    * Template ListID.
    */
   templateId?: string | null;
+  /**
+   * Transaction date.
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the invoice.
    */
   refNumber?: string | null;
+  /**
+   * Billing Address.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * Shipping Address.
+   */
   shippingAddress?: AddressRequest | null;
+  /**
+   * Indicates whether this invoice has not been completed or is in a draft version.
+   */
   isPending?: boolean | null;
+  /**
+   * The PoNumber associated with this object.
+   */
   purchaseOrderNumber?: string | null;
   /**
    * Terms ListID.
@@ -11392,24 +21067,69 @@ export type UpdateInvoiceRequest = {
    * Due date for the invoice.
    */
   dueDate?: string | null;
+  /**
+   * Sales Rep ListID.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * The Fob associated with this object.
+   */
   shipmentOrigin?: string | null;
+  /**
+   * The ShipDate associated with this object.
+   */
   shippingDate?: string | null;
+  /**
+   * Ship Method ListID.
+   */
   shippingMethodId?: string | null;
+  /**
+   * Item Sales Tax ListID.
+   */
   salesTaxItemId?: string | null;
   /**
    * Memo/description for the invoice.
    */
   memo?: string | null;
+  /**
+   * The Other associated with this object.
+   */
   otherCustomField?: string | null;
+  /**
+   * Customer Msg ListID.
+   */
   customerMessageId?: string | null;
+  /**
+   * The IsToBePrinted associated with this object.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * The IsToBeEmailed associated with this object.
+   */
   isQueuedForEmail?: boolean | null;
+  /**
+   * The isTaxIncluded associated with this object.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * Customer Sales Tax Code ListID.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The market exchange rate between this invoice's currency and the home currency in QuickBooks at the time of this transaction. Represented as a decimal value (e.g., 1.2345 for 1 EUR = 1.2345 USD if USD is the home currency).
+   */
   exchangeRate?: number | null;
+  /**
+   * Specific credit transactions to apply while updating the invoice.
+   */
   applyCredits?: Array<CreateSetCreditRequest> | null;
+  /**
+   * Item line items (replaces existing lines).
+   */
   lines?: Array<UpdateItemLineRequest> | null;
+  /**
+   * Item group line items for the invoice.
+   */
   lineGroups?: Array<UpdateItemGroupLineRequest> | null;
 };
 
@@ -11426,10 +21146,29 @@ export type UpdateItemDiscountRequest = {
    * Indicates whether this discount item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * The unique QuickBooks ListID of the parent discount item, if this is a sub-item.
+   *
+   * Only applicable if this is a sub-item and hierarchy is enabled.
+   */
   parentId?: string | null;
+  /**
+   * The fully qualified name of the parent discount item, if this is a sub-item.
+   */
   parentName?: string | null;
+  /**
+   * The customer-facing description printed on sales documents when applying this discount item.
+   *
+   * Optional. If omitted, QuickBooks will use the default description set on the item itself.
+   */
   itemDesc?: string | null;
+  /**
+   * The unique QuickBooks ListID of the default sales tax code applied to this discount item.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The name of the default sales tax code applied to this discount item.
+   */
   salesTaxCodeName?: string | null;
   /**
    * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
@@ -11443,7 +21182,15 @@ export type UpdateItemDiscountRequest = {
    * **NOTE**: A percentage discount only applies to the line immediately above it, so tax implications only affect that specific line.
    */
   discountRatePercent?: number | null;
+  /**
+   * The unique QuickBooks ListID of the posting account to which transactions involving this discount item are posted.
+   *
+   * Must be an Expense or Income account.
+   */
   accountId?: string | null;
+  /**
+   * The name of the posting account to which transactions involving this discount item are posted.
+   */
   accountName?: string | null;
 };
 
@@ -11451,29 +21198,150 @@ export type UpdateItemDiscountRequest = {
  * Request model for updating an ItemFixedAsset.
  */
 export type UpdateItemFixedAssetRequest = {
+  /**
+   * The current QuickBooks-assigned revision number of this object, which changes each time the object is modified.
+   *
+   * When updating this record, you must provide the most recent revisionNumber/EditSequence to ensure you're working with the latest data; otherwise, the update will return an error.
+   */
   revisionNumber: string;
+  /**
+   * The name of the fixed asset item.
+   * Max Length: 31 characters.
+   *
+   * Must be unique among sibling items within the same hierarchy level. Case-insensitive.
+   */
   name?: string | null;
+  /**
+   * Whether the fixed asset item is active.
+   *
+   * Inactive items are hidden in QuickBooks lists but preserved in historic data.
+   */
   isActive?: boolean | null;
+  /**
+   * Reference to the Class.
+   *
+   * Classes can be used to categorize objects into meaningful segments like departments or product lines.
+   */
   classId?: string | null;
+  /**
+   * Indicates the condition of the asset at the time of acquisition (e.g., "New" or "Used").
+   *
+   * Helps track asset history and initial valuation constraints.
+   */
   acquiredAs?: string | null;
+  /**
+   * A description of the asset specifically related to its purchase.
+   *
+   * Stamped on procurement forms and purchase documentation.
+   */
   purchaseDescription?: string | null;
+  /**
+   * The date on which the business purchased or acquired the asset.
+   *
+   * Tracks the acquisition calendar date.
+   */
   purchaseDate?: string | null;
+  /**
+   * The original purchase price or cost of acquiring the asset.
+   *
+   * Represents the core asset cost.
+   */
   purchaseCost?: number | null;
+  /**
+   * The name of the vendor or payee from whom the asset was purchased.
+   *
+   * Useful for warranty claims and supplier referencing.
+   */
   vendorOrPayeeName?: string | null;
+  /**
+   * The identifier of the specific Fixed Asset account in the Chart of Accounts used to track this asset's financial value.
+   *
+   * Must reference an account of type FixedAsset.
+   */
   assetAccountId?: string | null;
+  /**
+   * A description of the sales transaction or the reason for the asset's disposal.
+   *
+   * Documenting the reason or parameters of the disposal.
+   */
   salesDescription?: string | null;
+  /**
+   * The final price for which the asset was sold.
+   *
+   * The gross sale amount realized.
+   */
   salesPrice?: number | null;
+  /**
+   * The identifier of the asset's posting income account.
+   *
+   * The general ledger revenue tracking account.
+   */
   incomeAccountId?: string | null;
+  /**
+   * The identifier of the sales tax code.
+   *
+   * Mapped sales tax code identifying if this item is taxable.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * A general description of the fixed asset.
+   *
+   * Main asset reference label.
+   */
   assetDescription?: string | null;
+  /**
+   * The physical location or department where the asset is currently kept.
+   *
+   * Identifies geography or cost center.
+   */
   location?: string | null;
+  /**
+   * The Purchase Order number associated with the acquisition of the asset.
+   *
+   * Links the asset back to purchase history.
+   */
   purchaseOrderNumber?: string | null;
+  /**
+   * The serial number or vehicle identification number (VIN) of the asset.
+   *
+   * Unique hardware identification tag.
+   */
   serialNumber?: string | null;
+  /**
+   * The date on which the manufacturer's or vendor's warranty for the asset expires.
+   *
+   * Helps track active warranty timelines.
+   */
   warrantyExpirationDate?: string | null;
+  /**
+   * Additional free-form notes or comments regarding the asset.
+   *
+   * Any miscellaneous asset-related observations.
+   */
   notes?: string | null;
+  /**
+   * A unique, company-assigned tracking number or barcode number for the asset.
+   *
+   * Internal asset tracking code.
+   */
   assetNumber?: string | null;
+  /**
+   * The cost basis of the asset used for calculating tax and depreciation.
+   *
+   * Often includes purchase price plus freight, installation, etc.
+   */
   costBasis?: number | null;
+  /**
+   * The total amount of depreciation accumulated for this asset up to the end of the most recent fiscal year.
+   *
+   * Accumulated depreciation value.
+   */
   yearEndAccumulatedDepreciation?: number | null;
+  /**
+   * The net book value of the asset at the end of the fiscal year.
+   *
+   * Typically Cost Basis minus Accumulated Depreciation.
+   */
   yearEndBookValue?: number | null;
 };
 
@@ -11482,6 +21350,9 @@ export type UpdateItemFixedAssetRequest = {
  * Based on the ItemGroupLineMod QBXML type.
  */
 export type UpdateItemGroupLineRequest = {
+  /**
+   * (Required) The TxnLineID of the specific group line you want to modify.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item group.
@@ -11495,6 +21366,9 @@ export type UpdateItemGroupLineRequest = {
    * (Optional) Unit of measure.
    */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) A list of modifications for the child lines *within* this group.
+   */
   lines?: Array<UpdateItemLineRequest> | null;
   inventorySiteId?: string | null;
   inventorySiteLocationId?: string | null;
@@ -11511,17 +21385,60 @@ export type UpdateItemGroupRequest = {
    * **NOTE**: Item groups do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
   name?: string | null;
+  /**
+   * The barcode request object linking barcode properties.
+   *
+   * Optional barcode configuration.
+   */
   barCode?: BarCodeRequest | null;
   /**
    * Indicates whether this item group is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   *
+   * Inactive objects are hidden in list views.
    */
   isActive?: boolean | null;
+  /**
+   * A general description of the item group.
+   *
+   * Primary reference description.
+   */
   description?: string | null;
+  /**
+   * Reference to the Unit of Measure Set associated with this group.
+   *
+   * Links the group to its available units.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Set to true to force a unit of measure change even if the item group has active transaction history.
+   *
+   * Force-override behavior indicator.
+   */
   forceUnitOfMeasureChange?: boolean | null;
+  /**
+   * Indicates whether the individual items within the group should be printed on transactions.
+   *
+   * If true, component items are printed. If false, only the group header is printed.
+   */
   shouldPrintItemsInGroup?: boolean | null;
+  /**
+   * Set to true to clear all existing items in the group before updating with new lines.
+   *
+   * Clearance indicator.
+   */
   clearItemsInGroup?: boolean | null;
+  /**
+   * The list of member items that comprise this group, along with their quantities and units.
+   *
+   * Define the constituent items.
+   */
   lines?: Array<ItemGroupLineDetailRequest> | null;
+  /**
+   * Fulfills the IUpdateRequest interface.
+   * Required for QuickBooks "Mod" operations for optimistic concurrency.
+   *
+   * The current QuickBooks-assigned revision number of this object, which changes each time the object is modified. When updating this record, you must provide the most recent revisionNumber/EditSequence to ensure you're working with the latest data.
+   */
   revisionNumber: string;
 };
 
@@ -11593,6 +21510,9 @@ export type UpdateItemInventoryAssemblyRequest = {
  * Based on the ItemLineMod QBXML type.
  */
 export type UpdateItemLineRequest = {
+  /**
+   * (Required) The TxnLineID of the specific line you want to modify.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item.
@@ -11659,6 +21579,9 @@ export type UpdateItemLineRequest = {
    */
   expirationDateForSerialLotNumber?: string | null;
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales rep.
+   */
   salesRepresentativeId?: string | null;
 };
 
@@ -11752,11 +21675,17 @@ export type UpdateItemReceiptRequest = {
    * Vendor ListID (Optional for updates).
    */
   vendorId?: string | null;
+  /**
+   * AP Account ListID (Optional for updates).
+   */
   payablesAccountId?: string | null;
   /**
    * Liability Account ListID (Optional for updates).
    */
   liabilityAccountId?: string | null;
+  /**
+   * Transaction date (Optional).
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the transaction (Optional).
@@ -11813,6 +21742,9 @@ export type UpdateItemSalesTaxGroupRequest = {
  * Requires id and revisionNumber.
  */
 export type UpdateItemSalesTaxRequest = {
+  /**
+   * (Required) The current EditSequence value of the ItemSalesTax being modified.
+   */
   revisionNumber: string;
   /**
    * (Optional) The name or identifier for the sales tax item.
@@ -11830,6 +21762,9 @@ export type UpdateItemSalesTaxRequest = {
    * (Optional) The ListID of the QuickBooks Class associated with this item. (Flattened-ID Pattern)
    */
   classId?: string | null;
+  /**
+   * (Optional) A description for the sales tax item.
+   */
   description?: string | null;
   /**
    * (Optional) The tax rate as a percentage (e.g., 7.5 for 7.5%).
@@ -11849,6 +21784,10 @@ export type UpdateItemSalesTaxRequest = {
  * Request model for updating an existing ItemSubtotal.
  */
 export type UpdateItemSubtotalRequest = {
+  /**
+   * Required for ensuring optimistic concurrency.
+   * This corresponds to the EditSequence in QuickBooks.
+   */
   revisionNumber: string;
   /**
    * Description of the item.
@@ -11863,18 +21802,34 @@ export type UpdateItemSubtotalRequest = {
   /**
    * The name of the item.
    * Max Length: 31 characters.
+   *
+   * Must be unique among sibling items within the same hierarchy level. Case-insensitive.
    */
   name: string;
   /**
    * Whether the item is active.
+   *
+   * Inactive items are hidden in QuickBooks lists but preserved in historic data.
    */
   isActive?: boolean | null;
   /**
    * The barcode value of the item.
    * Max Length: 50 characters.
+   *
+   * Raw barcode text value.
    */
   barCodeValue?: string | null;
+  /**
+   * The barcode request object linking barcode properties.
+   *
+   * Optional barcode configuration.
+   */
   barCode?: BarCodeRequest | null;
+  /**
+   * External GUID for the item.
+   *
+   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
+   */
   externalId?: string | null;
 };
 
@@ -11882,7 +21837,13 @@ export type UpdateItemSubtotalRequest = {
  * Request model for updating an existing journal entry.
  */
 export type UpdateJournalEntryRequest = {
+  /**
+   * Edit sequence value for optimistic locking (required). (Max 16 characters)
+   */
   revisionNumber: string;
+  /**
+   * Transaction date.
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the journal entry. (Max 20 characters)
@@ -11904,7 +21865,13 @@ export type UpdateJournalEntryRequest = {
    * (Optional) The ListID or FullName of the currency.
    */
   currencyId?: string | null;
+  /**
+   * Journal debit line items (replaces existing lines).
+   */
   lines?: Array<UpdateJournalLineRequest> | null;
+  /**
+   * Journal credit line items (replaces existing lines).
+   */
   groupLines?: Array<UpdateJournalLineRequest> | null;
 };
 
@@ -11976,8 +21943,11 @@ export type UpdateOtherNameRequest = {
   /**
    * The other-name's address.
    */
-  address?: Address | null;
-  addressBlock?: AddressBlock | null;
+  address?: AddressRequest | null;
+  /**
+   * Represents the other-name's address as a block of text, which may include multiple lines and is not structured into separate fields like street, city, state, etc. This field is used when the full address block needs to be stored as-is.
+   */
+  addressBlock?: AddressBlockRequest | null;
   /**
    * The other-name's primary telephone number.
    */
@@ -12026,6 +21996,10 @@ export type UpdatePaymentMethodRequest = {
    * This payment method's type.
    */
   paymentMethodType?: string | null;
+  /**
+   * Fulfills the IUpdateRequest interface.
+   * Required for QuickBooks "Mod" operations for optimistic concurrency.
+   */
   revisionNumber: string;
 };
 
@@ -12043,6 +22017,9 @@ export type UpdatePaymentMethodRequest = {
  * - CurrencyRef: Optional
  */
 export type UpdatePriceLevelRequest = {
+  /**
+   * (Required) The EditSequence number for optimistic locking. Max length: 16 characters.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive unique name of this price level, unique across all price levels.
@@ -12072,6 +22049,9 @@ export type UpdatePriceLevelRequest = {
  * A reusable request DTO for modifying an existing Item Group Line on a Purchase Order (PurchaseOrderLineGroupMod).
  */
 export type UpdatePurchaseOrderLineGroupRequest = {
+  /**
+   * (Required) The unique ID for this line item group within the transaction.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item group.
@@ -12082,6 +22062,9 @@ export type UpdatePurchaseOrderLineGroupRequest = {
    */
   quantity?: number | null;
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) A list of modifications for the child item lines *within* this group.
+   */
   lines?: Array<UpdatePurchaseOrderLineRequest> | null;
 };
 
@@ -12089,6 +22072,9 @@ export type UpdatePurchaseOrderLineGroupRequest = {
  * A reusable request DTO for modifying an existing Item Line on a Purchase Order (PurchaseOrderLineMod).
  */
 export type UpdatePurchaseOrderLineRequest = {
+  /**
+   * (Required) The unique ID for this line item within the transaction.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item being purchased. (Cannot be cleared if modifying existing value)
@@ -12107,6 +22093,9 @@ export type UpdatePurchaseOrderLineRequest = {
    */
   quantity?: number | null;
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the unit of measure set to override.
+   */
   overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) Cost/Rate per item unit. (Cannot be cleared if modifying existing value)
@@ -12144,7 +22133,13 @@ export type UpdatePurchaseOrderLineRequest = {
    * (Optional) The ListID or FullName of the expense account to override the default item account. (Cannot be cleared if modifying existing value)
    */
   overrideItemAccountId?: string | null;
+  /**
+   * (Optional) User-defined field 1. (Max 29 characters)
+   */
   otherCustomField1?: string | null;
+  /**
+   * (Optional) User-defined field 2. (Max 29 characters)
+   */
   otherCustomField2?: string | null;
 };
 
@@ -12153,6 +22148,10 @@ export type UpdatePurchaseOrderLineRequest = {
  * Corresponds to the PurchaseOrderMod QBXML message.
  */
 export type UpdatePurchaseOrderRequest = {
+  /**
+   * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
+   * Implemented from IUpdateRequest.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the Vendor for this Purchase Order.
@@ -12179,6 +22178,9 @@ export type UpdatePurchaseOrderRequest = {
    * Follows the Flattened-ID Pattern for TemplateRef.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The date of the transaction. (Cannot be cleared if modifying existing value)
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The document number. (Max 11 characters)
@@ -12247,9 +22249,21 @@ export type UpdatePurchaseOrderRequest = {
    * (Optional) New exchange rate if this is a foreign currency Purchase Order.
    */
   exchangeRate?: number | null;
+  /**
+   * The Other1 associated with this object.
+   */
   other1?: string | null;
+  /**
+   * The Other2 associated with this object.
+   */
   other2?: string | null;
+  /**
+   * (Optional) A list of item line modifications for the purchase order.
+   */
   lines?: Array<UpdatePurchaseOrderLineRequest> | null;
+  /**
+   * (Optional) A list of item group line modifications for the purchase order.
+   */
   lineGroups?: Array<UpdatePurchaseOrderLineGroupRequest> | null;
 };
 
@@ -12258,12 +22272,21 @@ export type UpdatePurchaseOrderRequest = {
  * QB requires EditSequence to identify the record to update.
  */
 export type UpdateReceivePaymentRequest = {
+  /**
+   * Required for QuickBooks "Mod" operations for optimistic concurrency.
+   */
   revisionNumber: string;
   /**
    * Customer making the payment.
    */
   customerId?: string | null;
+  /**
+   * Accounts Receivable account reference.
+   */
   receivablesAccountId?: string | null;
+  /**
+   * Transaction date.
+   */
   transactionDate?: string | null;
   /**
    * Reference number for the payment (max 20 chars).
@@ -12293,27 +22316,199 @@ export type UpdateReceivePaymentRequest = {
    * Credit card transaction information (v7.0+ for mod).
    */
   creditCardTxnInfo?: CreditCardTxnInfoRequest | null;
+  /**
+   * List of invoices/transactions to apply this payment to.
+   */
   appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 export type UpdateSalesAndPurchaseRequest = {
+  /**
+   * Revised text printed uniquely on outbound document lines.
+   */
   salesDescription?: string | null;
+  /**
+   * Adjusted standard financial billing threshold for outgoing actions.
+   */
   salesPrice?: number | null;
+  /**
+   * Adjusted revenue tracker index mapping current sales collections.
+   */
   incomeAccountId?: string | null;
+  /**
+   * Instructs previous logs to map outgoing historical numbers onto the newly structured income category.
+   */
   applyIncomeAccountToExistingTransactions?: boolean | null;
+  /**
+   * Revised notation summary stamped across vendor bill logs.
+   */
   purchaseDescription?: string | null;
+  /**
+   * Adjusted resource payment value utilized for contractor overhead tasks.
+   */
   purchaseCost?: number | null;
+  /**
+   * Adjusted expenditure tax category parameters.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * Adjusted financial cost tracker account registering vendor invoices.
+   */
   expenseAccountId?: string | null;
+  /**
+   * Instructs preceding operational data blocks to update their past expense lines to utilize this customized tracking account.
+   */
   applyExpenseAccountToExistingTransactions?: boolean | null;
+  /**
+   * Adjusted key default supplier node link assigned during outlays.
+   */
   prefVendorId?: string | null;
 };
 
-export type UpdateSalesOrPurchaseRequest = {
+/**
+ * Contains parameters to modify an existing sales order line item.
+ */
+export type UpdateSalesOrderLineRequest = {
+  /**
+   * The unique identifier of the line item to update.
+   */
+  id?: string | null;
+  /**
+   * The item associated with this line.
+   */
+  itemId?: string | null;
+  /**
+   * A description of the item on this line.
+   */
   description?: string | null;
+  /**
+   * The quantity of the item requested.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure used for the quantity.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The rate or price per unit of the item.
+   */
+  rate?: number | null;
+  /**
+   * The category associated with this line item.
+   */
+  classId?: string | null;
+};
+
+/**
+ * Contains parameters to modify an existing sales order.
+ */
+export type UpdateSalesOrderRequest = {
+  /**
+   * The current revision number of the object, used for optimistic concurrency.
+   */
+  revisionNumber: string;
+  /**
+   * The customer or job placing this sales order.
+   */
+  customerId?: string | null;
+  /**
+   * The category associated with this sales order.
+   */
+  classId?: string | null;
+  /**
+   * The template used to format this sales order.
+   */
+  templateId?: string | null;
+  /**
+   * The date of the sales order transaction.
+   */
+  transactionDate?: string | null;
+  /**
+   * A reference identifier for this sales order.
+   */
+  referenceNumber?: string | null;
+  /**
+   * The customer's billing address.
+   */
+  billingAddress?: AddressRequest | null;
+  /**
+   * The customer's shipping address.
+   */
+  shippingAddress?: AddressRequest | null;
+  /**
+   * The payment terms applied to this sales order.
+   */
+  termsId?: string | null;
+  /**
+   * The date when payment for this sales order is due.
+   */
+  dueDate?: string | null;
+  /**
+   * The sales representative associated with this sales order.
+   */
+  salesRepId?: string | null;
+  /**
+   * The Free On Board (FOB) shipping terms.
+   */
+  fob?: string | null;
+  /**
+   * The date the goods are expected to be shipped.
+   */
+  shipDate?: string | null;
+  /**
+   * The shipping method requested for the delivery.
+   */
+  shipMethodId?: string | null;
+  /**
+   * The sales tax item applied to this sales order.
+   */
+  itemSalesTaxId?: string | null;
+  /**
+   * A memo or note regarding the sales order.
+   */
+  memo?: string | null;
+  /**
+   * A predefined message to the customer printed on the sales order.
+   */
+  customerMessageId?: string | null;
+  /**
+   * Indicates whether the sales order is queued to be printed.
+   */
+  isToBePrinted?: boolean | null;
+  /**
+   * Indicates whether the sales order is queued to be emailed.
+   */
+  isToBeEmailed?: boolean | null;
+  /**
+   * Indicates whether this sales order has been manually closed without being fully invoiced.
+   */
+  isManuallyClosed?: boolean | null;
+  /**
+   * The individual line items requested on this sales order.
+   */
+  lines?: Array<UpdateSalesOrderLineRequest> | null;
+};
+
+export type UpdateSalesOrPurchaseRequest = {
+  /**
+   * Updated summary string text used for line item forms.
+   */
+  description?: string | null;
+  /**
+   * Revised numeric currency valuation assigned for singular actions.
+   */
   price?: number | null;
+  /**
+   * Revised proportional value matrix applied as an operational fallback rule.
+   */
   pricePercent?: number | null;
+  /**
+   * Revised target balance index reference for one-sided entries.
+   */
   accountId?: string | null;
+  /**
+   * Instructs historical data pipelines to shift past accounting log entries onto this new balance ledger.
+   */
   applyAccountToExistingTransactions?: boolean | null;
 };
 
@@ -12321,6 +22516,9 @@ export type UpdateSalesOrPurchaseRequest = {
  * A reusable request DTO for modifying an existing Item Group Line on a Sales Receipt (SalesReceiptLineGroupMod structure).
  */
 export type UpdateSalesReceiptLineGroupRequest = {
+  /**
+   * (Required) The unique ID for this line item group within the transaction.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item group.
@@ -12334,6 +22532,9 @@ export type UpdateSalesReceiptLineGroupRequest = {
    * (Optional) Unit of measure override. (Max 31 characters)
    */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) A list of modifications for the child item lines *within* this group.
+   */
   lines?: Array<UpdateSalesReceiptLineRequest> | null;
 };
 
@@ -12341,6 +22542,9 @@ export type UpdateSalesReceiptLineGroupRequest = {
  * A reusable request DTO for modifying an existing Item Line on a Sales Receipt (SalesReceiptLineMod structure).
  */
 export type UpdateSalesReceiptLineRequest = {
+  /**
+   * (Required) The unique ID for this line item within the transaction.
+   */
   id: string;
   /**
    * (Optional) The ListID or FullName of the item.
@@ -12358,6 +22562,9 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) Unit of measure override. (Max 31 characters)
    */
   unitOfMeasure?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the unit of measure set to override.
+   */
   overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) The direct rate per unit. Use either Rate, RatePercent, or PriceLevelId.
@@ -12395,6 +22602,9 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) Lot number for the item. Mutually exclusive with SerialNumber. (Max 40 characters)
    */
   lotNumber?: string | null;
+  /**
+   * (Optional) Expiration date for the serial or lot number. (Max 1099 characters)
+   */
   expirationDate?: string | null;
   /**
    * (Optional) The new date the service was performed.
@@ -12404,7 +22614,13 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) The ListID or FullName of the sales tax code.
    */
   salesTaxCodeId?: string | null;
+  /**
+   * (Optional) User-defined field 1. (Max 29 characters)
+   */
   otherCustomField1?: string | null;
+  /**
+   * (Optional) User-defined field 2. (Max 29 characters)
+   */
   otherCustomField2?: string | null;
 };
 
@@ -12413,6 +22629,9 @@ export type UpdateSalesReceiptLineRequest = {
  * Corresponds to the SalesReceiptMod QBXML message.
  */
 export type UpdateSalesReceiptRequest = {
+  /**
+   * (Required) The EditSequence for concurrency control. (Max 16 characters)
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the customer or job this Sales Receipt is for.
@@ -12426,12 +22645,21 @@ export type UpdateSalesReceiptRequest = {
    * (Optional) The ListID or FullName of the Sales Receipt template to use.
    */
   templateId?: string | null;
+  /**
+   * (Optional) The new date of the transaction.
+   */
   transactionDate?: string | null;
   /**
    * (Optional) The new document number (e.g., receipt number). (Max 11 characters)
    */
   refNumber?: string | null;
+  /**
+   * (Optional) The billing address modification for the transaction.
+   */
   billingAddress?: AddressRequest | null;
+  /**
+   * (Optional) The shipping address modification for the transaction.
+   */
   shippingAddress?: AddressRequest | null;
   /**
    * (Optional) New check number if payment method is check. (Max 25 characters)
@@ -12445,8 +22673,17 @@ export type UpdateSalesReceiptRequest = {
    * (Optional) The new date the payment is due (if applicable).
    */
   dueDate?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the sales representative.
+   */
   salesRepresentativeId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the ship method.
+   */
   shippingMethodId?: string | null;
+  /**
+   * (Optional) Free On Board point. (Max 13 characters)
+   */
   shipmentOrigin?: string | null;
   /**
    * (Optional) The ListID or FullName of the sales tax item or group.
@@ -12456,8 +22693,17 @@ export type UpdateSalesReceiptRequest = {
    * (Optional) New general memo about the Sales Receipt. (Max 4095 characters)
    */
   memo?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the custom message for the customer.
+   */
   customerMessageId?: string | null;
+  /**
+   * (Optional) If true, the Sales Receipt should be printed.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) If true, the Sales Receipt should be emailed.
+   */
   isQueuedForEmail?: boolean | null;
   /**
    * (Optional) If true, tax is included in the item amounts (tax-inclusive pricing).
@@ -12475,9 +22721,21 @@ export type UpdateSalesReceiptRequest = {
    * (Optional) New exchange rate if this is a foreign currency Sales Receipt.
    */
   exchangeRate?: number | null;
+  /**
+   * (Optional) User-defined field. (Max 29 characters)
+   */
   otherCustomField?: string | null;
+  /**
+   * (Optional) Modifications to credit card transaction details.
+   */
   creditCardTransaction?: UpdateCreditCardTransactionInfoRequest | null;
+  /**
+   * (Optional) A list of item line modifications for the transaction.
+   */
   lines?: Array<UpdateSalesReceiptLineRequest> | null;
+  /**
+   * (Optional) A list of item group line modifications for the transaction.
+   */
   lineGroups?: Array<UpdateSalesReceiptLineGroupRequest> | null;
 };
 
@@ -12486,6 +22744,10 @@ export type UpdateSalesReceiptRequest = {
  * Corresponds to the SalesTaxCodeMod QBXML message.
  */
 export type UpdateSalesTaxCodeRequest = {
+  /**
+   * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
+   * Implemented from IUpdateRequest.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive unique name of this sales-tax code, unique across all sales-tax codes. This short name will appear on sales forms to identify the tax status of an item.
@@ -12523,6 +22785,9 @@ export type UpdateSalesTaxCodeRequest = {
  * Note: This request only modifies header fields; lines cannot be modified.
  */
 export type UpdateSalesTaxPaymentCheckRequest = {
+  /**
+   * (Required) The EditSequence for optimistic locking.
+   */
   revisionNumber: string;
   /**
    * (Optional) The date of the transaction.
@@ -12532,7 +22797,13 @@ export type UpdateSalesTaxPaymentCheckRequest = {
    * (Optional) The ListID or FullName of the bank account.
    */
   bankAccountId?: string | null;
+  /**
+   * (Optional) Specifies whether the check is to be printed.
+   */
   isQueuedForPrint?: boolean | null;
+  /**
+   * (Optional) The reference number (check number). Max 11 chars.
+   */
   refNumber?: string | null;
   /**
    * (Optional) A memo for the transaction. Max 4095 chars.
@@ -12545,26 +22816,65 @@ export type UpdateSalesTaxPaymentCheckRequest = {
 };
 
 export type UpdateServiceItemRequest = {
+  /**
+   * The concurrency sequencing token validated prior to modification to guarantee transaction state integrity.
+   */
   revisionNumber: string;
   /**
-   * The case-insensitive name of this service item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two service items could both have the `name` "Web-Design", but they could have unique `fullName` values, such as "Consulting:Web-Design" and "Contracting:Web-Design".
+   * The updated name label assigned to this specific tracking node.
    */
   name?: string | null;
+  /**
+   * Modified hardware scanning configurations associated with this record.
+   */
   barCode?: BarCodeRequest | null;
   /**
-   * Indicates whether this service item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
+   * Alters whether this listing is hidden from active operational workflows and ledger dropdowns.
    */
   isActive?: boolean | null;
+  /**
+   * Shifts the position of this listing under a different structural tier or category header.
+   */
   parentId?: string | null;
+  /**
+   * Adjusts the base transaction tax code for newly drafted documents.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * Substitutes the measurement schema framework linked to this listing.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Mandates historical calculation overwrites across open transaction history for revised unit structures.
+   */
   forceUOMChange?: boolean | null;
+  /**
+   * Changes whether newly drafted document values assume taxes are pre-calculated inside the listed value.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * Triggers historical modifications to retroactively alter mapped one-sided ledger fields on processed, unclosed transaction records.
+   */
   applyAccountToExistingTransactions?: boolean | null;
+  /**
+   * Triggers historical updates to cascade revised client income tracking properties down onto processed records in unclosed books.
+   */
   applyIncomeAccountToExistingTransactions?: boolean | null;
+  /**
+   * Triggers retroactive updates to apply the newly selected vendor asset or cost account onto past purchase data logs.
+   */
   applyExpenseAccountToExistingTransactions?: boolean | null;
+  /**
+   * Modified data sub-structure properties for single-sided transactional structures.
+   */
   salesOrPurchaseMod?: UpdateSalesOrPurchaseRequest | null;
+  /**
+   * Modified data sub-structure properties for double-sided customer sales and vendor purchase models.
+   */
   salesAndPurchaseMod?: UpdateSalesAndPurchaseRequest | null;
+  /**
+   * Custom filtering options specifying exactly which fields should be populated during a query response cycle.
+   */
   includeRetElement?: Array<string> | null;
 };
 
@@ -12573,6 +22883,9 @@ export type UpdateServiceItemRequest = {
  * Corresponds to the ShipMethodMod QBXML message.
  */
 export type UpdateShipMethodRequest = {
+  /**
+   * (Required) The current EditSequence of the item, required for concurrency control.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive unique name of this shipping method, unique across all shipping methods.
@@ -12592,6 +22905,9 @@ export type UpdateShipMethodRequest = {
  * This model exists only for interface compatibility. The validator will reject all requests.
  */
 export type UpdateTermRequest = {
+  /**
+   * The EditSequence (not used - Terms cannot be modified).
+   */
   revisionNumber: string;
 };
 
@@ -12600,7 +22916,13 @@ export type UpdateTermRequest = {
  * Corresponds to the TimeTrackingMod QBXML message.
  */
 export type UpdateTimeTrackingRequest = {
+  /**
+   * (Required) The EditSequence for concurrency control.
+   */
   revisionNumber: string;
+  /**
+   * (Optional) The new date the work was performed.
+   */
   transactionDate?: string | null;
   /**
    * (Required) The ListID or FullName of the Entity (Employee, Vendor, or OtherName) that performed the work.
@@ -12647,11 +22969,17 @@ export type UpdateTimeTrackingRequest = {
  * Based on the VendorCreditMod QBXML type.
  */
 export type UpdateVendorCreditRequest = {
+  /**
+   * (Required) The EditSequence for optimistic locking.
+   */
   revisionNumber: string;
   /**
    * (Optional) The ListID or FullName of the vendor.
    */
   vendorId?: string | null;
+  /**
+   * (Optional) The ListID or FullName of the A/P account.
+   */
   payablesAccountId?: string | null;
   /**
    * (Optional) The date of the transaction.
@@ -12835,6 +23163,9 @@ export type UpdateVendorRequest = {
  * - RateEntry: Optional (may repeat)
  */
 export type UpdateWorkersCompCodeRequest = {
+  /**
+   * (Required) The current EditSequence for optimistic locking. Max length: 16.
+   */
   revisionNumber: string;
   /**
    * The case-insensitive unique name of this employee, unique across all employees. A concatenation of the employee's `firstName`, `middleName`, and `lastName` fields.
@@ -12856,14 +23187,85 @@ export type UpdateWorkersCompCodeRequest = {
   rateEntries?: Array<RateEntryRequest> | null;
 };
 
+/**
+ * Vacation-hours accrual configuration on an employee request.
+ */
 export type VacationHours = {
+  /**
+   * The total number of vacation hours currently available for the employee to use, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M. Defaults to 0.
+   */
+  hoursAvailable: string | null;
+  /**
+   * How frequently the employee's vacation hours are accrued.
+   */
+  accrualPeriod: NullableAccrualPeriod | null;
+  /**
+   * The number of vacation hours the employee has accrued, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  hoursAccrued: string | null;
+  /**
+   * The maximum number of vacation hours the employee can accrue, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  maximumHours: string | null;
+  /**
+   * Whether the employee's vacation hours are reset each new year.
+   */
+  isResettingHoursEachNewYear: boolean | null;
+  /**
+   * The number of vacation hours the employee has used, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
+   */
+  hoursUsed: string | null;
+  /**
+   * The date the employee's vacation hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
+  yearBeginsDate: string | null;
+  /**
+   * The date the employee's vacation hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   */
+  accrualStartDate: string | null;
+};
+
+/**
+ * Vacation-hours accrual configuration on an employee request.
+ */
+export type VacationHoursRequest = {
+  /**
+   * The total number of vacation hours currently available, in ISO 8601 duration format (PTnHnMnS).
+   */
   hoursAvailable?: string | null;
-  accrualPeriod?: string | null;
+  /**
+   * How frequently vacation hours accrue. Values: BeginningOfYear, EveryHourOnPaycheck, EveryPaycheck.
+   */
+  accrualPeriod?: NullableAccrualPeriod | null;
+  /**
+   * The number of vacation hours accrued, in ISO 8601 duration format (PTnHnMnS).
+   *
+   * 5 hours would be represented as PT5H, 1 hour 30 minutes as PT1H30M.
+   */
   hoursAccrued?: string | null;
+  /**
+   * The maximum number of vacation hours that can accrue, in ISO 8601 duration format (PTnHnMnS).
+   */
   maximumHours?: string | null;
+  /**
+   * Whether the employee's vacation hours are reset each new year.
+   */
   isResettingHoursEachNewYear?: boolean | null;
+  /**
+   * The number of vacation hours used, in ISO 8601 duration format (PTnHnMnS).
+   */
   hoursUsed?: string | null;
+  /**
+   * The date vacation hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   *
+   * This date is used to determine when the employee's vacation hours begin to accrue.
+   */
   yearBeginsDate?: string | null;
+  /**
+   * The date vacation hours began to accrue, in ISO 8601 format (YYYY-MM-DD).
+   *
+   * This date is used to determine when the employee's vacation hours begin to accrue.
+   */
   accrualStartDate?: string | null;
 };
 
@@ -12883,110 +23285,374 @@ export type ValueAdjustmentRequest = {
  * the company’s vendors as appropriate to your app. Use the Vendor object to access the vendor list.
  */
 export type Vendor = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  companyName?: string | null;
-  salutation?: string | null;
-  firstName?: string | null;
-  middleName?: string | null;
-  lastName?: string | null;
-  jobTitle?: string | null;
-  phone?: string | null;
-  alternatePhone?: string | null;
-  fax?: string | null;
-  email?: string | null;
-  ccEmail?: string | null;
-  contact?: string | null;
-  alternateContact?: string | null;
-  nameOnCheck?: string | null;
-  accountNumber?: string | null;
-  note?: string | null;
-  class?: QbdRef | null;
-  vendorType?: QbdRef | null;
-  terms?: QbdRef | null;
-  billingRate?: QbdRef | null;
-  salesTaxCode?: QbdRef | null;
-  salesTaxReturn?: QbdRef | null;
-  purchaseTaxAccount?: QbdRef | null;
-  salesTaxAccount?: QbdRef | null;
-  currency?: QbdRef | null;
-  defaultExpenseAccounts?: Array<QbdRef> | null;
-  billingAddress?: Address | null;
-  shippingAddress?: Address | null;
-  customContactFields?: Array<CustomContactField> | null;
-  additionalContacts?: Array<Contact> | null;
-  additionalNotes?: Array<AdditionalNote> | null;
-  balance?: number | null;
-  creditLimit?: number | null;
-  taxIdentificationNumber?: string | null;
-  isEligibleFor1099?: boolean | null;
-  isTaxAgency?: boolean | null;
-  salesTaxCountry?: string | null;
-  isSalesTaxAgency?: boolean | null;
-  taxRegistrationNumber?: string | null;
-  reportingPeriod?: string | null;
-  isTrackingPurchaseTax?: boolean | null;
-  isTrackingSalesTax?: boolean | null;
-  isCompoundingTax?: boolean | null;
-  externalId?: string | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The name of the company associated with this vendor. This name is used on invoices, checks, and other forms.
+   */
+  companyName: string | null;
+  /**
+   * The formal salutation title that precedes the name of the contact person for this vendor, such as "Mr.", "Ms.", or "Dr.".
+   */
+  salutation: string | null;
+  /**
+   * The first name of the contact person for this vendor.
+   */
+  firstName: string | null;
+  /**
+   * The middle name of the contact person for this vendor.
+   */
+  middleName: string | null;
+  /**
+   * The last name of the contact person for this vendor.
+   */
+  lastName: string | null;
+  /**
+   * The job title of the contact person for this vendor.
+   */
+  jobTitle: string | null;
+  /**
+   * The vendor's primary telephone number.
+   */
+  phone: string | null;
+  /**
+   * Alternate phone number for the vendor.
+   */
+  alternatePhone: string | null;
+  /**
+   * The vendor's fax number.
+   */
+  fax: string | null;
+  /**
+   * The vendor's email address.
+   */
+  email: string | null;
+  /**
+   * CC email address — copied on all emails sent to this vendor.
+   */
+  ccEmail: string | null;
+  /**
+   * The name of the primary contact person for this vendor.
+   */
+  contact: string | null;
+  /**
+   * Name of an alternate contact at the vendor's company.
+   */
+  alternateContact: string | null;
+  /**
+   * The vendor's name as it should appear on checks issued to this vendor.
+   */
+  nameOnCheck: string | null;
+  /**
+   * The vendor's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
+   *
+   * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
+   */
+  accountNumber: string | null;
+  /**
+   * Free-form notes about the vendor.
+   */
+  note: string | null;
+  /**
+   * The vendor's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default.
+   */
+  class: QbdRef | null;
+  /**
+   * The vendor's type, used for categorizing vendors into meaningful segments, such as industry or region.
+   */
+  vendorType: QbdRef | null;
+  /**
+   * The vendor's payment terms, defining when payment is due and any applicable discounts.
+   */
+  terms: QbdRef | null;
+  /**
+   * The vendor's billing rate, used to override service item rates in time tracking activities.
+   */
+  billingRate: QbdRef | null;
+  /**
+   * The default sales-tax code for transactions with this vendor, determining whether the transactions are taxable or non-taxable. This can be overridden at the transaction or transaction-line level.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The vendor's sales tax return information, used for tracking and reporting sales tax liabilities.
+   */
+  salesTaxReturn: QbdRef | null;
+  /**
+   * The account used to track taxes on purchases from this vendor.
+   */
+  purchaseTaxAccount: QbdRef | null;
+  /**
+   * The account used to track taxes on sales through this vendor.
+   */
+  salesTaxAccount: QbdRef | null;
+  /**
+   * The vendor's currency. For built-in currencies, the name and code are standard ISO 4217 international values. For user-defined currencies, all values are editable.
+   */
+  currency: QbdRef | null;
+  /**
+   * Default expense accounts pre-filled on bills from this vendor.
+   */
+  defaultExpenseAccounts: Array<QbdRef> | null;
+  /**
+   * The billing address for this vendor.
+   */
+  billingAddress: Address | null;
+  /**
+   * The shipping address for this vendor.
+   */
+  shippingAddress: Address | null;
+  /**
+   * Additional custom contact fields for this vendor, such as phone numbers or email addresses.
+   */
+  customContactFields: Array<CustomContactField> | null;
+  /**
+   * Additional alternate contacts for this vendor.
+   */
+  additionalContacts: Array<Contact> | null;
+  /**
+   * Additional notes about this vendor.
+   */
+  additionalNotes: Array<AdditionalNote> | null;
+  /**
+   * The current balance owed to this vendor, represented as a decimal string. A positive number indicates money owed to the vendor.
+   */
+  balance: number | null;
+  /**
+   * The vendor's credit limit, represented as a decimal string. This is the maximum amount of money that can be spent being before billed by this vendor. If `null`, there is no credit limit.
+   */
+  creditLimit: number | null;
+  /**
+   * The vendor's tax identification number (EIN or SSN) for 1099 reporting.
+   */
+  taxIdentificationNumber: string | null;
+  /**
+   * Whether this vendor qualifies to receive a 1099 form at year end.
+   */
+  isEligibleFor1099: boolean | null;
+  /**
+   * Whether this vendor is a tax agency (e.g., IRS, state revenue department).
+   */
+  isTaxAgency: boolean | null;
+  /**
+   * The country for which sales tax is collected for this vendor.
+   */
+  salesTaxCountry: string | null;
+  /**
+   * Indicates whether this vendor is a sales tax agency.
+   */
+  isSalesTaxAgency: boolean | null;
+  /**
+   * The vendor's tax registration number, for use in Canada or the UK.
+   */
+  taxRegistrationNumber: string | null;
+  /**
+   * The vendor's tax reporting period, for use in Canada or the UK.
+   */
+  reportingPeriod: string | null;
+  /**
+   * Whether purchase tax is tracked for transactions with this vendor.
+   */
+  isTrackingPurchaseTax: boolean | null;
+  /**
+   * Whether sales tax is tracked for transactions with this vendor.
+   */
+  isTrackingSalesTax: boolean | null;
+  /**
+   * Whether this is a compounding tax (tax calculated on top of other taxes).
+   */
+  isCompoundingTax: boolean | null;
+  /**
+   * An external GUID used to identify this vendor in an external system.
+   */
+  externalId: string | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Represents a VendorCredit transaction.
  */
 export type VendorCredit = {
+  /**
+   * The unique identifier assigned by QuickBooks to this transaction.
+   *
+   * This ID is unique across **all** transaction types in the QuickBooks company file,
+   * not just within its own type. This value is assigned by QuickBooks and never changes.
+   */
   id: string;
-  objectType?: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   */
+  objectType: string;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
+  /**
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
+   */
   updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
   revisionNumber: string;
-  transactionDate?: string | null;
-  currency?: QbdRef | null;
-  exchangeRate?: number | null;
   /**
-   * The primary reference number for the transaction (e.g., Invoice #, Check #).
+   * The date the transaction occurred or was recorded.
    */
-  refNumber?: string | null;
-  memo?: string | null;
-  transactionNumber?: number | null;
-  entity?: QbdRef | null;
+  transactionDate: string | null;
   /**
-   * Refers to the Vendor.
+   * The currency used for this transaction.
+   *
+   * Only applicable if the QuickBooks company file has multi-currency enabled.
    */
-  vendor?: QbdRef | null;
-  account?: QbdRef | null;
-  payablesAccount?: QbdRef | null;
+  currency: QbdRef | null;
   /**
-   * The total amount of the credit.
+   * The market exchange rate between the transaction's currency and the home currency.
+   *
+   * Only applicable if multi-currency is enabled.
    */
-  creditAmount?: number | null;
-  creditAmountInHomeCurrency?: number | null;
-  isTaxIncluded?: boolean | null;
-  salesTaxCode?: QbdRef | null;
+  exchangeRate: number | null;
   /**
-   * The amount of this credit that has not yet been applied.
+   * A user-defined reference number for this transaction (e.g., check number, invoice number).
+   *
+   * This value is case-sensitive and appears in various QuickBooks UI forms.
+   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
    */
-  openAmount?: number | null;
-  amountInHomeCurrency?: string | null;
-  hasValidLineItems?: boolean;
-  externalId?: string | null;
-  linkedTransactions?: Array<LinkedTransaction>;
-  expenseLines?: Array<ExpenseLine>;
-  itemLines?: Array<ItemLine>;
-  itemGroupLines?: Array<ItemGroupLine>;
-  customFields?: Array<QbdDataExt>;
+  refNumber: string | null;
+  /**
+   * A memo or note for the transaction that appears in registers and reports.
+   */
+  memo: string | null;
+  /**
+   * The TxnNumber associated with this object.
+   */
+  transactionNumber: number | null;
+  /**
+   * Refers to the Vendor. Note: The base Entity is for PayeeEntityRef.
+   */
+  entity: QbdRef | null;
+  vendor: QbdRef | null;
+  /**
+   * Refers to the Payables Account. Note: The base Account is for PayeeAccountRef.
+   */
+  account: QbdRef | null;
+  payablesAccount: QbdRef | null;
+  creditAmount: number | null;
+  /**
+   * Note: The base AmountInHomeCurrency is a string. This is a decimal.
+   */
+  creditAmountInHomeCurrency: number | null;
+  /**
+   * (Optional) If true, the amount includes sales tax.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The sales-tax code for this vendor credit, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the vendor. This can be overridden on the vendor credit's individual lines.
+   *
+   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The remaining unapplied credit on this vendor credit, represented as a decimal string. This equals the original credit amount minus any amounts that have been applied to bills.
+   *
+   * **NOTE**: This field is almost always present, but due to a known QBD bug, it can be absent in rare cases. If you ever encounter `openAmount` as `null`, we recommend the following fallback procedure: Re-query the vendor credits with `includeLinkedTransactions=true` and compute a fallback open amount as `creditAmount` minus the sum of `linkedTransactions[].amount` for all entries where `linkedTransactions[].linkType` is `"amount"`.
+   */
+  openAmount: number | null;
+  /**
+   * The transaction amount converted into the QuickBooks company file's home currency.
+   */
+  amountInHomeCurrency: string | null;
+  /**
+   * Internal validation helper to check if the transaction contains at least one valid line item.
+   */
+  hasValidLineItems: boolean;
+  /**
+   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
+   *
+   * This field is immutable and can only be set during the initial creation of the transaction.
+   */
+  externalId: string | null;
+  /**
+   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
+   *
+   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
+   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
+   */
+  linkedTransactions: Array<LinkedTransaction>;
+  /**
+   * The General Ledger expense lines associated with this transaction.
+   */
+  expenseLines: Array<ExpenseLine>;
+  /**
+   * The inventory, service, or non-inventory item lines associated with this transaction.
+   */
+  itemLines: Array<ItemLine>;
+  /**
+   * Predefined sets of items (Item Groups) bundled together on this transaction.
+   */
+  itemGroupLines: Array<ItemGroupLine>;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -12994,43 +23660,86 @@ export type VendorCredit = {
  * Used to classify vendors (e.g., "Materials", "Subcontractor").
  */
 export type VendorType = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  fullname?: string | null;
-  parent?: QbdRef | null;
-  sublevel?: number | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * The case-insensitive fully-qualified unique name of this customer type, formed by combining the names of its hierarchical parent objects with its own `name`, separated by colons. For example, if a customer type is under "Industry" and has the `name` "Healthcare", its `fullName` would be "Industry:Healthcare".
+   *
+   * **NOTE**: Unlike `name`, `fullName` is guaranteed to be unique across all customer type objects. However, `fullName` can still be arbitrarily changed by the QuickBooks user when they modify the underlying `name` field.
+   */
+  fullname: string | null;
+  /**
+   * The parent customer type one level above this one in the hierarchy. For example, if this customer type has a `fullName` of "Industry:Healthcare", its parent has a `fullName` of "Industry". If this customer type is at the top level, this field will be `null`.
+   */
+  parent: QbdRef | null;
+  /**
+   * The depth level of this customer type in the hierarchy. A top-level customer type has a `sublevel` of 0; each subsequent sublevel increases this number by 1. For example, a customer type with a `fullName` of "Industry:Healthcare" would have a `sublevel` of 1.
+   */
+  sublevel: number | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 /**
  * Specialized response for Void operations.
  */
 export type VoidResponse = {
-  voided?: boolean;
+  voided: boolean;
   id: string;
   objectType: string;
-  refNumber?: string | null;
+  refNumber: string | null;
   status: string;
   /**
    * The unique identifier for this request. Include this ID when contacting
    * support so the request can be located in server-side logs.
    */
-  requestId?: string | null;
-  errorMessage?: string | null;
-  errorCode?: string | null;
-  suggestedAction?: string | null;
-  timestamp?: string;
+  requestId: string | null;
+  errorMessage: string | null;
+  errorCode: string | null;
+  suggestedAction: string | null;
+  timestamp: string;
 };
 
 /**
@@ -13038,26 +23747,76 @@ export type VoidResponse = {
  * Inherits id, name, isActive from BaseListDto.
  */
 export type WorkersCompCode = {
+  /**
+   * The unique identifier assigned by QuickBooks to this object.
+   */
   id: string;
-  objectType?: string;
   /**
-   * The primary display name for the List object (e.g., Customer Name, Vendor Name).
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
    */
-  name?: string | null;
+  objectType: string;
+  /**
+   * The primary, user-defined display name for the list object.
+   */
+  name: string | null;
+  /**
+   * The date and time when this entity was originally created in QuickBooks.
+   *
+   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
+   * relative to the local timezone of the host computer where the company file resides.
+   */
   createdAt: string;
-  updatedAt: string;
-  revisionNumber: string;
-  desc?: string | null;
-  currentRate?: number | null;
-  currentEffectiveDate?: string | null;
-  nextRate?: number | null;
-  nextEffectiveDate?: string | null;
-  rateHistory?: Array<RateHistory> | null;
   /**
-   * Indicates whether the list item is active. Common to all list types.
+   * The date and time when this entity was last modified in QuickBooks.
+   *
+   * Represented in ISO 8601 format.
    */
-  isActive?: boolean;
-  customFields?: Array<QbdDataExt>;
+  updatedAt: string;
+  /**
+   * The current QuickBooks-assigned revision number for this object.
+   *
+   * This value changes every time the record is modified.
+   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
+   * working with the latest data and to prevent optimistic concurrency errors.
+   */
+  revisionNumber: string;
+  /**
+   * Description of the Workers' Compensation Code.
+   */
+  desc: string | null;
+  /**
+   * The current rate being used.
+   */
+  currentRate: number | null;
+  /**
+   * The effective date of the current rate.
+   */
+  currentEffectiveDate: string | null;
+  /**
+   * The next scheduled rate (if any).
+   */
+  nextRate: number | null;
+  /**
+   * The effective date of the next rate.
+   */
+  nextEffectiveDate: string | null;
+  /**
+   * History of all rate entries for this code.
+   */
+  rateHistory: Array<RateHistory> | null;
+  /**
+   * Indicates whether the list item is currently active.
+   */
+  isActive: boolean;
+  /**
+   * Custom fields and data extensions associated with this entity.
+   *
+   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
+   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
+   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   */
+  customFields: Array<QbdDataExt>;
 };
 
 export type ListArRefundCreditCardsData = {
@@ -14011,6 +24770,12 @@ export type DeleteBillData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -14103,6 +24868,12 @@ export type RetrieveBillData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -14196,6 +24967,12 @@ export type UpdateBillData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -14378,6 +25155,12 @@ export type VoidBillData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -15393,6 +26176,12 @@ export type DeleteCheckData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -15486,6 +26275,12 @@ export type RetrieveCheckData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -15579,6 +26374,12 @@ export type UpdateCheckData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -15763,6 +26564,12 @@ export type VoidCheckData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -17483,6 +28290,12 @@ export type DeleteDepositData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -17576,6 +28389,12 @@ export type RetrieveDepositData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -17670,6 +28489,12 @@ export type UpdateDepositData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -17854,6 +28679,12 @@ export type VoidDepositData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -18169,6 +29000,12 @@ export type DeleteEstimateData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -18263,6 +29100,12 @@ export type RetrieveEstimateData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -18357,6 +29200,12 @@ export type UpdateEstimateData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -22997,6 +33846,12 @@ export type DeleteTransactionData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -23091,6 +33946,12 @@ export type RetrieveTransactionData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -23185,6 +34046,12 @@ export type VoidTransactionData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -24177,6 +35044,9 @@ export type DeleteAccountData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -24270,6 +35140,9 @@ export type RetrieveAccountData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -24364,6 +35237,9 @@ export type UpdateAccountData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -25649,6 +36525,9 @@ export type DeleteQbdClassData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -25743,6 +36622,9 @@ export type RetrieveQbdClassData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -25837,6 +36719,9 @@ export type UpdateQbdClassData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -26023,6 +36908,9 @@ export type VoidQbdClassData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -26311,6 +37199,9 @@ export type RetrieveCurrencyData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -26405,6 +37296,9 @@ export type UpdateCurrencyData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -26828,6 +37722,9 @@ export type DeleteCustomerData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -26922,6 +37819,9 @@ export type RetrieveCustomerData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -27016,6 +37916,9 @@ export type UpdateCustomerData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -27202,6 +38105,9 @@ export type VoidCustomerData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -28154,6 +39060,9 @@ export type DeleteEmployeeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -28248,6 +39157,9 @@ export type RetrieveEmployeeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -28342,6 +39254,9 @@ export type UpdateEmployeeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -32338,6 +43253,9 @@ export type DeleteTermData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -32430,6 +43348,9 @@ export type RetrieveTermData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -32523,6 +43444,9 @@ export type UpdateTermData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -32705,6 +43629,9 @@ export type VoidTermData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -33374,6 +44301,9 @@ export type DeleteVendorData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -33467,6 +44397,9 @@ export type RetrieveVendorData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -33561,6 +44494,9 @@ export type UpdateVendorData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -35760,6 +46696,12 @@ export type DeleteChargeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -35853,6 +46795,12 @@ export type RetrieveChargeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -35947,6 +46895,12 @@ export type UpdateChargeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -36131,6 +47085,12 @@ export type VoidChargeData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -38530,6 +49490,12 @@ export type DeleteInvoiceData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -38623,6 +49589,12 @@ export type RetrieveInvoiceData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -38717,6 +49689,12 @@ export type UpdateInvoiceData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -38901,6 +49879,12 @@ export type VoidInvoiceData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this transaction.
+     *
+     * This ID is unique across **all** transaction types in the QuickBooks company file,
+     * not just within its own type. This value is assigned by QuickBooks and never changes.
+     */
     id: string;
   };
   query?: never;
@@ -39566,6 +50550,695 @@ export type CreateReceivePaymentResponses = {
 
 export type CreateReceivePaymentResponse =
   CreateReceivePaymentResponses[keyof CreateReceivePaymentResponses];
+
+export type ListSalesOrdersData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * The pagination cursor token used to retrieve the next set of records.
+     *
+     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
+     *
+     *
+     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
+     * the next page within **10 seconds** of receiving the previous response.
+     *
+     *
+     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
+     * of the fetch sequence until `hasMore` is `false`.
+     */
+    cursor?: string;
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * The maximum number of items to return per page.
+     */
+    limit?: number;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * SalesOrder-specific override: accepts friendly camelCase JSON field names
+     * (e.g. "customer", "shipMethod", "referenceNumber") and translates them at set-time
+     * into the QBXML field names that QuickBooks Desktop expects inside &lt;IncludeRetElement&gt;.
+     * Raw QBXML names (e.g. "CustomerRef") still pass through unchanged.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/sales-orders";
+};
+
+export type ListSalesOrdersErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type ListSalesOrdersError =
+  ListSalesOrdersErrors[keyof ListSalesOrdersErrors];
+
+export type ListSalesOrdersResponses = {
+  /**
+   * OK
+   */
+  200: BasePageResponseSalesOrder;
+};
+
+export type ListSalesOrdersResponse =
+  ListSalesOrdersResponses[keyof ListSalesOrdersResponses];
+
+export type DeleteSalesOrderData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/sales-order/{id}";
+};
+
+export type DeleteSalesOrderErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type DeleteSalesOrderError =
+  DeleteSalesOrderErrors[keyof DeleteSalesOrderErrors];
+
+export type DeleteSalesOrderResponses = {
+  /**
+   * OK
+   */
+  200: DeleteResponse;
+};
+
+export type DeleteSalesOrderResponse =
+  DeleteSalesOrderResponses[keyof DeleteSalesOrderResponses];
+
+export type RetrieveSalesOrderData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/sales-order/{id}";
+};
+
+export type RetrieveSalesOrderErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type RetrieveSalesOrderError =
+  RetrieveSalesOrderErrors[keyof RetrieveSalesOrderErrors];
+
+export type RetrieveSalesOrderResponses = {
+  /**
+   * OK
+   */
+  200: SalesOrder;
+};
+
+export type RetrieveSalesOrderResponse =
+  RetrieveSalesOrderResponses[keyof RetrieveSalesOrderResponses];
+
+export type UpdateSalesOrderData = {
+  body: UpdateSalesOrderRequest;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/sales-order/{id}";
+};
+
+export type UpdateSalesOrderErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type UpdateSalesOrderError =
+  UpdateSalesOrderErrors[keyof UpdateSalesOrderErrors];
+
+export type UpdateSalesOrderResponses = {
+  /**
+   * OK
+   */
+  200: SalesOrder;
+};
+
+export type UpdateSalesOrderResponse =
+  UpdateSalesOrderResponses[keyof UpdateSalesOrderResponses];
+
+export type CreateSalesOrderData = {
+  body: CreateSalesOrderRequest;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: never;
+  url: "/api/v1/sales-order";
+};
+
+export type CreateSalesOrderErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CreateSalesOrderError =
+  CreateSalesOrderErrors[keyof CreateSalesOrderErrors];
+
+export type CreateSalesOrderResponses = {
+  /**
+   * Created
+   */
+  201: SalesOrder;
+};
+
+export type CreateSalesOrderResponse =
+  CreateSalesOrderResponses[keyof CreateSalesOrderResponses];
+
+export type VoidSalesOrderData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/api/v1/sales-order/{id}/void";
+};
+
+export type VoidSalesOrderErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type VoidSalesOrderError =
+  VoidSalesOrderErrors[keyof VoidSalesOrderErrors];
+
+export type VoidSalesOrderResponses = {
+  /**
+   * OK
+   */
+  200: VoidResponse;
+};
+
+export type VoidSalesOrderResponse =
+  VoidSalesOrderResponses[keyof VoidSalesOrderResponses];
 
 export type RetrieveGeneralDetailReportData = {
   body?: never;
@@ -43608,6 +55281,9 @@ export type RetrieveItemData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path: {
+    /**
+     * The unique identifier assigned by QuickBooks to this object.
+     */
     id: string;
   };
   query?: never;
@@ -50688,10 +62364,6 @@ export type CreateAuthSessionResponse =
 export type RetrieveAuthSessionData = {
   body?: never;
   path: {
-    /**
-     * Public-facing session identifier used in URLs (e.g. "auth_sess_xR4kLm9p2vQ").
-     * Generated at creation, unique, indexed.
-     */
     sessionToken: string;
   };
   query?: never;
