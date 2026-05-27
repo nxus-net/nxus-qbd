@@ -67,7 +67,7 @@ export type Account = {
    * Indicates if this is an account automatically created for specific underlying purposes.
    * Null for standard, non-special accounts.
    */
-  specialAccountType: NullableSpecialAccountType | null;
+  specialAccountType: SpecialAccountType | null;
   /**
    * Indicates whether this account is used for tracking taxes.
    */
@@ -107,7 +107,7 @@ export type Account = {
   /**
    * Indicates how this account is classified for cash flow reporting.
    */
-  cashFlowClassification: NullableCashFlowClassification | null;
+  cashFlowClassification: CashFlowClassification | null;
   /**
    * The currency associated with the account.
    */
@@ -4248,8 +4248,8 @@ export type CreateCreditCardTransactionInputInfoRequest = {
   creditCardAddress?: string | null;
   creditCardPostalCode?: string | null;
   commercialCardCode?: string | null;
-  transactionMode?: NullableTransactionMode | null;
-  creditCardTxnType?: NullableCreditCardTransactionType | null;
+  transactionMode?: TransactionMode | null;
+  creditCardTxnType?: CreditCardTransactionType | null;
 };
 
 /**
@@ -4263,9 +4263,9 @@ export type CreateCreditCardTransactionResultInfoRequest = {
   paymentStatus: PaymentStatus;
   txnAuthorizationTime: string;
   authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet | null;
-  avsZip?: NullableAvsZip | null;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
+  avsStreet?: AvsStreet | null;
+  avsZip?: AvsZip | null;
+  cardSecurityCodeMatch?: CardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
   txnAuthorizationStamp?: number | null;
@@ -4701,7 +4701,7 @@ export type CreateCustomerRequest = {
    * **Important:** Supplying this value explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
    * Available values: Awarded, Closed, InProgress, None, NotAwarded, Pending.
    */
-  jobStatus?: NullableJobStatus | null;
+  jobStatus?: JobStatus | null;
   /**
    * The date active work commenced on the job.
    *
@@ -4994,15 +4994,15 @@ export type CreateEmployeeRequest = {
   /**
    * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
    */
-  employeeType?: NullableEmployeeType | null;
+  employeeType?: EmployeeType | null;
   /**
    * The employee's employment status.
    */
-  employmentStatus?: NullableEmploymentStatus | null;
+  employmentStatus?: EmploymentStatus | null;
   /**
    * This employee's gender.
    */
-  gender?: NullableGender | null;
+  gender?: Gender | null;
   /**
    * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -5038,13 +5038,13 @@ export type CreateEmployeeRequest = {
    *
    * exempt, non_exempt
    */
-  overtimeExemptStatus?: NullableOvertimeExemptStatus | null;
+  overtimeExemptStatus?: OvertimeExemptStatus | null;
   /**
    * The status of this employee's key employee designation.
    *
    * none, key_employee, not_key_employee
    */
-  keyEmployeeStatus?: NullableKeyEmployeeStatus | null;
+  keyEmployeeStatus?: KeyEmployeeStatus | null;
   /**
    * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -5058,17 +5058,17 @@ export type CreateEmployeeRequest = {
    *
    * citizen, non_citizen
    */
-  usCitizenshipStatus?: NullableCitizenshipStatus | null;
+  usCitizenshipStatus?: CitizenshipStatus | null;
   /**
    * This employee's ethnicity.
    */
-  ethnicity?: NullableEthnicity | null;
+  ethnicity?: Ethnicity | null;
   /**
    * The status of this employee's disability.
    *
    * none, disabled, not_disabled
    */
-  disabilityStatus?: NullableDisabilityStatus | null;
+  disabilityStatus?: DisabilityStatus | null;
   /**
    * The description of this employee's disability.
    */
@@ -5078,7 +5078,7 @@ export type CreateEmployeeRequest = {
    *
    * on_file, not_on_file
    */
-  i9OnFileStatus?: NullableI9FileStatus | null;
+  i9OnFileStatus?: I9FileStatus | null;
   /**
    * The expiration date of this employee's work authorization, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -5088,11 +5088,11 @@ export type CreateEmployeeRequest = {
    *
    * veteran, non_veteran
    */
-  usVeteranStatus?: NullableUsVeteranStatus | null;
+  usVeteranStatus?: UsVeteranStatus | null;
   /**
    * This employee's military status if they are a U.S. veteran.
    */
-  militaryStatus?: NullableMilitaryStatus | null;
+  militaryStatus?: MilitaryStatus | null;
   /**
    * The payroll information for this employee.
    */
@@ -8394,11 +8394,11 @@ export type CreditCardTransactionInputInfo = {
   /**
    * The transactionMode associated with this object.
    */
-  transactionMode: NullableTransactionMode | null;
+  transactionMode: TransactionMode | null;
   /**
    * The CreditCardTxnType associated with this object.
    */
-  transactionType: NullableCreditCardTransactionType | null;
+  transactionType: CreditCardTransactionType | null;
 };
 
 /**
@@ -8428,15 +8428,15 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The avsStreet associated with this object.
    */
-  avsStreet: NullableAvsStreet | null;
+  avsStreet: AvsStreet | null;
   /**
    * The avsZip associated with this object.
    */
-  avsZip: NullableAvsZip | null;
+  avsZip: AvsZip | null;
   /**
    * The cardSecurityCodeMatch associated with this object.
    */
-  cardSecurityCodeMatch: NullableCardSecurityCodeMatch | null;
+  cardSecurityCodeMatch: CardSecurityCodeMatch | null;
   /**
    * The reconBatchID associated with this object.
    */
@@ -9902,29 +9902,29 @@ export type Employee = {
    *
    * Officer, Owner, Regular [DEFAULT], Statutory
    */
-  employeeType: NullableEmployeeType | null;
+  employeeType: EmployeeType | null;
   /**
    * The employee's employment status.
    *
    * part_time or full_time
    */
-  employmentStatus: NullableEmploymentStatus | null;
+  employmentStatus: EmploymentStatus | null;
   /**
    * Whether this employee is exempt from overtime pay.
    *
    * exempt, non_exempt
    */
-  overtimeExemptStatus: NullableOvertimeExemptStatus | null;
+  overtimeExemptStatus: OvertimeExemptStatus | null;
   /**
    * Whether this employee is a key employee.
    *
    * none, key_employee, not_key_employee
    */
-  keyEmployeeStatus: NullableKeyEmployeeStatus | null;
+  keyEmployeeStatus: KeyEmployeeStatus | null;
   /**
    * This employee's gender.
    */
-  gender: NullableGender | null;
+  gender: Gender | null;
   /**
    * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -9952,17 +9952,17 @@ export type Employee = {
    *
    * citizen, non_citizen
    */
-  usCitizenshipStatus: NullableCitizenshipStatus | null;
+  usCitizenshipStatus: CitizenshipStatus | null;
   /**
    * This employee's ethnicity.
    */
-  ethnicity: NullableEthnicity | null;
+  ethnicity: Ethnicity | null;
   /**
    * This employee's disability status.
    *
    * none, disabled, not_disabled
    */
-  disabilityStatus: NullableDisabilityStatus | null;
+  disabilityStatus: DisabilityStatus | null;
   /**
    * This employee's disability description.
    */
@@ -9972,7 +9972,7 @@ export type Employee = {
    *
    * on_file, not_on_file
    */
-  i9OnFileStatus: NullableI9FileStatus | null;
+  i9OnFileStatus: I9FileStatus | null;
   /**
    * This employee's work authorization expiration date.
    */
@@ -9982,11 +9982,11 @@ export type Employee = {
    *
    * veteran, non_veteran
    */
-  usVeteranStatus: NullableUsVeteranStatus | null;
+  usVeteranStatus: UsVeteranStatus | null;
   /**
    * This employee's military status if they are a U.S. veteran.
    */
-  militaryStatus: NullableMilitaryStatus | null;
+  militaryStatus: MilitaryStatus | null;
   /**
    * The employee's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
    *
@@ -10033,7 +10033,7 @@ export type EmployeePayrollInfo = {
   /**
    * The employee's pay period.
    */
-  payPeriod: NullablePayPeriod | null;
+  payPeriod: PayPeriod | null;
   /**
    * The employee's pay schedule.
    */
@@ -10053,7 +10053,7 @@ export type EmployeePayrollInfo = {
   /**
    * Whether to use time data to create paychecks.
    */
-  useTimeDataToCreatePaychecks: NullableUseTimedataToCreatePaychecks | null;
+  useTimeDataToCreatePaychecks: UseTimedataToCreatePaychecks | null;
   /**
    * The employee's sick hours.
    */
@@ -10071,7 +10071,7 @@ export type EmployeePayrollInfoRequest = {
   /**
    * The pay period for this employee. Values: Daily, Weekly, Biweekly, Semimonthly, Monthly, Quarterly, Yearly.
    */
-  payPeriod?: NullablePayPeriod | null;
+  payPeriod?: PayPeriod | null;
   /**
    * ListID of the pay schedule for this employee.
    */
@@ -10091,7 +10091,7 @@ export type EmployeePayrollInfoRequest = {
   /**
    * Whether to use time data to create paychecks. Values: not_set, uses_time_data, does_not_use_time_date.
    */
-  useTimeDataToCreatePaychecks?: NullableUseTimedataToCreatePaychecks | null;
+  useTimeDataToCreatePaychecks?: UseTimedataToCreatePaychecks | null;
   /**
    * Sick-hours accrual configuration for this employee.
    */
@@ -10566,7 +10566,7 @@ export type ExpenseLine = {
   /**
    * The BillableStatus associated with this object.
    */
-  billableStatus: NullableBillableStatus | null;
+  billableStatus: BillableStatus | null;
   /**
    * The DataExts associated with this object.
    */
@@ -13810,7 +13810,7 @@ export type ItemItemSubtotal = {
   /**
    * The type of special item for this subtotal item.
    */
-  specialItemType: NullableSpecialItemType | null;
+  specialItemType: SpecialItemType | null;
   /**
    * The full name of the item, including parent item names for hierarchical items.
    *
@@ -13936,7 +13936,7 @@ export type ItemLine = {
   /**
    * The BillableStatus associated with this object.
    */
-  billableStatus: NullableBillableStatus | null;
+  billableStatus: BillableStatus | null;
   /**
    * The ItemGroup associated with this object.
    */
@@ -15048,7 +15048,7 @@ export type ItemSubtotal = {
   /**
    * The type of special item for this subtotal item.
    */
-  specialItemType: NullableSpecialItemType | null;
+  specialItemType: SpecialItemType | null;
   /**
    * The full name of the item, including parent item names for hierarchical items.
    *
@@ -15367,177 +15367,7 @@ export enum NullableAccountType {
   OTHER_INCOME = "OtherIncome",
 }
 
-export enum NullableAccrualPeriod {
-  ACCRUES_ANNUALLY = "accrues_annually",
-  ACCRUES_HOURLY = "accrues_hourly",
-  ACCRUES_PER_PAYCHECK = "accrues_per_paycheck",
-}
-
-export enum NullableAvsStreet {
-  PASS = "Pass",
-  FAIL = "Fail",
-  NOT_AVAILABLE = "NotAvailable",
-}
-
-export enum NullableAvsZip {
-  PASS = "Pass",
-  FAIL = "Fail",
-  NOT_AVAILABLE = "NotAvailable",
-}
-
-export enum NullableBillableStatus {
-  NOT_BILLABLE = "NotBillable",
-  BILLABLE = "Billable",
-  HAS_BEEN_BILLED = "HasBeenBilled",
-}
-
-export enum NullableCardSecurityCodeMatch {
-  PASS = "Pass",
-  FAIL = "Fail",
-  NOT_AVAILABLE = "NotAvailable",
-}
-
-export enum NullableCashFlowClassification {
-  NONE = "None",
-  OPERATING = "Operating",
-  INVESTING = "Investing",
-  FINANCING = "Financing",
-  NOT_APPLICABLE = "NotApplicable",
-}
-
-export enum NullableCitizenshipStatus {
-  CITIZEN = "citizen",
-  NON_CITIZEN = "non_citizen",
-}
-
-export enum NullableCreditCardTransactionType {
-  AUTHORIZATION = "Authorization",
-  CAPTURE = "Capture",
-  CHARGE = "Charge",
-  REFUND = "Refund",
-  VOICE_AUTHORIZATION = "VoiceAuthorization",
-}
-
-export enum NullableDisabilityStatus {
-  NONE = "none",
-  DISABLED = "disabled",
-  NOT_DISABLED = "not_disabled",
-}
-
-export enum NullableEmployeeType {
-  OFFICER = "officer",
-  OWNER = "owner",
-  REGULAR = "regular",
-  STATUTORY = "statutory",
-}
-
-export enum NullableEmploymentStatus {
-  FULL_TIME = "full_time",
-  PART_TIME = "part_time",
-}
-
-export enum NullableEthnicity {
-  AMERICAN_INDIAN = "american_indian",
-  ASIAN = "asian",
-  BLACK = "black",
-  HAWAIIAN = "hawaiian",
-  HISPANIC = "hispanic",
-  WHITE = "white",
-  TWO_OR_MORE_RACES = "two_or_more_races",
-}
-
-export enum NullableGender {
-  MALE = "male",
-  FEMALE = "female",
-}
-
-export enum NullableI9FileStatus {
-  ON_FILE = "on_file",
-  NOT_ON_FILE = "not_on_file",
-}
-
-export enum NullableJobStatus {
-  NONE = "None",
-  PENDING = "Pending",
-  AWARDED = "Awarded",
-  IN_PROGRESS = "InProgress",
-  CLOSED = "Closed",
-  NOT_AWARDED = "NotAwarded",
-}
-
-export enum NullableKeyEmployeeStatus {
-  NONE = "none",
-  KEY_EMPLOYEE = "key_employee",
-  NOT_KEY_EMPLOYEE = "not_key_employee",
-}
-
-export enum NullableMilitaryStatus {
-  ACTIVE = "active",
-  RESERVE = "reserve",
-}
-
-export enum NullableOvertimeExemptStatus {
-  EXEMPT = "exempt",
-  NON_EXEMPT = "non_exempt",
-}
-
 export type NullablePaidStatus = number;
-
-export enum NullablePayPeriod {
-  BIWEEKLY = "biweekly",
-  DAILY = "daily",
-  MONTHLY = "monthly",
-  QUARTERLY = "quarterly",
-  SEMIMONTHLY = "semimonthly",
-  WEEKLY = "weekly",
-  YEARLY = "yearly",
-}
-
-export enum NullableSpecialAccountType {
-  ACCOUNTS_PAYABLE = "AccountsPayable",
-  ACCOUNTS_RECEIVABLE = "AccountsReceivable",
-  CONDENSE_ITEM_ADJUSTMENT_EXPENSES = "CondenseItemAdjustmentExpenses",
-  COST_OF_GOODS_SOLD = "CostOfGoodsSold",
-  DIRECT_DEPOSIT_LIABILITIES = "DirectDepositLiabilities",
-  ESTIMATES = "Estimates",
-  EXCHANGE_GAIN_LOSS = "ExchangeGainLoss",
-  INVENTORY_ASSETS = "InventoryAssets",
-  ITEM_RECEIPT_ACCOUNT = "ItemReceiptAccount",
-  OPENING_BALANCE_EQUITY = "OpeningBalanceEquity",
-  PAYROLL_EXPENSES = "PayrollExpenses",
-  PAYROLL_LIABILITIES = "PayrollLiabilities",
-  PETTY_CASH = "PettyCash",
-  PURCHASE_ORDERS = "PurchaseOrders",
-  RECONCILIATION_DIFFERENCES = "ReconciliationDifferences",
-  RETAINED_EARNINGS = "RetainedEarnings",
-  SALES_ORDERS = "SalesOrders",
-  SALES_TAX_PAYABLE = "SalesTaxPayable",
-  UNCATEGORIZED_EXPENSES = "UncategorizedExpenses",
-  UNCATEGORIZED_INCOME = "UncategorizedIncome",
-  UNDEPOSITED_FUNDS = "UndepositedFunds",
-}
-
-export enum NullableSpecialItemType {
-  FINANCE_CHARGE = "FinanceCharge",
-  REIMBURSABLE_EXPENSE_GROUP = "ReimbursableExpenseGroup",
-  REIMBURSABLE_EXPENSE_SUBTOTAL = "ReimbursableExpenseSubtotal",
-}
-
-export enum NullableTransactionMode {
-  CARD_NOT_PRESENT = "CardNotPresent",
-  CARD_PRESENT = "CardPresent",
-}
-
-export enum NullableUseTimedataToCreatePaychecks {
-  DOES_NOT_USE_TIME_DATE = "does_not_use_time_date",
-  NOT_SET = "not_set",
-  USES_TIME_DATA = "uses_time_data",
-}
-
-export enum NullableUsVeteranStatus {
-  VETERAN = "veteran",
-  NON_VETERAN = "non_veteran",
-}
 
 /**
  * DTO for an OtherName list item.
@@ -17261,7 +17091,7 @@ export type SalesOrderLine = {
   /**
    * The BillableStatus associated with this object.
    */
-  billableStatus: NullableBillableStatus | null;
+  billableStatus: BillableStatus | null;
   /**
    * The ItemGroup associated with this object.
    */
@@ -18310,7 +18140,7 @@ export type SickHours = {
   /**
    * How frequently the employee's sick hours are accrued.
    */
-  accrualPeriod: NullableAccrualPeriod | null;
+  accrualPeriod: AccrualPeriod | null;
   /**
    * The number of sick hours the employee has accrued, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
    */
@@ -18348,7 +18178,7 @@ export type SickHoursRequest = {
   /**
    * How frequently sick hours accrue. Values: BeginningOfYear, EveryHourOnPaycheck, EveryPaycheck.
    */
-  accrualPeriod?: NullableAccrualPeriod | null;
+  accrualPeriod?: AccrualPeriod | null;
   /**
    * The number of sick hours accrued, in ISO 8601 duration format (PTnHnMnS).
    */
@@ -18418,7 +18248,7 @@ export type SpecialItem = {
   /**
    * The type of special item: FinanceCharge, ReimbursableExpenseGroup, or ReimbursableExpenseSubtotal.
    */
-  specialItemType: NullableSpecialItemType | null;
+  specialItemType: SpecialItemType | null;
   /**
    * Indicates whether the list item is currently active.
    */
@@ -19697,12 +19527,12 @@ export type UpdateCreditCardTransactionInputInfoRequest = {
   /**
    * (Optional) New transaction mode (0 for CardNotPresent [DEFAULT], 1 for CardPresent).
    */
-  transactionMode?: NullableTransactionMode | null;
+  transactionMode?: TransactionMode | null;
   /**
    * (Optional) New type of credit card transaction.
    * Used for actions like changing an Authorization to a Capture (1).
    */
-  creditCardTxnType?: NullableCreditCardTransactionType | null;
+  creditCardTxnType?: CreditCardTransactionType | null;
 };
 
 export type UpdateCreditCardTransactionResultInfoRequest = {
@@ -19713,9 +19543,9 @@ export type UpdateCreditCardTransactionResultInfoRequest = {
   paymentStatus: PaymentStatus;
   txnAuthorizationTime: string;
   authorizationCode?: string | null;
-  avsStreet?: NullableAvsStreet | null;
-  avsZip?: NullableAvsZip | null;
-  cardSecurityCodeMatch?: NullableCardSecurityCodeMatch | null;
+  avsStreet?: AvsStreet | null;
+  avsZip?: AvsZip | null;
+  cardSecurityCodeMatch?: CardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
   txnAuthorizationStamp?: number | null;
@@ -20154,7 +19984,7 @@ export type UpdateCustomerRequest = {
    *
    * **Important:** Modifying this explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
    */
-  jobStatus?: NullableJobStatus | null;
+  jobStatus?: JobStatus | null;
   /**
    * The date active work commenced on the job.
    *
@@ -20391,15 +20221,15 @@ export type UpdateEmployeeRequest = {
   /**
    * The employee type. This affects payroll taxes - a statutory employee is defined as an employee by statute. Note that owners/partners are typically on the "Other Names" list in QuickBooks, but if listed as an employee their type will be `owner`.
    */
-  employeeType?: NullableEmployeeType | null;
+  employeeType?: EmployeeType | null;
   /**
    * The employee's employment status.
    */
-  employmentStatus?: NullableEmploymentStatus | null;
+  employmentStatus?: EmploymentStatus | null;
   /**
    * This employee's gender.
    */
-  gender?: NullableGender | null;
+  gender?: Gender | null;
   /**
    * The date this employee was hired, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -20439,13 +20269,13 @@ export type UpdateEmployeeRequest = {
    *
    * exempt, non_exempt
    */
-  overtimeExemptStatus?: NullableOvertimeExemptStatus | null;
+  overtimeExemptStatus?: OvertimeExemptStatus | null;
   /**
    * Whether this employee is a key employee.
    *
    * none, key_employee, not_key_employee
    */
-  keyEmployeeStatus?: NullableKeyEmployeeStatus | null;
+  keyEmployeeStatus?: KeyEmployeeStatus | null;
   /**
    * The original hire date for this employee, in ISO 8601 format (YYYY-MM-DD).
    */
@@ -20459,15 +20289,15 @@ export type UpdateEmployeeRequest = {
    *
    * citizen, non_citizen
    */
-  usCitizenshipStatus?: NullableCitizenshipStatus | null;
+  usCitizenshipStatus?: CitizenshipStatus | null;
   /**
    * This employee's ethnicity.
    */
-  ethnicity?: NullableEthnicity | null;
+  ethnicity?: Ethnicity | null;
   /**
    * This employee's disability status.
    */
-  disabilityStatus?: NullableDisabilityStatus | null;
+  disabilityStatus?: DisabilityStatus | null;
   /**
    * This employee's disability description.
    */
@@ -20477,7 +20307,7 @@ export type UpdateEmployeeRequest = {
    *
    * on_file, not_on_file
    */
-  i9OnFileStatus?: NullableI9FileStatus | null;
+  i9OnFileStatus?: I9FileStatus | null;
   /**
    * This employee's work authorization expiration date.
    */
@@ -20487,11 +20317,11 @@ export type UpdateEmployeeRequest = {
    *
    * veteran, non_veteran
    */
-  usVeteranStatus?: NullableUsVeteranStatus | null;
+  usVeteranStatus?: UsVeteranStatus | null;
   /**
    * This employee's military status if they are a U.S. veteran.
    */
-  militaryStatus?: NullableMilitaryStatus | null;
+  militaryStatus?: MilitaryStatus | null;
   /**
    * This employee's payroll information.
    */
@@ -23198,7 +23028,7 @@ export type VacationHours = {
   /**
    * How frequently the employee's vacation hours are accrued.
    */
-  accrualPeriod: NullableAccrualPeriod | null;
+  accrualPeriod: AccrualPeriod | null;
   /**
    * The number of vacation hours the employee has accrued, in ISO 8601 format for time intervals (PTnHnMnS). For example, 1 hour and 30 minutes is represented as PT1H30M.
    */
@@ -23236,7 +23066,7 @@ export type VacationHoursRequest = {
   /**
    * How frequently vacation hours accrue. Values: BeginningOfYear, EveryHourOnPaycheck, EveryPaycheck.
    */
-  accrualPeriod?: NullableAccrualPeriod | null;
+  accrualPeriod?: AccrualPeriod | null;
   /**
    * The number of vacation hours accrued, in ISO 8601 duration format (PTnHnMnS).
    *
@@ -23818,6 +23648,176 @@ export type WorkersCompCode = {
    */
   customFields: Array<QbdDataExt>;
 };
+
+export enum AccrualPeriod {
+  ACCRUES_ANNUALLY = "accrues_annually",
+  ACCRUES_HOURLY = "accrues_hourly",
+  ACCRUES_PER_PAYCHECK = "accrues_per_paycheck",
+}
+
+export enum AvsStreet {
+  PASS = "Pass",
+  FAIL = "Fail",
+  NOT_AVAILABLE = "NotAvailable",
+}
+
+export enum AvsZip {
+  PASS = "Pass",
+  FAIL = "Fail",
+  NOT_AVAILABLE = "NotAvailable",
+}
+
+export enum BillableStatus {
+  NOT_BILLABLE = "NotBillable",
+  BILLABLE = "Billable",
+  HAS_BEEN_BILLED = "HasBeenBilled",
+}
+
+export enum CardSecurityCodeMatch {
+  PASS = "Pass",
+  FAIL = "Fail",
+  NOT_AVAILABLE = "NotAvailable",
+}
+
+export enum CashFlowClassification {
+  NONE = "None",
+  OPERATING = "Operating",
+  INVESTING = "Investing",
+  FINANCING = "Financing",
+  NOT_APPLICABLE = "NotApplicable",
+}
+
+export enum CitizenshipStatus {
+  CITIZEN = "citizen",
+  NON_CITIZEN = "non_citizen",
+}
+
+export enum CreditCardTransactionType {
+  AUTHORIZATION = "Authorization",
+  CAPTURE = "Capture",
+  CHARGE = "Charge",
+  REFUND = "Refund",
+  VOICE_AUTHORIZATION = "VoiceAuthorization",
+}
+
+export enum DisabilityStatus {
+  NONE = "none",
+  DISABLED = "disabled",
+  NOT_DISABLED = "not_disabled",
+}
+
+export enum EmployeeType {
+  OFFICER = "officer",
+  OWNER = "owner",
+  REGULAR = "regular",
+  STATUTORY = "statutory",
+}
+
+export enum EmploymentStatus {
+  FULL_TIME = "full_time",
+  PART_TIME = "part_time",
+}
+
+export enum Ethnicity {
+  AMERICAN_INDIAN = "american_indian",
+  ASIAN = "asian",
+  BLACK = "black",
+  HAWAIIAN = "hawaiian",
+  HISPANIC = "hispanic",
+  WHITE = "white",
+  TWO_OR_MORE_RACES = "two_or_more_races",
+}
+
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+}
+
+export enum I9FileStatus {
+  ON_FILE = "on_file",
+  NOT_ON_FILE = "not_on_file",
+}
+
+export enum JobStatus {
+  NONE = "None",
+  PENDING = "Pending",
+  AWARDED = "Awarded",
+  IN_PROGRESS = "InProgress",
+  CLOSED = "Closed",
+  NOT_AWARDED = "NotAwarded",
+}
+
+export enum KeyEmployeeStatus {
+  NONE = "none",
+  KEY_EMPLOYEE = "key_employee",
+  NOT_KEY_EMPLOYEE = "not_key_employee",
+}
+
+export enum MilitaryStatus {
+  ACTIVE = "active",
+  RESERVE = "reserve",
+}
+
+export enum OvertimeExemptStatus {
+  EXEMPT = "exempt",
+  NON_EXEMPT = "non_exempt",
+}
+
+export enum PayPeriod {
+  BIWEEKLY = "biweekly",
+  DAILY = "daily",
+  MONTHLY = "monthly",
+  QUARTERLY = "quarterly",
+  SEMIMONTHLY = "semimonthly",
+  WEEKLY = "weekly",
+  YEARLY = "yearly",
+}
+
+export enum SpecialAccountType {
+  ACCOUNTS_PAYABLE = "AccountsPayable",
+  ACCOUNTS_RECEIVABLE = "AccountsReceivable",
+  CONDENSE_ITEM_ADJUSTMENT_EXPENSES = "CondenseItemAdjustmentExpenses",
+  COST_OF_GOODS_SOLD = "CostOfGoodsSold",
+  DIRECT_DEPOSIT_LIABILITIES = "DirectDepositLiabilities",
+  ESTIMATES = "Estimates",
+  EXCHANGE_GAIN_LOSS = "ExchangeGainLoss",
+  INVENTORY_ASSETS = "InventoryAssets",
+  ITEM_RECEIPT_ACCOUNT = "ItemReceiptAccount",
+  OPENING_BALANCE_EQUITY = "OpeningBalanceEquity",
+  PAYROLL_EXPENSES = "PayrollExpenses",
+  PAYROLL_LIABILITIES = "PayrollLiabilities",
+  PETTY_CASH = "PettyCash",
+  PURCHASE_ORDERS = "PurchaseOrders",
+  RECONCILIATION_DIFFERENCES = "ReconciliationDifferences",
+  RETAINED_EARNINGS = "RetainedEarnings",
+  SALES_ORDERS = "SalesOrders",
+  SALES_TAX_PAYABLE = "SalesTaxPayable",
+  UNCATEGORIZED_EXPENSES = "UncategorizedExpenses",
+  UNCATEGORIZED_INCOME = "UncategorizedIncome",
+  UNDEPOSITED_FUNDS = "UndepositedFunds",
+}
+
+export enum SpecialItemType {
+  FINANCE_CHARGE = "FinanceCharge",
+  REIMBURSABLE_EXPENSE_GROUP = "ReimbursableExpenseGroup",
+  REIMBURSABLE_EXPENSE_SUBTOTAL = "ReimbursableExpenseSubtotal",
+}
+
+export enum TransactionMode {
+  CARD_NOT_PRESENT = "CardNotPresent",
+  CARD_PRESENT = "CardPresent",
+}
+
+export enum UseTimedataToCreatePaychecks {
+  DOES_NOT_USE_TIME_DATE = "does_not_use_time_date",
+  NOT_SET = "not_set",
+  USES_TIME_DATA = "uses_time_data",
+}
+
+export enum UsVeteranStatus {
+  VETERAN = "veteran",
+  NON_VETERAN = "non_veteran",
+}
 
 export type ListArRefundCreditCardsData = {
   body?: never;
@@ -37605,7 +37605,7 @@ export type ListCustomersData = {
     /**
      * Optional: Filter by job status (customer-specific filter)
      */
-    JobStatus?: NullableJobStatus;
+    JobStatus?: JobStatus;
     /**
      * Filter for customers whose totalBalance equals this amount.
      * Mutually exclusive with other totalBalance filters.

@@ -1,6 +1,6 @@
 {
   "name": "nxus-qbd",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Official TypeScript SDK for the Nxus QuickBooks Desktop API. Runs on Node.js 18+ and Bun 1.0+.",
   "license": "MIT",
   "type": "module",
