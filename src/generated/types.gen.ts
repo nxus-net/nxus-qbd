@@ -285,32 +285,6 @@ export type AddressBlock = {
 };
 
 /**
- * Request for a block of addresses.
- */
-export type AddressBlockRequest = {
-  /**
-   * The Addr1 associated with this object.
-   */
-  line1?: string | null;
-  /**
-   * The Addr2 associated with this object.
-   */
-  line2?: string | null;
-  /**
-   * The Addr3 associated with this object.
-   */
-  line3?: string | null;
-  /**
-   * The Addr4 associated with this object.
-   */
-  line4?: string | null;
-  /**
-   * The Addr5 associated with this object.
-   */
-  line5?: string | null;
-};
-
-/**
  * The AddressRequest object represents a physical address, which can be associated with various entities in QuickBooks, such as customers, vendors, or employees.
  * It includes properties for the street address, city, state, postal code, country, and an optional note.
  * The AddressRequest object is used to capture and store location information for these entities in QuickBooks.
@@ -3514,7 +3488,7 @@ export type CreateAccountRequest = {
    */
   bankNumber?: string | null;
   /**
-   * An external identifier used for tracking purposes.
+   * An external GUID identifier.
    */
   externalId?: string | null;
 };
@@ -6539,12 +6513,14 @@ export type CreateOtherNameRequest = {
    * The other-name's address.
    */
   address?: AddressRequest | null;
-  addressBlock?: AddressBlock | null;
   /**
    * The other-name's primary telephone number.
    */
   phone?: string | null;
-  alternatPhone?: string | null;
+  /**
+   * The other-name's alternate telephone number.
+   */
+  alternatePhone?: string | null;
   /**
    * The other-name's fax number.
    */
@@ -6557,6 +6533,9 @@ export type CreateOtherNameRequest = {
    * The name of the primary contact person for this other-name.
    */
   contact?: string | null;
+  /**
+   * The name of the alternate contact for this other-name.
+   */
   alternateContact?: string | null;
   /**
    * The other-name's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
@@ -6564,11 +6543,19 @@ export type CreateOtherNameRequest = {
    * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
    */
   accountNumber?: string | null;
+  /**
+   * Additional notes for the other name.
+   */
   notes?: string | null;
+  /**
+   * The other-name's custom fields.
+   *
+   * A list of each of which represents a custom field that has been added to
+   * QuickBooks as a custom field (data extension).
+   */
   customFields?: Array<DataExtRequest> | null;
   /**
-   * Fulfills the ICreateRequest interface.
-   * Used for tracking the "Add" job.
+   * An external GUID identifier.
    */
   externalId?: string | null;
 };
@@ -15430,6 +15417,12 @@ export type OtherName = {
    * The other-name's address.
    */
   address: Address | null;
+  /**
+   * The other-name's address block.
+   *
+   * The address expressed as an address block of Addr1 through Addr5,
+   * depending on the number of lines in the original request that created the address.
+   */
   addressBlock: AddressBlock | null;
   /**
    * The other-name's primary telephone number.
@@ -15455,6 +15448,9 @@ export type OtherName = {
    * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
    */
   accountNumber: string | null;
+  /**
+   * Additional notes for the other name.
+   */
   notes: string | null;
   /**
    * Indicates whether the list item is currently active.
@@ -21775,13 +21771,12 @@ export type UpdateOtherNameRequest = {
    */
   address?: AddressRequest | null;
   /**
-   * Represents the other-name's address as a block of text, which may include multiple lines and is not structured into separate fields like street, city, state, etc. This field is used when the full address block needs to be stored as-is.
-   */
-  addressBlock?: AddressBlockRequest | null;
-  /**
    * The other-name's primary telephone number.
    */
   phone?: string | null;
+  /**
+   * The other-name's alternate telephone number.
+   */
   alternatePhone?: string | null;
   /**
    * The other-name's fax number.
@@ -21795,6 +21790,9 @@ export type UpdateOtherNameRequest = {
    * The name of the primary contact person for this other-name.
    */
   contact?: string | null;
+  /**
+   * The name of the alternate contact for this other-name.
+   */
   alternateContact?: string | null;
   /**
    * The other-name's account number, which appears in the QuickBooks chart of accounts, reports, and graphs.
@@ -21802,8 +21800,19 @@ export type UpdateOtherNameRequest = {
    * Note that if the "Use Account Numbers" preference is turned off in QuickBooks, the account number may not be visible in the user interface, but it can still be set and retrieved through the API.
    */
   accountNumber?: string | null;
+  /**
+   * Additional notes for the other name.
+   */
   notes?: string | null;
+  /**
+   * The other-name's custom fields.
+   *
+   * Custom fields are used to store additional data about the other-name that is not included in the standard fields.
+   */
   customFields?: Array<DataExtRequest> | null;
+  /**
+   * The other-name's revision number, which is used to track changes to the other-name.
+   */
   revisionNumber: string;
 };
 

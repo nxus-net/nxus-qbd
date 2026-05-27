@@ -10,7 +10,6 @@ export {
   type AdditionalNote,
   type Address,
   type AddressBlock,
-  type AddressBlockRequest,
   type AddressRequest,
   type ApiResponseReport,
   type ApplicableCredit,
