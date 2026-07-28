@@ -21,6 +21,13 @@ export {
   type ResolveBaseUrlOptions,
 } from './config';
 export { DEFAULT_TIMEOUT_MS } from './transport';
+export {
+  CustomFieldDefinitionsResource,
+  CustomFieldsResource,
+  DataExtTargetKind,
+  type DataExtTargetKindValue,
+  type ListCustomFieldDefinitionsParams,
+} from './resources/custom-fields';
 export * as models from './models';
 export { core, qbd } from './models';
 

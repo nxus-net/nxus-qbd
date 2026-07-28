@@ -45,6 +45,10 @@ import {
   ConnectionsResource,
   AuthSessionsResource,
 } from "./resources/connections";
+import {
+  CustomFieldDefinitionsResource,
+  CustomFieldsResource,
+} from "./resources/custom-fields";
 import type { Connection } from "./contracts";
 
 // ---------------------------------------------------------------------------
@@ -685,6 +689,22 @@ export class NxusClient {
       CreateOtherNameRequest,
       UpdateOtherNameRequest
     >(this.transport, "/api/v1/other-names");
+  }
+
+  /**
+   * Custom Field Definitions — create/update/query/delete the *schema* of a
+   * custom field (DataExtDef). See {@link CustomFieldDefinitionsResource}.
+   */
+  get customFieldDefinitions() {
+    return new CustomFieldDefinitionsResource(this.transport);
+  }
+
+  /**
+   * Custom Fields — assign/update/clear a custom field *value* on a concrete
+   * QBD target (DataExt). See {@link CustomFieldsResource}.
+   */
+  get customFields() {
+    return new CustomFieldsResource(this.transport);
   }
 
   /** Payment Methods — full CRUD */

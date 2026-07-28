@@ -47,6 +47,7 @@ tmp/
 temp/
 
 
+
 # AI
 .omx/*
 .claude/*

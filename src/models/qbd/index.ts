@@ -16,6 +16,8 @@ export * from './credit_card_charge';
 export * from './credit_card_credit';
 export * from './credit_memo';
 export * from './currency';
+export * from './custom_field_definitions';
+export * from './custom_fields';
 export * from './customer';
 export * from './customer_type';
 export * from './date_driven_term';
