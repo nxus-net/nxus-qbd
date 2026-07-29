@@ -13,6 +13,8 @@ const modelsRoot = path.join(packageRoot, 'src', 'models');
 const packageNames = ['core', 'qbd'];
 
 async function main() {
+  await applyPublicBaseUrl();
+
   const generatedExports = await readGeneratedExports();
   const sharedSymbols = await readSharedSymbols();
 
@@ -36,6 +38,42 @@ async function main() {
   }
 
   await writeFile(path.join(modelsRoot, 'index.ts'), renderRootIndex(sharedSymbols, generatedExports));
+}
+
+async function applyPublicBaseUrl() {
+  const publicBaseUrl = process.env.OPENAPI_PUBLIC_BASE_URL;
+  if (!publicBaseUrl) {
+    return;
+  }
+
+  const content = await readFile(generatedTypesPath, 'utf8');
+  const rewritten = content.replace(
+    /(\bbaseUrl:\s*)('[^']+'|"[^"]+")(\s*\|\s*\(string\s*&\s*\{\}\);)/,
+    `$1'${publicBaseUrl}'$3`,
+  );
+
+  if (rewritten === content) {
+    throw new Error(`Could not locate ClientOptions.baseUrl in ${generatedTypesPath}`);
+  }
+
+  await writeFileWithRetry(generatedTypesPath, rewritten);
+}
+
+async function writeFileWithRetry(filePath, content) {
+  const maxAttempts = 5;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await writeFile(filePath, content);
+      return;
+    } catch (error) {
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
+    }
+  }
 }
 
 async function readGeneratedExports() {

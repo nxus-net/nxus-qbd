@@ -1,6 +1,6 @@
 {
   "name": "nxus-qbd",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "description": "Official TypeScript SDK for the Nxus QuickBooks Desktop API. Runs on Node.js 18+ and Bun 1.0+.",
   "license": "MIT",
   "type": "module",
@@ -33,7 +33,7 @@
   "scripts": {
     "generate": "openapi-ts && pnpm run generate:models",
     "generate:live": "cross-env OPENAPI_SPEC_URL=https://api.nx-us.net/openapi/v1.json openapi-ts && pnpm run generate:models",
-    "generate:local": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 OPENAPI_SPEC_URL=https://localhost:7242/openapi/v1.json openapi-ts && pnpm run generate:models",
+    "generate:local": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 OPENAPI_SPEC_URL=https://localhost:7242/openapi/v1.json openapi-ts && cross-env OPENAPI_PUBLIC_BASE_URL=https://api.nx-us.net/ pnpm run generate:models",
     "generate:models": "node ./scripts/generate-model-exports.mjs",
     "build": "tsc",
     "prepublishOnly": "pnpm run build",

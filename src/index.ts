@@ -11,7 +11,12 @@
  * @packageDocumentation
  */
 
-export { NxusClient, type NxusClientOptions, type RequestOptions } from './client';
+export {
+  NxusClient,
+  type NxusClientOptions,
+  type NxusLogger,
+  type RequestOptions,
+} from './client';
 export {
   DEFAULT_BASE_URL,
   LOCAL_BASE_URL,
