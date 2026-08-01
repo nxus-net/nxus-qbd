@@ -1,6 +1,7 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import prettier from 'prettier';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,13 +10,14 @@ const packageRoot = path.resolve(__dirname, '..');
 // Module grouping is derived once, upstream, and shipped with the pinned spec.
 // Never hand-edit spec/grouping.json — regenerate it with the root pipeline.
 const groupingPath = path.join(packageRoot, 'spec', 'grouping.json');
-const generatedTypesPath = path.join(packageRoot, 'src', 'generated', 'types.gen.ts');
+const generatedDir = path.join(packageRoot, 'src', 'generated');
+const generatedTypesPath = path.join(generatedDir, 'types.gen.ts');
 const modelsRoot = path.join(packageRoot, 'src', 'models');
 
 const packageNames = ['core', 'qbd'];
 
 async function main() {
-  await applyPublicBaseUrl();
+  await normalizeGeneratedOutput();
 
   const generatedExports = await readGeneratedExports();
   const grouping = await readGrouping();
@@ -48,20 +50,47 @@ async function main() {
 // this constant is advertisement only — but generating from a dev server would
 // still publish a dev host in the package. The pinned spec already declares the
 // public URL; this covers generate:live / generate:local, which bypass it.
-async function applyPublicBaseUrl() {
+// Rewrite the base URL and format, in one read/write pass per file.
+//
+// Formatting lives here rather than in openapi-ts's `postProcess` or a separate
+// `prettier --write` step for two reasons: openapi-ts resolves its formatter
+// from its own node_modules, which under pnpm does not contain prettier (so it
+// silently produced unformatted output), and the prettier CLI cannot retry the
+// intermittent Windows `UNKNOWN: open` lock on the 2 MB types file. Going
+// through writeFileWithRetry handles that, and each file is written once.
+async function normalizeGeneratedOutput() {
+  const entries = await readdir(generatedDir);
+
+  for (const entry of entries.filter((name) => name.endsWith('.ts'))) {
+    const filePath = path.join(generatedDir, entry);
+    const original = await readFile(filePath, 'utf8');
+
+    const rewritten = filePath === generatedTypesPath ? applyPublicBaseUrl(original) : original;
+    const formatted = await prettier.format(rewritten, { filepath: filePath });
+
+    if (formatted !== original) {
+      await writeFileWithRetry(filePath, formatted);
+    }
+  }
+}
+
+// hey-api bakes the spec's servers[0].url into ClientOptions.baseUrl. The SDK
+// resolves its real base URL at runtime (see src/config.ts resolveBaseUrl), so
+// this constant is advertisement only — but generating from a dev server would
+// still publish a dev host in the package. The pinned spec already declares the
+// public URL; this covers generate:live / generate:local, which bypass it.
+function applyPublicBaseUrl(content) {
   const publicBaseUrl = process.env.OPENAPI_PUBLIC_BASE_URL || 'https://api.nx-us.net/';
+  const pattern = /(\bbaseUrl:\s*)('[^']+'|"[^"]+")(\s*\|\s*\(string\s*&\s*\{\}\);)/;
 
-  const content = await readFile(generatedTypesPath, 'utf8');
-  const rewritten = content.replace(
-    /(\bbaseUrl:\s*)('[^']+'|"[^"]+")(\s*\|\s*\(string\s*&\s*\{\}\);)/,
-    `$1'${publicBaseUrl}'$3`,
-  );
-
-  if (rewritten === content) {
+  // Absence means hey-api changed the shape of ClientOptions and this rewrite
+  // is silently doing nothing — worth failing over. A no-op because the URL is
+  // already correct is the normal case on any regen, not an error.
+  if (!pattern.test(content)) {
     throw new Error(`Could not locate ClientOptions.baseUrl in ${generatedTypesPath}`);
   }
 
-  await writeFileWithRetry(generatedTypesPath, rewritten);
+  return content.replace(pattern, `$1"${publicBaseUrl}"$3`);
 }
 
 async function writeFileWithRetry(filePath, content) {

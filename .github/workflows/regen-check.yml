@@ -23,7 +23,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install
+      # --frozen-lockfile is what actually pins the generator. @hey-api/openapi-ts
+      # is pre-1.0 and its output shape moves between minors, so the lockfile —
+      # not the caret range — decides which version runs. A dependency-update PR
+      # changes the lockfile and re-runs this job, which is where a generator
+      # upgrade shows up as a reviewable diff instead of a surprise.
+      - run: pnpm install --frozen-lockfile
 
       - name: Regenerate from the pinned spec
         run: pnpm run generate

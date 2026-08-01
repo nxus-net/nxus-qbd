@@ -1,0 +1,12 @@
+# Generated output — collapsed by default in GitHub reviews and excluded from
+# language stats. Regenerate it (`pnpm run generate`), never hand-edit it;
+# regen-check.yml fails the build if these drift from the pinned spec.
+#
+# `linguist-generated=true` collapses the diff but keeps it textual, so local
+# `git diff` and regen-check's `git diff --exit-code` still work normally.
+src/generated/*.ts    linguist-generated=true
+src/models/**/*.ts    linguist-generated=true
+
+# Pinned spec artifacts, produced by the nxus-sdks pipeline. openapi.json is
+# ~10 MB; read spec/CHANGES.md for the human-readable diff instead.
+spec/*.json           linguist-generated=true

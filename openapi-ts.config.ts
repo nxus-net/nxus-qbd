@@ -17,7 +17,12 @@ export default defineConfig({
     "./spec/openapi.json",
   output: {
     path: "src/generated",
-    postProcess: ["prettier"],
+    // No `postProcess: ["prettier"]` here. openapi-ts resolves that formatter
+    // from its own node_modules, which under pnpm's strict layout does not
+    // contain prettier — so it printed "Running Prettier" and silently did
+    // nothing on a clean install, producing unformatted output that no longer
+    // matched what was committed. Formatting now runs as an explicit step in
+    // the `generate` script, using the project's own prettier.
   },
   plugins: [
     {
