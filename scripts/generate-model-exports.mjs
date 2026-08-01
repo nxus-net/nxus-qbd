@@ -6,7 +6,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const packageRoot = path.resolve(__dirname, '..');
-const pythonModelsRoot = path.resolve(packageRoot, '..', 'nxus-qbd-python', 'nxus_qbd', 'models');
+// Module grouping is derived once, upstream, and shipped with the pinned spec.
+// Never hand-edit spec/grouping.json — regenerate it with the root pipeline.
+const groupingPath = path.join(packageRoot, 'spec', 'grouping.json');
 const generatedTypesPath = path.join(packageRoot, 'src', 'generated', 'types.gen.ts');
 const modelsRoot = path.join(packageRoot, 'src', 'models');
 
@@ -16,13 +18,14 @@ async function main() {
   await applyPublicBaseUrl();
 
   const generatedExports = await readGeneratedExports();
-  const sharedSymbols = await readSharedSymbols();
+  const grouping = await readGrouping();
+  const sharedSymbols = readSharedSymbols(grouping);
 
   await rm(modelsRoot, { recursive: true, force: true });
   await mkdir(modelsRoot, { recursive: true });
 
   for (const packageName of packageNames) {
-    const modules = await readPythonPackageModules(packageName);
+    const modules = readPackageModules(grouping, packageName);
     const packageDir = path.join(modelsRoot, packageName);
     await mkdir(packageDir, { recursive: true });
 
@@ -87,44 +90,59 @@ async function readGeneratedExports() {
   return exportMap;
 }
 
-async function readPythonPackageModules(packageName) {
-  const initPath = path.join(pythonModelsRoot, packageName, '__init__.py');
-  const content = await readFile(initPath, 'utf8');
-
-  return content
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith('from .'))
-    .map((line) => {
-      const match = line.match(/^from \.(?<module>[a-z0-9_]+) import (?<symbols>.+)$/);
-      if (!match?.groups) {
-        throw new Error(`Could not parse module export line in ${initPath}: ${line}`);
-      }
-
-      return {
-        module: match.groups.module,
-        symbols: match.groups.symbols.split(',').map((symbol) => symbol.trim()).filter(Boolean),
-      };
-    });
-}
-
-async function readSharedSymbols() {
-  const initPath = path.join(pythonModelsRoot, '__init__.py');
-  const content = await readFile(initPath, 'utf8');
-  const sharedLine = content
-    .split('\n')
-    .map((line) => line.trim())
-    .find((line) => line.startsWith('from ._shared import '));
-
-  if (!sharedLine) {
-    throw new Error(`Could not locate shared model export line in ${initPath}`);
+async function readGrouping() {
+  let content;
+  try {
+    content = await readFile(groupingPath, 'utf8');
+  } catch (error) {
+    throw new Error(
+      `Could not read ${groupingPath}. It ships with the pinned spec — restore it from the repo or regenerate the spec artifacts.`,
+      { cause: error },
+    );
   }
 
-  return sharedLine
-    .replace('from ._shared import ', '')
-    .split(',')
-    .map((symbol) => symbol.trim())
-    .filter(Boolean);
+  const grouping = JSON.parse(content);
+  if (!grouping.schemas || typeof grouping.schemas !== 'object') {
+    throw new Error(`${groupingPath} has no 'schemas' map — it is not a valid grouping artifact.`);
+  }
+
+  return grouping;
+}
+
+// Schemas are stored in sorted key order, so collecting them in iteration order
+// keeps module members alphabetical without an extra sort.
+function readPackageModules(grouping, packageName) {
+  const byModule = new Map();
+
+  for (const [symbol, placement] of Object.entries(grouping.schemas)) {
+    if (placement.package !== packageName) {
+      continue;
+    }
+
+    const existing = byModule.get(placement.module);
+    if (existing) {
+      existing.push(symbol);
+    } else {
+      byModule.set(placement.module, [symbol]);
+    }
+  }
+
+  return [...byModule.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([module, symbols]) => ({ module, symbols }));
+}
+
+// `_shared` symbols carry an empty package — they are re-exported from the models root.
+function readSharedSymbols(grouping) {
+  const shared = Object.entries(grouping.schemas)
+    .filter(([, placement]) => !placement.package)
+    .map(([symbol]) => symbol);
+
+  if (shared.length === 0) {
+    throw new Error(`No shared symbols found in ${groupingPath}`);
+  }
+
+  return shared;
 }
 
 function renderModuleFile(moduleName, symbols, importPath, generatedExports) {

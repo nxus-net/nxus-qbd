@@ -4,7 +4,7 @@
     "AuthSession",
     "QwcAuthSetup"
   ],
-  "generatedFrom": "2455df63bcbb49144b3cdbaeb62c071f5fd155ce433ae3259fd9cce53cf76145",
+  "generatedFrom": "1ecc803bfd8d550c868a052b766c3665913cc05388b1083aff0b9adbb9e0a5fd",
   "schemas": {
     "Account": {
       "module": "account",
@@ -1535,8 +1535,8 @@
       "package": "qbd"
     },
     "UpdateCreditCardTransactionResultInfoRequest": {
-      "module": "sales_receipt",
-      "package": "qbd"
+      "module": "_shared",
+      "package": ""
     },
     "UpdateCreditMemoLineGroupRequest": {
       "module": "credit_memo",

@@ -6770,6 +6770,14 @@
             "nullable": true,
             "type": "string"
           },
+          "payee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QbdRef"
+              }
+            ],
+            "nullable": true
+          },
           "address": {
             "allOf": [
               {
@@ -6787,6 +6795,8 @@
           },
           "isQueuedForPrint": {
             "description": "The IsToBePrinted associated with this object.",
+            "example": "true",
+            "nullable": true,
             "type": "boolean"
           },
           "isTaxIncluded": {
@@ -6804,10 +6814,6 @@
             "description": "The sales-tax code for this check, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the payee. This can be overridden on the check's individual lines.\n\nDefault codes include \"Non\" (non-taxable) and \"Tax\" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the \"Do You Charge Sales Tax?\" preference), it will assign the default non-taxable code to all sales.",
             "nullable": true
           },
-          "isVoid": {
-            "description": "The isVoid associated with this object.",
-            "type": "boolean"
-          },
           "transactionNumber": {
             "description": "The TxnNumber associated with this object.",
             "example": "123",
@@ -6821,19 +6827,6 @@
             "format": "double",
             "nullable": true,
             "type": "number"
-          },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The primary entity (Customer, Vendor, or Employee) associated with this transaction.",
-            "example": {
-              "FullName": "Barley, Renee",
-              "ListId": "920000-1071506140"
-            },
-            "nullable": true
           },
           "account": {
             "allOf": [
@@ -6911,15 +6904,14 @@
           "exchangeRate",
           "refNumber",
           "memo",
+          "payee",
           "address",
           "isPending",
           "isQueuedForPrint",
           "isTaxIncluded",
           "salesTaxCode",
-          "isVoid",
           "transactionNumber",
           "amount",
-          "entity",
           "account",
           "amountInHomeCurrency",
           "hasValidLineItems",
@@ -8316,6 +8308,7 @@
           },
           "isQueuedForPrint": {
             "description": "Whether this check should be marked for printing",
+            "nullable": true,
             "type": "boolean"
           },
           "isTaxIncluded": {
@@ -10565,18 +10558,13 @@
             "nullable": true,
             "type": "string"
           },
-          "customerId": {
-            "description": "(Optional) The ListID or FullName of the customer or job.",
+          "payeeId": {
+            "description": "(Optional) The ListID or FullName of the expense-line payee. For an Accounts\nPayable account this identifies a vendor; otherwise it identifies a customer or job.",
             "nullable": true,
             "type": "string"
           },
           "classId": {
             "description": "(Optional) The ListID or FullName of the class.",
-            "nullable": true,
-            "type": "string"
-          },
-          "vendorId": {
-            "description": "(Optional) The ListID or FullName of the vendor.",
             "nullable": true,
             "type": "string"
           },
@@ -12706,9 +12694,9 @@
             "nullable": true,
             "type": "string"
           },
-          "customerId": {
-            "description": "(Optional) The ListID or FullName of the customer or job this item is intended for (Job Costing).",
-            "maxLength": 209,
+          "payeeId": {
+            "description": "(Optional) The ListID or FullName of the customer or job this item is intended for.",
+            "maxLength": 50,
             "nullable": true,
             "type": "string"
           },
@@ -13684,12 +13672,14 @@
             "type": "string"
           },
           "isQueuedForPrint": {
-            "description": "(Optional) Specifies whether the check is to be printed.",
+            "description": "(Optional) Specifies whether the payment check is queued for batch printing in QuickBooks.\n\n**Mutually Exclusive:** Do not set this field if `refNumber` (<see cref=\"P:QbdWebService.Application.Resources.Qbd.Transactions.SalesTaxPaymentCheck.Models.CreateSalesTaxPaymentCheckRequest.ReferenceNumber\" />) is provided.\n- **`true`:** Adds the check to the QuickBooks *\"Print Checks\"* queue. The check number will be assigned at print time.\n- **`false`:** Saves the payment as non-printable (e.g., hand-written or external payment).",
+            "example": "true",
             "nullable": true,
             "type": "boolean"
           },
           "refNumber": {
-            "description": "(Optional) The reference number (check number). Max 11 chars.",
+            "description": "Custom reference or check number for the payment (Optional, maximum 11 characters).\n\n**Mutually Exclusive:** Do not set this field if `isQueuedForPrint` (<see cref=\"P:QbdWebService.Application.Resources.Qbd.Transactions.SalesTaxPaymentCheck.Models.CreateSalesTaxPaymentCheckRequest.IsToBePrinted\" />) is provided.\n- **When provided:** Explicitly sets the check/reference number in QuickBooks.\n- **When omitted:** QuickBooks saves the record with a blank reference number (does not auto-increment).",
+            "example": "1042",
             "maxLength": 11,
             "nullable": true,
             "type": "string"
@@ -14791,6 +14781,14 @@
             "nullable": true,
             "type": "string"
           },
+          "payee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QbdRef"
+              }
+            ],
+            "nullable": true
+          },
           "transactionNumber": {
             "description": "The TxnNumber associated with this object.",
             "example": "\"Sample text value\"",
@@ -14819,19 +14817,6 @@
             "format": "double",
             "nullable": true,
             "type": "number"
-          },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The primary entity (Customer, Vendor, or Employee) associated with this transaction.",
-            "example": {
-              "FullName": "Barley, Renee",
-              "ListId": "920000-1071506140"
-            },
-            "nullable": true
           },
           "account": {
             "allOf": [
@@ -14909,11 +14894,11 @@
           "exchangeRate",
           "refNumber",
           "memo",
+          "payee",
           "transactionNumber",
           "isTaxIncluded",
           "salesTaxCode",
           "amount",
-          "entity",
           "account",
           "amountInHomeCurrency",
           "hasValidLineItems",
@@ -14990,6 +14975,14 @@
             "nullable": true,
             "type": "string"
           },
+          "payee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QbdRef"
+              }
+            ],
+            "nullable": true
+          },
           "transactionNumber": {
             "description": "The transaction number, often auto-generated by QuickBooks.",
             "format": "int32",
@@ -15016,19 +15009,6 @@
             "format": "double",
             "nullable": true,
             "type": "number"
-          },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The primary entity (Customer, Vendor, or Employee) associated with this transaction.",
-            "example": {
-              "FullName": "Barley, Renee",
-              "ListId": "920000-1071506140"
-            },
-            "nullable": true
           },
           "account": {
             "allOf": [
@@ -15106,11 +15086,11 @@
           "exchangeRate",
           "refNumber",
           "memo",
+          "payee",
           "transactionNumber",
           "isTaxIncluded",
           "salesTaxCode",
           "amount",
-          "entity",
           "account",
           "amountInHomeCurrency",
           "hasValidLineItems",
@@ -19191,14 +19171,13 @@
             "description": "The expense line's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. If a class is specified for the entire parent transaction, it is automatically applied to all expense lines unless overridden here, at the transaction line level.",
             "nullable": true
           },
-          "customer": {
+          "payee": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/QbdRef"
               }
             ],
-            "description": "The Customer associated with this object.",
-            "example": "\"Sample text value\"",
+            "description": "The expense-line payee. For an Accounts Payable account this is a vendor;\notherwise it is a customer or job.",
             "nullable": true
           },
           "salesRepresentative": {
@@ -19227,16 +19206,6 @@
             "nullable": true,
             "type": "number"
           },
-          "vendor": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The Vendor associated with this object.",
-            "example": "\"Sample text value\"",
-            "nullable": true
-          },
           "billableStatus": {
             "allOf": [
               {
@@ -19264,11 +19233,10 @@
           "amount",
           "memo",
           "class",
-          "customer",
+          "payee",
           "salesRepresentative",
           "salesTaxCode",
           "taxAmount",
-          "vendor",
           "billableStatus",
           "customFields"
         ],
@@ -25248,6 +25216,14 @@
             "nullable": true,
             "type": "string"
           },
+          "vendor": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QbdRef"
+              }
+            ],
+            "description": "The vendor who sent this item receipt for goods or services purchased."
+          },
           "transactionNumber": {
             "format": "int32",
             "nullable": true,
@@ -25289,19 +25265,6 @@
             "format": "double",
             "nullable": true,
             "type": "number"
-          },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The primary entity (Customer, Vendor, or Employee) associated with this transaction.",
-            "example": {
-              "FullName": "Barley, Renee",
-              "ListId": "920000-1071506140"
-            },
-            "nullable": true
           },
           "account": {
             "allOf": [
@@ -25379,13 +25342,13 @@
           "exchangeRate",
           "refNumber",
           "memo",
+          "vendor",
           "transactionNumber",
           "payablesAccount",
           "liabilityAccount",
           "isTaxIncluded",
           "salesTaxCode",
           "amount",
-          "entity",
           "account",
           "amountInHomeCurrency",
           "hasValidLineItems",
@@ -27618,19 +27581,6 @@
             "nullable": true,
             "type": "number"
           },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "The primary entity (Customer, Vendor, or Employee) associated with this transaction.",
-            "example": {
-              "FullName": "Barley, Renee",
-              "ListId": "920000-1071506140"
-            },
-            "nullable": true
-          },
           "account": {
             "allOf": [
               {
@@ -27735,7 +27685,6 @@
           "lines",
           "lineGroups",
           "amount",
-          "entity",
           "account",
           "amountInHomeCurrency",
           "hasValidLineItems",
@@ -27833,15 +27782,13 @@
             "example": "\"Sample text value\"",
             "nullable": true
           },
-          "customer": {
+          "payee": {
             "allOf": [
               {
                 "$ref": "#/components/schemas/QbdRef"
               }
             ],
-            "description": "The Customer associated with this object.",
-            "example": "\"Sample text value\"",
-            "nullable": true
+            "description": "The customer or job associated with this purchase-order line."
           },
           "serviceDate": {
             "description": "The ServiceDate associated with this object.",
@@ -27919,7 +27866,7 @@
           "class",
           "amount",
           "inventorySiteLocation",
-          "customer",
+          "payee",
           "serviceDate",
           "salesTaxCode",
           "receivedQuantity",
@@ -34974,18 +34921,13 @@
             "nullable": true,
             "type": "string"
           },
-          "customerId": {
-            "description": "(Optional) The ListID or FullName of the customer or job.",
+          "payeeId": {
+            "description": "(Optional) The ListID or FullName of the expense-line payee. For an Accounts\nPayable account this identifies a vendor; otherwise it identifies a customer or job.",
             "nullable": true,
             "type": "string"
           },
           "classId": {
             "description": "(Optional) The ListID or FullName of the class.",
-            "nullable": true,
-            "type": "string"
-          },
-          "vendorId": {
-            "description": "(Optional) The ListID or FullName of the vendor.",
             "nullable": true,
             "type": "string"
           },
@@ -37076,9 +37018,9 @@
             "nullable": true,
             "type": "string"
           },
-          "customerId": {
-            "description": "(Optional) The ListID or FullName of the customer or job this item is intended for (Job Costing).",
-            "maxLength": 209,
+          "payeeId": {
+            "description": "(Optional) The ListID or FullName of the customer or job this item is intended for.",
+            "maxLength": 50,
             "nullable": true,
             "type": "string"
           },
@@ -39414,15 +39356,6 @@
             "nullable": true,
             "type": "integer"
           },
-          "entity": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QbdRef"
-              }
-            ],
-            "description": "Refers to the Vendor. Note: The base Entity is for PayeeEntityRef.",
-            "nullable": true
-          },
           "vendor": {
             "allOf": [
               {
@@ -39545,7 +39478,6 @@
           "refNumber",
           "memo",
           "transactionNumber",
-          "entity",
           "vendor",
           "account",
           "payablesAccount",
