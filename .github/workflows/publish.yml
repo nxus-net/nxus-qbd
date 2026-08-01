@@ -36,9 +36,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -72,7 +72,7 @@ jobs:
       - name: Build the tarball
         run: pnpm pack --pack-destination package
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: npm-package
           path: package/*.tgz
@@ -95,14 +95,14 @@ jobs:
       # and the publish fails.
       id-token: write
     steps:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # Trusted publishing needs Node >= 22.14 and npm CLI >= 11.5.1;
           # 24 is npm's recommended Actions configuration.
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: npm-package
           path: package
