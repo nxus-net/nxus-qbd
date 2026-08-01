@@ -130,4 +130,4 @@ jobs:
             exit 1
           fi
           echo "Publishing ${tarball} via OIDC (provenance is automatic)"
-          npm publish "${tarball}" --access public
+          npm publish "./${tarball}" --access public
