@@ -1,0 +1,39 @@
+# Guards the pinned-spec contract: regenerating from spec/openapi.json must
+# reproduce the committed output exactly.
+#
+# Catches hand-edits to src/generated/ or src/models/, and a spec/ artifact
+# committed without regenerating. Needs no network and no secrets — the spec
+# is pinned in the repo.
+name: Regen check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install
+
+      - name: Regenerate from the pinned spec
+        run: pnpm run generate
+
+      - name: Verify the working tree is unchanged
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Regenerating from spec/openapi.json changed tracked files."
+            echo "Generated output is out of sync with the pinned spec. Run 'pnpm run generate'"
+            echo "and commit the result. If the spec itself needs to change, re-pin it in the"
+            echo "nxus-sdks repo — never hand-edit spec/openapi.json or spec/grouping.json."
+            exit 1
+          fi
