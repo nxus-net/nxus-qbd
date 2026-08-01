@@ -43,11 +43,13 @@ async function main() {
   await writeFile(path.join(modelsRoot, 'index.ts'), renderRootIndex(sharedSymbols, generatedExports));
 }
 
+// hey-api bakes the spec's servers[0].url into ClientOptions.baseUrl. The SDK
+// resolves its real base URL at runtime (see src/config.ts resolveBaseUrl), so
+// this constant is advertisement only — but generating from a dev server would
+// still publish a dev host in the package. The pinned spec already declares the
+// public URL; this covers generate:live / generate:local, which bypass it.
 async function applyPublicBaseUrl() {
-  const publicBaseUrl = process.env.OPENAPI_PUBLIC_BASE_URL;
-  if (!publicBaseUrl) {
-    return;
-  }
+  const publicBaseUrl = process.env.OPENAPI_PUBLIC_BASE_URL || 'https://api.nx-us.net/';
 
   const content = await readFile(generatedTypesPath, 'utf8');
   const rewritten = content.replace(
