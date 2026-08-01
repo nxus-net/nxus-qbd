@@ -1,3 +1,29 @@
+# Release on a v* tag, in two jobs.
+#
+# preflight builds the exact tarball and holds NO credentials. publish runs in
+# the `production` environment, which GitHub gates behind an approval — and it
+# withholds that environment's secrets until the approval happens, so preflight
+# cannot reach npm even if something in the build were compromised.
+#
+# After approval, publish uploads the artifact preflight already produced. It
+# does not reinstall, regenerate, or rebuild: what was inspected is what ships.
+#
+# One-time repo setup (Settings > Environments > production):
+#   - Required reviewers: yourself. As sole maintainer this is not a security
+#     boundary — it is a deliberate "I looked at the package and mean to ship
+#     it" pause that stops accidental releases.
+#   - Deployment branches and tags: restrict to the tag pattern v*
+#   - Disable "Allow administrators to bypass configured protection rules"
+#
+# No npm credential is stored anywhere. Publishing uses npm trusted publishing
+# (OIDC), configured on npmjs.com under the package's Settings > Trusted
+# Publisher, which must match this workflow exactly:
+#   organization  nxus-net
+#   repository    nxus-qbd
+#   workflow      publish.yml          (filename only, not the full path)
+#   environment   production
+# Those values are case-sensitive, and npm requires package.json
+# repository.url to point at that same GitHub repository.
 name: Publish to npm
 
 on:
@@ -5,7 +31,7 @@ on:
     tags: ["v*"]
 
 jobs:
-  publish:
+  preflight:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,10 +42,92 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          registry-url: https://registry.npmjs.org/
+
+      - name: Verify the tag matches package.json
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          if [ "v${package_version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}."
+            echo "Bump the version and re-tag; do not move the tag onto a mismatched commit."
+            exit 1
+          fi
+          echo "Releasing ${GITHUB_REF_NAME} (package.json ${package_version})."
+
+      # The lockfile, not the caret range, decides which generator runs.
       - run: pnpm install --frozen-lockfile
+
+      - name: Regenerate and verify no drift
+        run: |
+          pnpm run generate
+          if ! git diff --exit-code; then
+            echo "::error::Regenerating from the pinned spec changed tracked files."
+            echo "The tag points at a commit whose generated output is stale. Do not publish it."
+            exit 1
+          fi
+
       - run: pnpm run build
       - run: pnpm run test
-      - run: pnpm publish --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Build the tarball
+        run: pnpm pack --pack-destination package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: package/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: preflight
+    runs-on: ubuntu-latest
+    # Gates on approval. No registry credential lives here: npm trusted
+    # publishing exchanges the run's OIDC token for a short-lived, single-use
+    # credential scoped to this workflow. The two controls are separable —
+    # the environment approval decides *whether* a publish proceeds, OIDC
+    # proves *which* workflow is doing it. See
+    # https://docs.npmjs.com/trusted-publishers/
+    environment: production
+    permissions:
+      contents: read
+      # Required for OIDC. Without it npm falls back to looking for a token
+      # and the publish fails.
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          # Trusted publishing needs Node >= 22.14 and npm CLI >= 11.5.1;
+          # 24 is npm's recommended Actions configuration.
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: package
+
+      # Fail with a clear message rather than an opaque auth error if the
+      # runner image ever ships an npm too old for OIDC.
+      - name: Verify npm supports trusted publishing
+        run: |
+          set -euo pipefail
+          npm_version="$(npm --version)"
+          echo "npm ${npm_version}, node $(node --version)"
+          required="11.5.1"
+          lowest="$(printf '%s\n%s\n' "${npm_version}" "${required}" | sort -V | head -1)"
+          if [ "${lowest}" != "${required}" ]; then
+            echo "::error::npm ${npm_version} is older than ${required}; trusted publishing is unavailable."
+            exit 1
+          fi
+
+      - name: Publish the approved tarball
+        run: |
+          set -euo pipefail
+          tarball="$(find package -maxdepth 1 -name '*.tgz' | head -1)"
+          if [ -z "${tarball}" ]; then
+            echo "::error::No tarball in the preflight artifact."
+            exit 1
+          fi
+          echo "Publishing ${tarball} via OIDC (provenance is automatic)"
+          npm publish "${tarball}" --access public
