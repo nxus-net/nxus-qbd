@@ -3018,8 +3018,7 @@ export type Check = {
 };
 
 /**
- * Request model for creating a new Check transaction to pay bills.
- * Based on the CheckAddRq QBXML type.
+ * A payment made by check against one vendor’s open bills.
  */
 export type CheckBillPayment = {
   /**
@@ -3086,7 +3085,7 @@ export type CheckBillPayment = {
    */
   transactionNumber: number | null;
   /**
-   * Reference to the Accounts Payable (AP) account.
+   * Reference to the Accounts Payable account.
    */
   payablesAccount: QbdRef | null;
   /**
@@ -3102,8 +3101,8 @@ export type CheckBillPayment = {
    */
   isQueuedForPrint: boolean | null;
   /**
-   * List of transactions this payment is applied to (e.g., Bills).
-   * This is the equivalent of "line items" for a BillPayment.
+   * List of transactions this payment is applied to e.g. Bills.
+   * This is the equivalent of line items for a BillPayment.
    */
   appliedToTransactions: Array<AppliedToTxn> | null;
   /**
@@ -3912,8 +3911,7 @@ export type CreateChargeRequest = {
 };
 
 /**
- * Request model for creating a new Check transaction to pay bills.
- * Based on the CheckAddRq QBXML type.
+ * Represents a request to create a new Check transaction to pay bills.
  */
 export type CreateCheckBillPaymentRequest = {
   /**
@@ -3975,8 +3973,9 @@ export type CreateCheckBillPaymentRequest = {
   /**
    * (Required) List of transactions (bills) to apply this check to.
    * QBD requiring at least one AppliedToTransactionAddRequest for BillPaymentCheckAdd.
+   * paymentAmount, applyCredits, discountAmount, or any combination of these must be specified.
    */
-  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 /**
@@ -4144,12 +4143,11 @@ export type CreateCreditCardBillPaymentRequest = {
   exchangeRate?: number | null;
   /**
    * An optional, client-provided GUID for external tracking.
-   * If not provided, a new GUID will be generated automatically.
    */
   externalId?: string | null;
   /**
    * Bills being paid by this credit card payment
-   * At least one bill must be specified
+   * <remarks>At least one bill must be specified.</remarks>
    */
   applyToTransactions: Array<ApplyToTransactionRequest>;
   /**
@@ -6865,13 +6863,21 @@ export type CreatePurchaseOrderLineRequest = {
    */
   salesTaxCodeId?: string | null;
   /**
-   * (Optional) User-defined field 1. (Max 29 characters)
+   * The primary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to CustomField object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
-  other1?: string | null;
+  otherCustomField1?: string | null;
   /**
-   * (Optional) User-defined field 2. (Max 29 characters)
+   * The secondary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to CustomField object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
-  other2?: string | null;
+  otherCustomField2?: string | null;
 };
 
 /**
@@ -6968,11 +6974,20 @@ export type CreatePurchaseOrderRequest = {
    */
   salesTaxCodeId?: string | null;
   /**
-   * The Other1 associated with this object.
+   * Creates a primary native custom field used to store supplemental purchase order information.
+   *
+   * Unlike elements in the dynamic custom field array, this is a built-in
+   * QuickBooks field available on all purchase orders. It is typically used for tracking custom
+   * metadata that lacks a dedicated standard field. Note that this field is hidden in the
+   * default QuickBooks UI.
    */
   otherCustomField1?: string | null;
   /**
-   * The Other2 associated with this object.
+   * Creates a secondary native custom field used to store additional purchase order details.
+   *
+   * Functions similarly to custom field array as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField2?: string | null;
   /**
@@ -11417,10 +11432,7 @@ export type InventorySite = {
 };
 
 /**
- * Data transfer object for a customer invoice.
  * An invoice is a transaction representing a request for payment for goods or services.
- * It inherits core transaction fields (like TxnID, TxnDate, Amount, and Line Items)
- * from BaseTransactionDto.
  */
 export type Invoice = {
   /**
@@ -16433,11 +16445,19 @@ export type PurchaseOrder = {
    */
   salesTaxCode: QbdRef | null;
   /**
-   * The Other1 associated with this object.
+   * The primary native custom field used to store supplemental purchase order information.
+   *
+   * Functions similarly to custom field object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField1: string | null;
   /**
-   * The Other2 associated with this object.
+   * The secondary native custom field used to store supplemental purchase order information.
+   *
+   * Functions similarly to custom field object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField2: string | null;
   /**
@@ -16581,16 +16601,21 @@ export type PurchaseOrderLine = {
    */
   isManuallyClosed: boolean | null;
   /**
-   * The Other1 associated with this object.
+   * The primary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to custom field object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField1: string | null;
   /**
-   * The Other2 associated with this object.
+   * The secondary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to custom field object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField2: string | null;
-  /**
-   * The DataExtRet associated with this object.
-   */
   customFields: Array<QbdDataExt> | null;
 };
 
@@ -19567,7 +19592,7 @@ export type UpdateChargeRequest = {
 };
 
 /**
- * Request model for updating an existing Check transaction used to pay bills.
+ * Represents a request to update an existing Check transaction used to pay bills.
  */
 export type UpdateCheckBillPaymentRequest = {
   /**
@@ -19628,7 +19653,7 @@ export type UpdateCheckBillPaymentRequest = {
   /**
    * (Optional) List of transactions to apply updates to.
    */
-  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<AppliedToTransactionRequest> | null;
 };
 
 /**
@@ -19646,7 +19671,7 @@ export type UpdateCheckRequest = {
   /**
    * Transaction date
    */
-  traansactionDate?: string | null;
+  transactionDate?: string | null;
   /**
    * Bank account
    */
@@ -19787,7 +19812,7 @@ export type UpdateCreditCardBillPaymentRequest = {
   memo?: string | null;
   /**
    * Bills being paid by this credit card payment
-   * If provided, will replace existing applied bills
+   * <remarks>If provided, will replace existing applied bills.</remarks>
    */
   applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
@@ -22482,11 +22507,19 @@ export type UpdatePurchaseOrderLineRequest = {
    */
   overrideItemAccountId?: string | null;
   /**
-   * (Optional) User-defined field 1. (Max 29 characters)
+   * The primary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to CustomField object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField1?: string | null;
   /**
-   * (Optional) User-defined field 2. (Max 29 characters)
+   * The secondary native custom field used to store supplemental line item information.
+   *
+   * Functions similarly to CustomField object as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField2?: string | null;
 };
@@ -22598,13 +22631,22 @@ export type UpdatePurchaseOrderRequest = {
    */
   exchangeRate?: number | null;
   /**
-   * The Other1 associated with this object.
+   * Updates a primary native custom field used to store supplemental purchase order information.
+   *
+   * Unlike elements in the dynamic custom field array array, this is a built-in
+   * QuickBooks field available on all purchase orders. It is typically used for tracking custom
+   * metadata that lacks a dedicated standard field. Note that this field is hidden in the
+   * default QuickBooks UI.
    */
-  other1?: string | null;
+  otherCustomField1?: string | null;
   /**
-   * The Other2 associated with this object.
+   * Updates a secondary native custom field used to store additional purchase order details.
+   *
+   * Functions similarly to custom field array as a standard QuickBooks field built into
+   * all purchase orders, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
-  other2?: string | null;
+  otherCustomField2?: string | null;
   /**
    * (Optional) A list of item line modifications for the purchase order.
    */
