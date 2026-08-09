@@ -193,32 +193,50 @@ const nxus = new NxusClient({
 
 `fetchOptions` may also be supplied per request to override the client default.
 
-## Raw HTTP Access
+## Response Metadata
 
-When you need direct access to the underlying `Response` — headers, streaming
-bodies, custom status handling — use `transport.raw()`. Authentication, default
-headers, the timeout, and retries are still applied; only JSON parsing and the
-typed error mapping are bypassed.
+Every resource method has a `withResponse` twin that returns the parsed model
+*and* the response metadata that came with it:
 
 ```ts
-import { NxusClient } from "nxus-qbd";
+const check = await nxus.checks.create({ payeeId });
+// -> Check
 
-const nxus = new NxusClient({ apiKey: "sk_live_..." });
+const wrapped = await nxus.checks.withResponse.create({ payeeId });
+// -> NxusResponse<Check>
 
-const res = await (
-  nxus as unknown as {
-    transport: { raw: (path: string, init?: RequestInit) => Promise<Response> };
-  }
-).transport.raw("/api/v1/vendors", { method: "GET" });
-
-console.log(res.status, res.headers.get("x-request-id"));
-const stream = res.body; // ReadableStream for large downloads
+wrapped.data;       // the same Check
+wrapped.statusCode; // 200
+wrapped.requestId;  // 'req_abc123' — quote this in support requests
+wrapped.headers;    // frozen, lower-cased names
 ```
 
-Non-2xx responses are returned, not thrown — the caller is responsible for
-checking `response.ok`. Use this only for cases the typed resource methods
-can't model (binary downloads, response-header inspection, custom error
-semantics).
+Both forms are the same call. The plain method is a wrapper that discards the
+metadata, so parsing, retries and error translation are identical — only the
+return value differs. Errors throw `NxusApiError` in both.
+
+`NxusResponse` is frozen, as is its `headers` object.
+
+The undecoded body is not retained unless you ask for it, since keeping it for
+every call would hold a second full copy of every payload alive:
+
+```ts
+const wrapped = await nxus.vendors.withResponse.retrieve(id, {
+  includeRawBody: true,
+});
+wrapped.rawBody; // the exact text the server sent
+```
+
+The SDK never hands back a `fetch` `Response`. A `Response` body can only be
+read once, so exposing one would mean handing consumers an object that is
+already consumed — and would put the runtime's stream semantics into this
+SDK's contract. Everything useful is copied out while the response is still
+readable, so a `NxusResponse` is safe to keep, log, or pass around.
+
+`withResponse.list` returns the **first page** only and does not auto-paginate:
+later pages are separate requests with their own status and headers, which one
+wrapper could not honestly describe. Use `wrapped.data.hasMore` and
+`wrapped.data.cursor` to continue, or the plain `list` for the async iterator.
 
 ## Quick Start
 

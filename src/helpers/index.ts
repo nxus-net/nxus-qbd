@@ -12,3 +12,4 @@ export {
   type NxusErrorCode,
   type NxusErrorType,
 } from './errors';
+export { NxusResponse, isNxusResponse } from './response';

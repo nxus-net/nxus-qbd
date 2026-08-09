@@ -6,6 +6,7 @@
  */
 
 import { NxusApiError } from "./helpers/errors";
+import type { TransportResponse } from "./helpers/response";
 
 export const DEFAULT_TIMEOUT_MS = 100_000;
 export const DEFAULT_MAX_RETRIES = 2;
@@ -186,6 +187,15 @@ export interface RequestOptions {
    * Merged on top of {@link TransportOptions.fetchOptions}.
    */
   fetchOptions?: Record<string, unknown>;
+  /**
+   * Retain the undecoded response body on `NxusResponse.rawBody`.
+   *
+   * Off by default: keeping the raw text for every call would hold a second
+   * full copy of every payload alive for as long as the wrapper lives, which
+   * is pure waste when the caller only wants a status code or a request id.
+   * Has no effect on plain (unwrapped) calls, which discard the snapshot.
+   */
+  includeRawBody?: boolean;
 }
 
 function normalizeErrorPayload(
@@ -271,8 +281,7 @@ export class NxusHttpTransport {
     query?: Record<string, unknown>,
     options?: RequestOptions,
   ): Promise<T> {
-    const url = this.buildUrl(path, query);
-    return this.request<T>(url, { method: "GET" }, options);
+    return (await this.sendGet<T>(path, query, options)).body;
   }
 
   async post<T>(
@@ -280,6 +289,38 @@ export class NxusHttpTransport {
     body?: Record<string, unknown>,
     options?: RequestOptions,
   ): Promise<T> {
+    return (await this.sendPost<T>(path, body, options)).body;
+  }
+
+  async delete<T>(path: string, options?: RequestOptions): Promise<T> {
+    return (await this.sendDelete<T>(path, options)).body;
+  }
+
+  /**
+   * Snapshot-returning counterparts of `get`/`post`/`delete`.
+   *
+   * These are the real implementations; the three above are thin wrappers that
+   * discard the metadata. Both paths therefore share one retry loop, one error
+   * translation, and one parse — metadata-aware calls cannot drift from plain
+   * ones.
+   *
+   * @internal
+   */
+  async sendGet<T>(
+    path: string,
+    query?: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<TransportResponse<T>> {
+    const url = this.buildUrl(path, query);
+    return this.request<T>(url, { method: "GET" }, options);
+  }
+
+  /** @internal */
+  async sendPost<T>(
+    path: string,
+    body?: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<TransportResponse<T>> {
     const url = this.buildUrl(path);
     return this.request<T>(
       url,
@@ -291,7 +332,11 @@ export class NxusHttpTransport {
     );
   }
 
-  async delete<T>(path: string, options?: RequestOptions): Promise<T> {
+  /** @internal */
+  async sendDelete<T>(
+    path: string,
+    options?: RequestOptions,
+  ): Promise<TransportResponse<T>> {
     const url = this.buildUrl(path);
     return this.request<T>(url, { method: "DELETE" }, options);
   }
@@ -366,7 +411,7 @@ export class NxusHttpTransport {
     url: string,
     init: RequestInit,
     options?: RequestOptions,
-  ): Promise<T> {
+  ): Promise<TransportResponse<T>> {
     const headers = this.buildHeaders(options);
     const timeout = options?.timeout ?? this.defaultTimeout;
     const maxRetries = Math.max(
@@ -396,6 +441,7 @@ export class NxusHttpTransport {
         headers,
         timeout,
         extraFetchOptions,
+        options?.includeRawBody ?? false,
       );
       if (verbose) {
         this.logOutcome(outcome, { method: init.method, url, attempt });
@@ -649,6 +695,7 @@ export class NxusHttpTransport {
     headers: Record<string, string>,
     timeout: number,
     extraFetchOptions: Record<string, unknown>,
+    includeRawBody = false,
   ): Promise<AttemptOutcome<T>> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
@@ -690,15 +737,24 @@ export class NxusHttpTransport {
 
       // 204 No Content
       if (response.status === 204) {
-        return { kind: "success", value: undefined as T };
+        return {
+          kind: "success",
+          value: snapshot<T>(response, undefined as T, undefined, includeRawBody),
+        };
       }
 
       const text = await response.text();
       if (!text) {
-        return { kind: "success", value: undefined as T };
+        return {
+          kind: "success",
+          value: snapshot<T>(response, undefined as T, "", includeRawBody),
+        };
       }
 
-      return { kind: "success", value: JSON.parse(text) as T };
+      return {
+        kind: "success",
+        value: snapshot<T>(response, JSON.parse(text) as T, text, includeRawBody),
+      };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return {
@@ -789,12 +845,47 @@ export class NxusHttpTransport {
   }
 }
 
+/**
+ * Copy everything worth keeping out of a response before it is released.
+ *
+ * The body is already read by the time this is called, so nothing downstream
+ * can touch a consumed stream. `rawBody` is retained only on request — holding
+ * the undecoded text of every response would keep a second full copy of every
+ * payload alive.
+ */
+function snapshot<T>(
+  response: Response,
+  body: T,
+  text: string | undefined,
+  includeRawBody: boolean,
+): TransportResponse<T> {
+  const headers: Record<string, string> = {};
+  response.headers.forEach((value, key) => {
+    headers[key.toLowerCase()] = value;
+  });
+
+  const bodyRequestId =
+    body != null && typeof body === "object"
+      ? (body as Record<string, unknown>).requestId
+      : undefined;
+
+  return {
+    body,
+    status: response.status,
+    headers: Object.freeze(headers),
+    requestId:
+      (typeof bodyRequestId === "string" ? bodyRequestId : undefined) ??
+      headers["x-request-id"],
+    rawBody: includeRawBody ? text : undefined,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Retry helpers
 // ---------------------------------------------------------------------------
 
 type AttemptOutcome<T> =
-  | { kind: "success"; value: T }
+  | { kind: "success"; value: TransportResponse<T> }
   | {
       kind: "http-error";
       status: number;

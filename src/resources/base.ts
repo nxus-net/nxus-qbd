@@ -13,6 +13,7 @@ import type {
   AutoPaginationPromise,
 } from "../helpers/pagination";
 import { PaginationError } from "../helpers/pagination";
+import { NxusResponse } from "../helpers/response";
 import type { VoidResponse } from "../models";
 
 // ---------------------------------------------------------------------------
@@ -35,6 +36,7 @@ const REQUEST_OPTION_KEYS = [
   "maxRetries",
   "verbose",
   "fetchOptions",
+  "includeRawBody",
 ] as const;
 
 const REQUEST_OPTION_KEY_SET = new Set<string>(REQUEST_OPTION_KEYS);
@@ -273,6 +275,133 @@ class TransportPaginationPromise<
 // Resource<T> — full CRUD
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// withResponse — metadata-aware views over the resource methods
+// ---------------------------------------------------------------------------
+
+/**
+ * The metadata-aware form of every resource method.
+ *
+ * Each class exposes only the subset it actually supports, via `Pick`.
+ */
+export interface WrappedResourceMethods<
+  T,
+  TCreate = Record<string, unknown>,
+  TUpdate = Record<string, unknown>,
+> {
+  /**
+   * First page plus its response metadata.
+   *
+   * Unlike the plain `list`, this does **not** auto-paginate: later pages are
+   * separate requests with their own status and headers, so no single wrapper
+   * could honestly describe them. Use `page.data.hasMore` / `page.data.cursor`
+   * to continue, or the plain `list` when you want the async iterator.
+   */
+  list(
+    params?: ListParams & RequestOptions,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<CursorPage<T>>>;
+  retrieve(id: string, options?: RequestOptions): Promise<NxusResponse<T>>;
+  create(
+    params: TCreate & RequestOptions,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<T>>;
+  update(
+    id: string,
+    params: TUpdate & RequestOptions,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<T>>;
+  delete(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<undefined>>;
+  void(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<VoidResponse>>;
+}
+
+/**
+ * Build the wrapped method set once, for every resource shape.
+ *
+ * These call the same transport paths as the plain methods — the plain ones
+ * are wrappers that discard the snapshot — so parsing, retries and error
+ * translation cannot drift between the two forms.
+ */
+function buildWithResponse<T, TCreate, TUpdate>(ctx: {
+  transport: NxusHttpTransport;
+  basePath: string;
+  getCreatePath: () => string;
+  getSingularPath: (id: string) => string;
+}): WrappedResourceMethods<T, TCreate, TUpdate> {
+  return {
+    async list(params, options) {
+      const { query, options: requestOptions } = splitListQueryAndOptions(
+        params,
+        options,
+      );
+      const wire = await ctx.transport.sendGet<unknown>(
+        ctx.basePath,
+        query,
+        requestOptions,
+      );
+      return NxusResponse.fromTransport(normalizePage<T>(wire.body), wire);
+    },
+
+    async retrieve(id, options) {
+      const wire = await ctx.transport.sendGet<T>(
+        ctx.getSingularPath(id),
+        undefined,
+        options,
+      );
+      return NxusResponse.fromTransport(wire.body, wire);
+    },
+
+    async create(params, options) {
+      const { body, options: requestOptions } = splitBodyAndOptions(
+        params as Record<string, unknown> & RequestOptions,
+        options,
+      );
+      const wire = await ctx.transport.sendPost<T>(
+        ctx.getCreatePath(),
+        body,
+        requestOptions,
+      );
+      return NxusResponse.fromTransport(wire.body, wire);
+    },
+
+    async update(id, params, options) {
+      const { body, options: requestOptions } = splitBodyAndOptions(
+        params as Record<string, unknown> & RequestOptions,
+        options,
+      );
+      const wire = await ctx.transport.sendPost<T>(
+        ctx.getSingularPath(id),
+        body,
+        requestOptions,
+      );
+      return NxusResponse.fromTransport(wire.body, wire);
+    },
+
+    async delete(id, options) {
+      const wire = await ctx.transport.sendDelete<undefined>(
+        ctx.getSingularPath(id),
+        options,
+      );
+      return NxusResponse.fromTransport(wire.body, wire);
+    },
+
+    async void(id, options) {
+      const wire = await ctx.transport.sendPost<VoidResponse>(
+        `${ctx.getSingularPath(id)}/void`,
+        undefined,
+        options,
+      );
+      return NxusResponse.fromTransport(wire.body, wire);
+    },
+  };
+}
+
 export class Resource<
   T,
   TCreate = Record<string, unknown>,
@@ -417,6 +546,31 @@ export class Resource<
   async delete(id: string, options?: RequestOptions): Promise<void> {
     await this.transport.delete<void>(this.getSingularPath(id), options);
   }
+
+  /**
+   * Call any method on this resource and get status/headers back too.
+   *
+   * ```ts
+   * const check = await nxus.checks.create({ payeeId });
+   * // -> Check
+   *
+   * const wrapped = await nxus.checks.withResponse.create({ payeeId });
+   * // -> NxusResponse<Check>
+   * wrapped.data;      // the same Check
+   * wrapped.requestId; // 'req_abc123'
+   * ```
+   */
+  get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate, TUpdate>,
+    "list" | "retrieve" | "create" | "update" | "delete"
+  > {
+    return buildWithResponse<T, TCreate, TUpdate>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.getCreatePath(),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -446,6 +600,19 @@ export class VoidableResource<
       undefined,
       options,
     );
+  }
+
+  /** Adds `void` to the inherited wrapped method set. */
+  override get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate, TUpdate>,
+    "list" | "retrieve" | "create" | "update" | "delete" | "void"
+  > {
+    return buildWithResponse<T, TCreate, TUpdate>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.getCreatePath(),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
   }
 }
 
@@ -480,6 +647,19 @@ export class ReadOnlyResource<T> {
 
   async retrieve(id: string, options?: RequestOptions): Promise<T> {
     return this.transport.get<T>(this.getSingularPath(id), undefined, options);
+  }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<
+    WrappedResourceMethods<T>,
+    "list" | "retrieve"
+  > {
+    return buildWithResponse<T, never, never>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.singularPath ?? this.basePath.replace(/s$/, ""),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
   }
 }
 
@@ -541,6 +721,19 @@ export class ListRetrieveDeleteResource<T> {
   async delete(id: string, options?: RequestOptions): Promise<void> {
     await this.transport.delete<void>(this.getSingularPath(id), options);
   }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<
+    WrappedResourceMethods<T>,
+    "list" | "retrieve" | "delete"
+  > {
+    return buildWithResponse<T, never, never>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.basePath.replace(/s$/, ""),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
+  }
 }
 
 /** list + delete (no retrieve, create, or update) */
@@ -570,6 +763,16 @@ export class ListDeleteResource<T> {
 
   async delete(id: string, options?: RequestOptions): Promise<void> {
     await this.transport.delete<void>(this.getSingularPath(id), options);
+  }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<WrappedResourceMethods<T>, "list" | "delete"> {
+    return buildWithResponse<T, never, never>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.singularPath ?? this.basePath.replace(/s$/, ""),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
   }
 }
 
@@ -617,6 +820,19 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
       options,
     );
     return this.transport.post<T>(this.getCreatePath(), body, requestOptions);
+  }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate>,
+    "list" | "retrieve" | "create"
+  > {
+    return buildWithResponse<T, TCreate, never>({
+      transport: this.transport,
+      basePath: this.basePath,
+      getCreatePath: () => this.getCreatePath(),
+      getSingularPath: (id) => this.getSingularPath(id),
+    });
   }
 }
 
