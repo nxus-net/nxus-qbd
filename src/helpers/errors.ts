@@ -24,6 +24,50 @@ function readBoolean(
     return typeof value === 'boolean' ? value : undefined;
 }
 
+/**
+ * Normalize a per-field error map into `{ field: [message, ...] }`.
+ *
+ * The API emits `{ "PayeeId": ["Entity is required"] }`, but a bare string or
+ * scalar per field is tolerated rather than dropping the detail. Returns
+ * `undefined` for anything that is not a non-empty object, so an empty
+ * `errors: {}` is not misread as a validation failure.
+ */
+function coerceValidationErrors(
+    value: unknown,
+): Record<string, string[]> | undefined {
+    const source = asRecord(value);
+    if (!source || Array.isArray(value)) return undefined;
+
+    const coerced: Record<string, string[]> = {};
+    for (const [field, messages] of Object.entries(source)) {
+        if (typeof messages === 'string') {
+            coerced[field] = [messages];
+        } else if (Array.isArray(messages)) {
+            coerced[field] = messages
+                .filter((m) => m != null)
+                .map((m) => String(m));
+        } else if (messages == null) {
+            coerced[field] = [];
+        } else {
+            coerced[field] = [String(messages)];
+        }
+    }
+    return Object.keys(coerced).length > 0 ? coerced : undefined;
+}
+
+/** Render a field map as `"PayeeId: Entity is required; Amount: ..."`. */
+function describeValidationErrors(errors: Record<string, string[]>): string {
+    return Object.entries(errors)
+        .map(([field, messages]) => {
+            const joined = messages
+                .map((m) => String(m).trim())
+                .filter(Boolean)
+                .join(' ');
+            return joined ? `${field}: ${joined}` : field;
+        })
+        .join('; ');
+}
+
 
 /**
  * Error codes from the nXus API.
@@ -72,7 +116,7 @@ export class NxusApiError extends Error {
     /** QB Desktop integration-specific error code (HRESULT or QBXML status). */
     readonly integrationCode: string | undefined;
 
-    /** Per-field validation errors (only present for 422 responses). */
+    /** Per-field validation errors, when the API supplied them. */
     readonly validationErrors: Record<string, string[]> | undefined;
 
     /** Connection lifecycle state when the API includes restriction context. */
@@ -187,6 +231,7 @@ export class NxusApiError extends Error {
      * Handles:
      * - `StandardErrorResponse` (`{ error: ErrorDetail }`)
      * - `ProblemDetails` (`{ title, detail, status, errors }`)
+     * - nXus validation envelope (`{ success: false, message, errors }`)
      * - Plain strings
      * - Unknown shapes (wrapped with generic message)
      */
@@ -263,7 +308,42 @@ export class NxusApiError extends Error {
                 status: obj.status ?? 422,
                 type: 'VALIDATION_ERROR_TYPE',
                 code: 'VALIDATION_ERROR',
-                validationErrors: obj.errors,
+                validationErrors: coerceValidationErrors(obj.errors),
+                requestId: readString(obj, 'requestId'),
+                lifecycleState,
+                restrictionReason,
+                restrictionCode,
+                requiresPayment,
+                checkoutUrl,
+                raw: error,
+            });
+        }
+
+        // nXus validation envelope:
+        //   { success: false, message, errors: { field: [msg] }, timestamp }
+        // It has no `error` wrapper and no `title`/`detail`, so it reaches
+        // neither branch above and would otherwise lose its per-field detail.
+        //
+        // Placed after ProblemDetails deliberately — a genuine ProblemDetails
+        // also carries `errors`, and going first would hijack it. It fires only
+        // on a non-empty `errors` map: `success: false` alone is not treated as
+        // validation, because labelling a 503 a VALIDATION_ERROR would be worse
+        // than losing the detail.
+        const envelopeErrors = coerceValidationErrors(obj.errors);
+        if (envelopeErrors) {
+            const envelopeMessage =
+                readString(obj, 'message') ?? 'Validation failed.';
+            const detail = describeValidationErrors(envelopeErrors);
+            return new NxusApiError({
+                message: envelopeMessage,
+                userMessage: detail
+                    ? `${envelopeMessage}: ${detail}`
+                    : envelopeMessage,
+                status: obj.status ?? obj.statusCode ?? 0,
+                code: 'VALIDATION_ERROR',
+                type: 'VALIDATION_ERROR_TYPE',
+                requestId: readString(obj, 'requestId'),
+                validationErrors: envelopeErrors,
                 lifecycleState,
                 restrictionReason,
                 restrictionCode,
@@ -279,6 +359,7 @@ export class NxusApiError extends Error {
             message,
             userMessage: message,
             status: obj.status ?? obj.statusCode ?? 0,
+            requestId: readString(obj, 'requestId'),
             lifecycleState,
             restrictionReason,
             restrictionCode,

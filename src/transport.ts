@@ -209,6 +209,15 @@ function normalizeErrorPayload(
     normalized.status = response.status;
   }
 
+  // Bodies that carry no request id still get one from the header, so
+  // `err.requestId` is usable for support regardless of the error shape.
+  if (normalized.requestId == null) {
+    const headerRequestId = response.headers.get("x-request-id");
+    if (headerRequestId) {
+      normalized.requestId = headerRequestId;
+    }
+  }
+
   const nestedError = normalized.error;
   if (nestedError && typeof nestedError === "object") {
     normalized.error = {
