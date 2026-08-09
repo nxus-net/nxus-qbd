@@ -235,6 +235,38 @@ describe('raw HTTP access', () => {
     expect(init.headers['X-Custom']).toBe('value');
   });
 
+  it('typed request options override colliding headers case-insensitively', async () => {
+    const fetchMock = installFetchMock(jsonResponse({ ok: true }));
+    const transport = new NxusHttpTransport({
+      apiKey: 'sk_test_abc',
+      baseUrl: 'https://api.example.test',
+    });
+
+    await transport.get('/api/v1/anything', undefined, {
+      connectionId: 'typed-connection',
+      serverTimeoutSeconds: 75,
+      headers: {
+        'x-connection-id': 'raw-connection',
+        'x-nxus-timeout-seconds': '999',
+      },
+    });
+
+    const init = fetchMock.mock.calls[0]?.[1] as {
+      headers: Record<string, string>;
+    };
+    const connectionHeaders = Object.entries(init.headers).filter(
+      ([name]) => name.toLowerCase() === 'x-connection-id',
+    );
+    const timeoutHeaders = Object.entries(init.headers).filter(
+      ([name]) => name.toLowerCase() === 'x-nxus-timeout-seconds',
+    );
+
+    expect(connectionHeaders).toEqual([
+      ['X-Connection-Id', 'typed-connection'],
+    ]);
+    expect(timeoutHeaders).toEqual([['X-Nxus-Timeout-Seconds', '75']]);
+  });
+
   it('transport.raw retries on 5xx like the typed path', async () => {
     vi.useFakeTimers();
     const fetchMock = installFetchMock(

@@ -5,7 +5,7 @@
  * and error mapping for all SDK requests.
  */
 
-import { NxusApiError } from './helpers/errors';
+import { NxusApiError } from "./helpers/errors";
 
 export const DEFAULT_TIMEOUT_MS = 100_000;
 export const DEFAULT_MAX_RETRIES = 2;
@@ -35,16 +35,18 @@ export interface NxusLogger {
   error(message: string, context?: Record<string, unknown>): void;
 }
 
-const REDACTED = '[REDACTED]';
+const REDACTED = "[REDACTED]";
 const SENSITIVE_HEADER_NAMES = new Set([
-  'authorization',
-  'proxy-authorization',
-  'x-api-key',
-  'cookie',
-  'set-cookie',
+  "authorization",
+  "proxy-authorization",
+  "x-api-key",
+  "cookie",
+  "set-cookie",
 ]);
 
-function redactHeaders(headers: Record<string, string>): Record<string, string> {
+function redactHeaders(
+  headers: Record<string, string>,
+): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(headers)) {
     out[k] = SENSITIVE_HEADER_NAMES.has(k.toLowerCase()) ? REDACTED : v;
@@ -55,11 +57,31 @@ function redactHeaders(headers: Record<string, string>): Record<string, string> 
 function defaultLogger(): NxusLogger {
   // Bind to console so callers can swap the logger without losing context.
   return {
-    debug: (m, c) => console.debug(`[nxus-qbd] ${m}`, c ?? ''),
-    info: (m, c) => console.info(`[nxus-qbd] ${m}`, c ?? ''),
-    warn: (m, c) => console.warn(`[nxus-qbd] ${m}`, c ?? ''),
-    error: (m, c) => console.error(`[nxus-qbd] ${m}`, c ?? ''),
+    debug: (m, c) => console.debug(`[nxus-qbd] ${m}`, c ?? ""),
+    info: (m, c) => console.info(`[nxus-qbd] ${m}`, c ?? ""),
+    warn: (m, c) => console.warn(`[nxus-qbd] ${m}`, c ?? ""),
+    error: (m, c) => console.error(`[nxus-qbd] ${m}`, c ?? ""),
   };
+}
+
+function hasHeader(headers: Record<string, string>, name: string): boolean {
+  return Object.keys(headers).some(
+    (key) => key.toLowerCase() === name.toLowerCase(),
+  );
+}
+
+function setHeader(
+  headers: Record<string, string>,
+  name: string,
+  value: string,
+): void {
+  for (const key of Object.keys(headers)) {
+    if (key.toLowerCase() === name.toLowerCase() && key !== name) {
+      delete headers[key];
+    }
+  }
+
+  headers[name] = value;
 }
 
 // ---------------------------------------------------------------------------
@@ -177,7 +199,7 @@ function normalizeErrorPayload(
     };
   }
 
-  if (typeof errorBody !== 'object') {
+  if (typeof errorBody !== "object") {
     return errorBody;
   }
 
@@ -188,11 +210,12 @@ function normalizeErrorPayload(
   }
 
   const nestedError = normalized.error;
-  if (nestedError && typeof nestedError === 'object') {
+  if (nestedError && typeof nestedError === "object") {
     normalized.error = {
       ...(nestedError as Record<string, unknown>),
       httpStatusCode:
-        (nestedError as Record<string, unknown>).httpStatusCode ?? response.status,
+        (nestedError as Record<string, unknown>).httpStatusCode ??
+        response.status,
     };
   }
 
@@ -219,12 +242,15 @@ export class NxusHttpTransport {
 
   constructor(options: TransportOptions) {
     // Ensure trailing slash for consistent URL joining
-    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.apiKey = options.apiKey;
     this.defaultHeaders = options.headers ?? {};
     this.defaultTimeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.defaultServerTimeoutSeconds = options.serverTimeoutSeconds;
-    this.defaultMaxRetries = Math.max(0, options.maxRetries ?? DEFAULT_MAX_RETRIES);
+    this.defaultMaxRetries = Math.max(
+      0,
+      options.maxRetries ?? DEFAULT_MAX_RETRIES,
+    );
     this.verbose = options.verbose ?? options.logger != null;
     this.logger = options.logger ?? defaultLogger();
     this.proxyUrl = options.proxy;
@@ -237,7 +263,7 @@ export class NxusHttpTransport {
     options?: RequestOptions,
   ): Promise<T> {
     const url = this.buildUrl(path, query);
-    return this.request<T>(url, { method: 'GET' }, options);
+    return this.request<T>(url, { method: "GET" }, options);
   }
 
   async post<T>(
@@ -249,36 +275,41 @@ export class NxusHttpTransport {
     return this.request<T>(
       url,
       {
-        method: 'POST',
+        method: "POST",
         body: body != null ? JSON.stringify(body) : undefined,
       },
       options,
     );
   }
 
-  async delete<T>(
-    path: string,
-    options?: RequestOptions,
-  ): Promise<T> {
+  async delete<T>(path: string, options?: RequestOptions): Promise<T> {
     const url = this.buildUrl(path);
-    return this.request<T>(url, { method: 'DELETE' }, options);
+    return this.request<T>(url, { method: "DELETE" }, options);
   }
 
   /**
    * Issue a raw HTTP request and return the unparsed `Response`.
    *
-   * Use this when you need direct access to status, headers, or the response
-   * body as a stream/blob/text. Bypasses JSON parsing and the typed error
-   * mapping, but still applies authentication, the default headers, the
-   * timeout, and retries. Non-2xx responses are returned, not thrown — the
-   * caller is responsible for `response.ok` handling.
+   * Gives direct access to status, headers, and the response body as a
+   * stream/blob/text. Bypasses JSON parsing and the typed error mapping, but
+   * still applies authentication, the default headers, the timeout, and
+   * retries. Non-2xx responses are returned, not thrown — the caller is
+   * responsible for `response.ok` handling.
+   *
+   * **SDK-internal.** `NxusClient.transport` is private, so this is not
+   * reachable from consumer code. The previous `@example` here showed
+   * `client.transport.raw(...)`, which does not compile. Consumers needing
+   * status/headers/request-id should not reach for the transport — that is
+   * what the planned public response wrapper is for.
    *
    * @example
    * ```ts
-   * const res = await client.transport.raw('/api/v1/vendors', { method: 'GET' });
-   * console.log(res.status, res.headers.get('x-request-id'));
-   * const blob = await res.blob();
+   * // Internal use only — see resources/custom-fields.ts `deleteWithBody`,
+   * // which needs a JSON body on DELETE and maps non-2xx onto NxusApiError.
+   * const res = await this.transport.raw(path, { method: 'DELETE', body });
    * ```
+   *
+   * @internal
    */
   async raw(
     path: string,
@@ -295,10 +326,10 @@ export class NxusHttpTransport {
   // -------------------------------------------------------------------------
 
   private buildUrl(path: string, query?: Record<string, unknown>): string {
-    const url = new URL(path, this.baseUrl + '/');
+    const url = new URL(path, this.baseUrl + "/");
     // The URL constructor resolves relative to base — if path starts with /
     // we need to set it directly
-    if (path.startsWith('/')) {
+    if (path.startsWith("/")) {
       url.pathname = path;
     }
 
@@ -334,12 +365,15 @@ export class NxusHttpTransport {
       options?.maxRetries ?? this.defaultMaxRetries,
     );
     const verbose = options?.verbose ?? this.verbose;
-    const extraFetchOptions = { ...this.fetchOptions, ...(options?.fetchOptions ?? {}) };
+    const extraFetchOptions = {
+      ...this.fetchOptions,
+      ...(options?.fetchOptions ?? {}),
+    };
 
     let attempt = 0;
     while (true) {
       if (verbose) {
-        this.logger.debug('request', {
+        this.logger.debug("request", {
           method: init.method,
           url,
           headers: redactHeaders(headers),
@@ -347,24 +381,27 @@ export class NxusHttpTransport {
           maxRetries,
         });
       }
-      const outcome = await this.attempt<T>(url, init, headers, timeout, extraFetchOptions);
+      const outcome = await this.attempt<T>(
+        url,
+        init,
+        headers,
+        timeout,
+        extraFetchOptions,
+      );
       if (verbose) {
         this.logOutcome(outcome, { method: init.method, url, attempt });
       }
-      if (outcome.kind === 'success') {
+      if (outcome.kind === "success") {
         return outcome.value;
       }
 
-      if (
-        attempt >= maxRetries ||
-        !shouldRetry(outcome)
-      ) {
+      if (attempt >= maxRetries || !shouldRetry(outcome)) {
         throw outcome.error;
       }
 
       const delayMs = computeRetryDelay(attempt, outcome);
       if (verbose) {
-        this.logger.debug('retry-scheduled', {
+        this.logger.debug("retry-scheduled", {
           url,
           attempt: attempt + 1,
           delayMs,
@@ -389,13 +426,16 @@ export class NxusHttpTransport {
       options?.maxRetries ?? this.defaultMaxRetries,
     );
     const verbose = options?.verbose ?? this.verbose;
-    const extraFetchOptions = { ...this.fetchOptions, ...(options?.fetchOptions ?? {}) };
+    const extraFetchOptions = {
+      ...this.fetchOptions,
+      ...(options?.fetchOptions ?? {}),
+    };
 
     let attempt = 0;
     while (true) {
       if (verbose) {
-        this.logger.debug('request', {
-          method: init.method ?? 'GET',
+        this.logger.debug("request", {
+          method: init.method ?? "GET",
           url,
           headers: redactHeaders(headers),
           attempt,
@@ -403,18 +443,28 @@ export class NxusHttpTransport {
           raw: true,
         });
       }
-      const outcome = await this.attemptRaw(url, init, headers, timeout, extraFetchOptions);
+      const outcome = await this.attemptRaw(
+        url,
+        init,
+        headers,
+        timeout,
+        extraFetchOptions,
+      );
       if (verbose) {
-        this.logRawOutcome(outcome, { method: init.method ?? 'GET', url, attempt });
+        this.logRawOutcome(outcome, {
+          method: init.method ?? "GET",
+          url,
+          attempt,
+        });
       }
-      if (outcome.kind === 'response') {
+      if (outcome.kind === "response") {
         return outcome.response;
       }
 
       if (attempt >= maxRetries || !shouldRetry(outcome)) {
         // Non-2xx that we won't retry: return the Response so the caller can
         // inspect status/headers/body, matching the documented contract.
-        if (outcome.kind === 'http-error') {
+        if (outcome.kind === "http-error") {
           return outcome.response;
         }
         throw outcome.error;
@@ -422,7 +472,7 @@ export class NxusHttpTransport {
 
       const delayMs = computeRetryDelay(attempt, outcome);
       if (verbose) {
-        this.logger.debug('retry-scheduled', {
+        this.logger.debug("retry-scheduled", {
           url,
           attempt: attempt + 1,
           delayMs,
@@ -437,20 +487,31 @@ export class NxusHttpTransport {
 
   private buildHeaders(options?: RequestOptions): Record<string, string> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${this.apiKey}`,
       ...this.defaultHeaders,
       ...options?.headers,
     };
 
-    if (options?.connectionId) {
-      headers['X-Connection-Id'] = options.connectionId;
+    if (options?.connectionId !== undefined) {
+      setHeader(headers, "X-Connection-Id", options.connectionId);
     }
 
-    const serverTimeoutSeconds =
-      options?.serverTimeoutSeconds ?? this.defaultServerTimeoutSeconds;
-    if (serverTimeoutSeconds != null && !('X-Nxus-Timeout-Seconds' in headers)) {
-      headers['X-Nxus-Timeout-Seconds'] = String(serverTimeoutSeconds);
+    if (options?.serverTimeoutSeconds !== undefined) {
+      setHeader(
+        headers,
+        "X-Nxus-Timeout-Seconds",
+        String(options.serverTimeoutSeconds),
+      );
+    } else if (
+      this.defaultServerTimeoutSeconds != null &&
+      !hasHeader(headers, "X-Nxus-Timeout-Seconds")
+    ) {
+      setHeader(
+        headers,
+        "X-Nxus-Timeout-Seconds",
+        String(this.defaultServerTimeoutSeconds),
+      );
     }
 
     return headers;
@@ -465,13 +526,14 @@ export class NxusHttpTransport {
         // handling without throwing.
         try {
           // @ts-expect-error - undici is an optional runtime peer
-          const mod = await import('undici');
-          const Agent = (mod as { ProxyAgent?: new (url: string) => unknown }).ProxyAgent;
+          const mod = await import("undici");
+          const Agent = (mod as { ProxyAgent?: new (url: string) => unknown })
+            .ProxyAgent;
           if (!Agent) return undefined;
           return new Agent(this.proxyUrl as string);
         } catch (err) {
           if (this.verbose) {
-            this.logger.warn('proxy-agent-unavailable', {
+            this.logger.warn("proxy-agent-unavailable", {
               proxy: this.proxyUrl,
               reason: err instanceof Error ? err.message : String(err),
             });
@@ -516,22 +578,22 @@ export class NxusHttpTransport {
     ctx: { method?: string; url: string; attempt: number },
   ): void {
     switch (outcome.kind) {
-      case 'success':
-        this.logger.debug('response', { ...ctx, ok: true });
+      case "success":
+        this.logger.debug("response", { ...ctx, ok: true });
         return;
-      case 'http-error':
-        this.logger.warn('response', {
+      case "http-error":
+        this.logger.warn("response", {
           ...ctx,
           status: outcome.status,
           retryAfter: outcome.retryAfter,
           shouldRetry: outcome.shouldRetry,
         });
         return;
-      case 'timeout':
-        this.logger.warn('timeout', ctx);
+      case "timeout":
+        this.logger.warn("timeout", ctx);
         return;
-      case 'network-error':
-        this.logger.warn('network-error', {
+      case "network-error":
+        this.logger.warn("network-error", {
           ...ctx,
           reason: outcome.error.message,
         });
@@ -544,15 +606,15 @@ export class NxusHttpTransport {
     ctx: { method?: string; url: string; attempt: number },
   ): void {
     switch (outcome.kind) {
-      case 'response':
-        this.logger.debug('response', {
+      case "response":
+        this.logger.debug("response", {
           ...ctx,
           status: outcome.response.status,
           raw: true,
         });
         return;
-      case 'http-error':
-        this.logger.warn('response', {
+      case "http-error":
+        this.logger.warn("response", {
           ...ctx,
           status: outcome.status,
           retryAfter: outcome.retryAfter,
@@ -560,11 +622,11 @@ export class NxusHttpTransport {
           raw: true,
         });
         return;
-      case 'timeout':
-        this.logger.warn('timeout', ctx);
+      case "timeout":
+        this.logger.warn("timeout", ctx);
         return;
-      case 'network-error':
-        this.logger.warn('network-error', {
+      case "network-error":
+        this.logger.warn("network-error", {
           ...ctx,
           reason: outcome.error.message,
         });
@@ -606,47 +668,47 @@ export class NxusHttpTransport {
         // missing. This keeps behavior correct against proxies that strip
         // hop-by-hop headers but preserve the body.
         const retryAfter =
-          parseRetryAfter(response.headers.get('retry-after')) ??
+          parseRetryAfter(response.headers.get("retry-after")) ??
           parseBodyRetryAfter(errorBody);
         return {
-          kind: 'http-error',
+          kind: "http-error",
           status: response.status,
           retryAfter,
-          shouldRetry: parseShouldRetry(response.headers.get('x-should-retry')),
+          shouldRetry: parseShouldRetry(response.headers.get("x-should-retry")),
           error,
         };
       }
 
       // 204 No Content
       if (response.status === 204) {
-        return { kind: 'success', value: undefined as T };
+        return { kind: "success", value: undefined as T };
       }
 
       const text = await response.text();
       if (!text) {
-        return { kind: 'success', value: undefined as T };
+        return { kind: "success", value: undefined as T };
       }
 
-      return { kind: 'success', value: JSON.parse(text) as T };
+      return { kind: "success", value: JSON.parse(text) as T };
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === "AbortError") {
         return {
-          kind: 'timeout',
+          kind: "timeout",
           error: new NxusApiError({
             message: `Request timed out after ${timeout}ms`,
-            userMessage: 'The request timed out. Please try again.',
+            userMessage: "The request timed out. Please try again.",
             status: 0,
           }),
         };
       }
 
       return {
-        kind: 'network-error',
+        kind: "network-error",
         error: new NxusApiError({
           message:
-            error instanceof Error ? error.message : 'Network request failed',
+            error instanceof Error ? error.message : "Network request failed",
           userMessage:
-            'A network error occurred. Please check your connection and try again.',
+            "A network error occurred. Please check your connection and try again.",
           status: 0,
           raw: error,
         }),
@@ -679,35 +741,35 @@ export class NxusHttpTransport {
         // Classify retryable failures by status + headers only — never read
         // the body, since the caller owns the stream.
         const retryAfter =
-          parseRetryAfter(response.headers.get('retry-after')) ?? undefined;
+          parseRetryAfter(response.headers.get("retry-after")) ?? undefined;
         return {
-          kind: 'http-error',
+          kind: "http-error",
           status: response.status,
           retryAfter,
-          shouldRetry: parseShouldRetry(response.headers.get('x-should-retry')),
+          shouldRetry: parseShouldRetry(response.headers.get("x-should-retry")),
           response,
         };
       }
 
-      return { kind: 'response', response };
+      return { kind: "response", response };
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === "AbortError") {
         return {
-          kind: 'timeout',
+          kind: "timeout",
           error: new NxusApiError({
             message: `Request timed out after ${timeout}ms`,
-            userMessage: 'The request timed out. Please try again.',
+            userMessage: "The request timed out. Please try again.",
             status: 0,
           }),
         };
       }
       return {
-        kind: 'network-error',
+        kind: "network-error",
         error: new NxusApiError({
           message:
-            error instanceof Error ? error.message : 'Network request failed',
+            error instanceof Error ? error.message : "Network request failed",
           userMessage:
-            'A network error occurred. Please check your connection and try again.',
+            "A network error occurred. Please check your connection and try again.",
           status: 0,
           raw: error,
         }),
@@ -723,33 +785,35 @@ export class NxusHttpTransport {
 // ---------------------------------------------------------------------------
 
 type AttemptOutcome<T> =
-  | { kind: 'success'; value: T }
+  | { kind: "success"; value: T }
   | {
-      kind: 'http-error';
+      kind: "http-error";
       status: number;
       retryAfter?: number;
       shouldRetry?: boolean;
       error: NxusApiError;
     }
-  | { kind: 'network-error'; error: NxusApiError }
-  | { kind: 'timeout'; error: NxusApiError };
+  | { kind: "network-error"; error: NxusApiError }
+  | { kind: "timeout"; error: NxusApiError };
 
 type RawAttemptOutcome =
-  | { kind: 'response'; response: Response }
+  | { kind: "response"; response: Response }
   | {
-      kind: 'http-error';
+      kind: "http-error";
       status: number;
       retryAfter?: number;
       shouldRetry?: boolean;
       response: Response;
     }
-  | { kind: 'network-error'; error: NxusApiError }
-  | { kind: 'timeout'; error: NxusApiError };
+  | { kind: "network-error"; error: NxusApiError }
+  | { kind: "timeout"; error: NxusApiError };
 
-function shouldRetry<T>(outcome: AttemptOutcome<T> | RawAttemptOutcome): boolean {
-  if (outcome.kind === 'network-error') return true;
-  if (outcome.kind === 'timeout') return false;
-  if (outcome.kind === 'http-error') {
+function shouldRetry<T>(
+  outcome: AttemptOutcome<T> | RawAttemptOutcome,
+): boolean {
+  if (outcome.kind === "network-error") return true;
+  if (outcome.kind === "timeout") return false;
+  if (outcome.kind === "http-error") {
     if (outcome.shouldRetry != null) return outcome.shouldRetry;
     if (RETRYABLE_STATUSES.has(outcome.status)) return true;
     if (outcome.status >= 500) return true;
@@ -762,7 +826,7 @@ function computeRetryDelay<T>(
   attempt: number,
   outcome: AttemptOutcome<T> | RawAttemptOutcome,
 ): number {
-  if (outcome.kind === 'http-error' && outcome.retryAfter != null) {
+  if (outcome.kind === "http-error" && outcome.retryAfter != null) {
     return Math.min(outcome.retryAfter, RETRY_MAX_DELAY_MS);
   }
 
@@ -792,18 +856,22 @@ function parseRetryAfter(value: string | null): number | undefined {
 }
 
 function parseBodyRetryAfter(body: unknown): number | undefined {
-  if (body == null || typeof body !== 'object') return undefined;
+  if (body == null || typeof body !== "object") return undefined;
 
   const root = body as Record<string, unknown>;
   // Shape per backend contract: `{ error: { retryAfter: <seconds> } }`.
   // Tolerate top-level `retryAfter` for older payloads / future flattening.
   const errorObj =
-    root.error && typeof root.error === 'object'
+    root.error && typeof root.error === "object"
       ? (root.error as Record<string, unknown>)
       : undefined;
   const candidate = errorObj?.retryAfter ?? root.retryAfter;
 
-  if (typeof candidate !== 'number' || !Number.isFinite(candidate) || candidate < 0) {
+  if (
+    typeof candidate !== "number" ||
+    !Number.isFinite(candidate) ||
+    candidate < 0
+  ) {
     return undefined;
   }
   return candidate * 1000;
@@ -813,8 +881,8 @@ function parseShouldRetry(value: string | null): boolean | undefined {
   if (!value) return undefined;
 
   const normalized = value.trim().toLowerCase();
-  if (['1', 'true', 'yes'].includes(normalized)) return true;
-  if (['0', 'false', 'no'].includes(normalized)) return false;
+  if (["1", "true", "yes"].includes(normalized)) return true;
+  if (["0", "false", "no"].includes(normalized)) return false;
   return undefined;
 }
 

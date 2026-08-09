@@ -3,7 +3,7 @@
  */
 
 import type { NxusHttpTransport, RequestOptions } from '../transport';
-import { Resource } from './base';
+import { Resource, splitBodyAndOptions } from './base';
 
 // ---------------------------------------------------------------------------
 // ConnectionsResource — full CRUD + retrieveStatusAuthenticated
@@ -66,15 +66,20 @@ export class AuthSessionsResource<
 > {
   constructor(private readonly transport: NxusHttpTransport) {}
 
-  async create(params: TCreate & RequestOptions): Promise<TResponse> {
-    const { headers, timeout, maxRetries, ...body } = params as TCreate &
-      Record<string, unknown> &
-      RequestOptions;
-    const options: RequestOptions = {};
-    if (headers) options.headers = headers as Record<string, string>;
-    if (timeout) options.timeout = timeout as number;
-    if (maxRetries !== undefined) options.maxRetries = maxRetries as number;
-    return this.transport.post<TResponse>('/api/v1/auth-sessions', body, options);
+  async create(
+    params: TCreate & Omit<RequestOptions, 'connectionId'>,
+  ): Promise<TResponse>;
+  async create(body: TCreate, options?: RequestOptions): Promise<TResponse>;
+  async create(
+    params: TCreate & Omit<RequestOptions, 'connectionId'>,
+    options?: RequestOptions,
+  ): Promise<TResponse> {
+    const { body, options: requestOptions } = splitBodyAndOptions(
+      params as TCreate & Record<string, unknown>,
+      options,
+      ['connectionId'],
+    );
+    return this.transport.post<TResponse>('/api/v1/auth-sessions', body, requestOptions);
   }
 
   async retrieve(id: string, options?: RequestOptions): Promise<TResponse> {

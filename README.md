@@ -45,25 +45,33 @@ const nxus = new NxusClient({
   timeout: 120_000,
 });
 
-const page = await nxus.transactions.list({
-  connectionId: "your-connection-id",
-  limit: 100,
-  DetailLevel: "all",
-  timeout: 30_000,
-});
+const page = await nxus.transactions.list(
+  {
+    limit: 100,
+    DetailLevel: "all",
+  },
+  {
+    connectionId: "your-connection-id",
+    timeout: 30_000,
+  },
+);
 ```
 
 Paginated/list requests can also send a backend timeout hint without changing
 the SDK's local abort timer:
 
 ```ts
-const page = await nxus.transactions.list({
-  connectionId: "your-connection-id",
-  limit: 100,
-  DetailLevel: "all",
-  timeout: 30_000,
-  timeoutSeconds: 45,
-});
+const page = await nxus.transactions.list(
+  {
+    limit: 100,
+    DetailLevel: "all",
+    timeoutSeconds: 45,
+  },
+  {
+    connectionId: "your-connection-id",
+    timeout: 30_000,
+  },
+);
 ```
 
 When `timeoutSeconds` is provided on a `.list()` call, the SDK sends it as the
@@ -109,12 +117,16 @@ const nxus = new NxusClient({
 });
 
 // Disable retries for one call
-const created = await nxus.invoices.create({
-  customerRefListId: "...",
-  invoiceLineAdds: [{ itemRefListId: "...", amount: 100 }],
-  connectionId: "...",
-  maxRetries: 0,
-});
+const created = await nxus.invoices.create(
+  {
+    customerRefListId: "...",
+    invoiceLineAdds: [{ itemRefListId: "...", amount: 100 }],
+  },
+  {
+    connectionId: "...",
+    maxRetries: 0,
+  },
+);
 ```
 
 ## Verbose Logging
@@ -126,7 +138,7 @@ and error. Sensitive headers (`Authorization`, `Cookie`, `Set-Cookie`,
 ```ts
 const nxus = new NxusClient({
   apiKey: "sk_live_...",
-  verbose: true,                     // logs to console
+  verbose: true, // logs to console
 });
 ```
 
@@ -138,8 +150,8 @@ import type { NxusLogger } from "nxus-qbd";
 
 const logger: NxusLogger = {
   debug: (m, c) => myLogger.debug({ event: m, ...c }),
-  info:  (m, c) => myLogger.info({ event: m, ...c }),
-  warn:  (m, c) => myLogger.warn({ event: m, ...c }),
+  info: (m, c) => myLogger.info({ event: m, ...c }),
+  warn: (m, c) => myLogger.warn({ event: m, ...c }),
   error: (m, c) => myLogger.error({ event: m, ...c }),
 };
 
@@ -193,8 +205,11 @@ import { NxusClient } from "nxus-qbd";
 
 const nxus = new NxusClient({ apiKey: "sk_live_..." });
 
-const res = await (nxus as unknown as { transport: { raw: (path: string, init?: RequestInit) => Promise<Response> } })
-  .transport.raw("/api/v1/vendors", { method: "GET" });
+const res = await (
+  nxus as unknown as {
+    transport: { raw: (path: string, init?: RequestInit) => Promise<Response> };
+  }
+).transport.raw("/api/v1/vendors", { method: "GET" });
 
 console.log(res.status, res.headers.get("x-request-id"));
 const stream = res.body; // ReadableStream for large downloads
@@ -213,7 +228,10 @@ import { NxusClient } from "nxus-qbd";
 const nxus = new NxusClient({ apiKey: "sk_live_..." });
 
 // List vendors
-const page = await nxus.vendors.list({ limit: 50, connectionId: "your-connection-id" });
+const page = await nxus.vendors.list(
+  { limit: 50 },
+  { connectionId: "your-connection-id" },
+);
 
 for (const vendor of page.data) {
   console.log(vendor.name);
@@ -224,21 +242,28 @@ const customer = await nxus.customers.retrieve("80000001-1234567890", {
   connectionId: "your-connection-id",
 });
 
-// Create an invoice (flat params)
-const invoice = await nxus.invoices.create({
-  customerRefListId: "80000001-1234567890",
-  invoiceLineAdds: [
-    { itemRefListId: "80000002-1234567890", amount: 150.0 },
-  ],
-  connectionId: "your-connection-id",
-});
+// Create an invoice (payload first, transport options second)
+const invoice = await nxus.invoices.create(
+  {
+    customerRefListId: "80000001-1234567890",
+    invoiceLineAdds: [{ itemRefListId: "80000002-1234567890", amount: 150.0 }],
+  },
+  {
+    connectionId: "your-connection-id",
+  },
+);
 
-// Update a vendor (ID first, flat fields)
-const updated = await nxus.vendors.update("80000001-1234567890", {
-  name: "Acme (Updated)",
-  revisionNumber: vendor.revisionNumber,
-  connectionId: "your-connection-id",
-});
+// Update a vendor (ID first, payload second, transport options third)
+const updated = await nxus.vendors.update(
+  "80000001-1234567890",
+  {
+    name: "Acme (Updated)",
+    revisionNumber: vendor.revisionNumber,
+  },
+  {
+    connectionId: "your-connection-id",
+  },
+);
 
 // Delete
 await nxus.vendors.delete("80000001-1234567890", {
@@ -252,8 +277,13 @@ Every request requires a `connectionId` to identify which QuickBooks Desktop com
 
 ```ts
 // Per-request
-const page = await nxus.vendors.list({ limit: 10, connectionId: "your-connection-id" });
-const vendor = await nxus.vendors.retrieve("id", { connectionId: "your-connection-id" });
+const page = await nxus.vendors.list(
+  { limit: 10 },
+  { connectionId: "your-connection-id" },
+);
+const vendor = await nxus.vendors.retrieve("id", {
+  connectionId: "your-connection-id",
+});
 
 // Global default
 const nxus = new NxusClient({
@@ -262,13 +292,57 @@ const nxus = new NxusClient({
 });
 ```
 
+## Request Options
+
+Resource methods that accept a request body or query now prefer a split call shape:
+
+```ts
+await nxus.vendors.create(
+  { name: "Acme" },
+  { connectionId: "your-connection-id", timeout: 30_000 },
+);
+
+await nxus.vendors.list(
+  { limit: 50, timeoutSeconds: 45 },
+  { connectionId: "your-connection-id" },
+);
+
+await nxus.reports.retrieveAging(
+  { reportType: "summary" },
+  { connectionId: "your-connection-id" },
+);
+```
+
+This keeps transport options out of serialized request bodies and query strings.
+Legacy merged-bag calls such as `nxus.vendors.create({ name: "Acme", connectionId: "..." })`
+still work as a compatibility path.
+
+`authSessions.create()` is the main special case because `connectionId` is a real
+payload field on that endpoint. When you need both the auth-session payload
+connection and a transport-level connection header, pass them separately:
+
+```ts
+await nxus.authSessions.create(
+  {
+    connectionId: "payload-connection-id",
+    redirectUrl: "https://example.com/after-qwc",
+  },
+  {
+    connectionId: "transport-connection-id",
+  },
+);
+```
+
 ## Auto-Pagination
 
 List methods return an `AutoPaginationPromise` that supports both manual page navigation and `for await` iteration:
 
 ```ts
 // Auto-paginate through all records
-for await (const vendor of nxus.vendors.list({ limit: 100, timeoutSeconds: 45 })) {
+for await (const vendor of nxus.vendors.list({
+  limit: 100,
+  timeoutSeconds: 45,
+})) {
   console.log(vendor.name);
 }
 
@@ -289,17 +363,16 @@ while (page.hasNextPage()) {
 
 Runnable examples live in [`examples/`](examples/):
 
-| Example | Description |
-|---|---|
-| [`basic-crud.ts`](examples/basic-crud.ts) | Create, retrieve, update, list, and delete a vendor |
-| [`authSetup.ts`](examples/authSetup.ts) | Create a connection, generate a hosted QWC auth flow URL, and check auth status |
-| [`auto-pagination.ts`](examples/auto-pagination.ts) | Auto-iteration across pages plus manual page navigation |
-| [`connection-scoped.ts`](examples/connection-scoped.ts) | Multi-company isolation with `connectionId` |
-| [`error-handling.ts`](examples/error-handling.ts) | Error categorization and typed SDK errors |
-| [`pagination-walkthrough.ts`](examples/pagination-walkthrough.ts) | Cursor handling walkthrough |
-| [`reports.ts`](examples/reports.ts) | Aging, general detail, and general summary reports |
-| [`timeout-tuning.ts`](examples/timeout-tuning.ts) | Default timeout behavior, client-wide overrides, and per-request timeout tuning |
-
+| Example                                                           | Description                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [`basic-crud.ts`](examples/basic-crud.ts)                         | Create, retrieve, update, list, and delete a vendor                             |
+| [`authSetup.ts`](examples/authSetup.ts)                           | Create a connection, generate a hosted QWC auth flow URL, and check auth status |
+| [`auto-pagination.ts`](examples/auto-pagination.ts)               | Auto-iteration across pages plus manual page navigation                         |
+| [`connection-scoped.ts`](examples/connection-scoped.ts)           | Multi-company isolation with `connectionId`                                     |
+| [`error-handling.ts`](examples/error-handling.ts)                 | Error categorization and typed SDK errors                                       |
+| [`pagination-walkthrough.ts`](examples/pagination-walkthrough.ts) | Cursor handling walkthrough                                                     |
+| [`reports.ts`](examples/reports.ts)                               | Aging, general detail, and general summary reports                              |
+| [`timeout-tuning.ts`](examples/timeout-tuning.ts)                 | Default timeout behavior, client-wide overrides, and per-request timeout tuning |
 
 ## Error Handling
 
@@ -312,11 +385,11 @@ try {
   await nxus.vendors.retrieve("non-existent-id");
 } catch (err) {
   if (err instanceof NxusApiError) {
-    console.log(err.status);          // 404
-    console.log(err.userMessage);     // User-safe message
-    console.log(err.isNotFound);      // true
-    console.log(err.isAuthError);     // false
-    console.log(err.isRateLimited);   // false
+    console.log(err.status); // 404
+    console.log(err.userMessage); // User-safe message
+    console.log(err.isNotFound); // true
+    console.log(err.isAuthError); // false
+    console.log(err.isRateLimited); // false
   }
 }
 ```
@@ -325,25 +398,24 @@ try {
 
 All QuickBooks Desktop resources are available as namespaced properties:
 
-| Category | Resources |
-|---|---|
+| Category         | Resources                                                                                                                                                                                                                                                                                                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Transactions** | `invoices`, `bills`, `checks`, `deposits`, `estimates`, `creditMemos`, `purchaseOrders`, `salesReceipts`, `journalEntries`, `receivePayments`, `vendorCredits`, `creditCardCharges`, `creditCardBills`, `creditCardCredits`, `charges`, `buildAssemblies`, `arRefundCreditCards`, `salesTaxPaymentChecks`, `itemReceipts`, `CheckBillPayments`, `timeTrackings`, `transactions` |
-| **Lists** | `accounts`, `customers`, `vendors`, `employees`, `otherNames`, `currencies`, `terms`, `dateDrivenTerms`, `paymentMethods`, `shipMethods`, `salesTaxCodes`, `priceLevels`, `qbdClasses`, `customerTypes`, `vendorTypes`, `billingRates`, `inventorySites`, `barCodes`, `accountTaxLineInfos`, `unitOfMeasureSets`, `specialItems` |
-| **Read-only** | `billToPay` |
-| **Items** | `items`, `inventoryItems`, `itemDiscounts`, `itemFixedAssets`, `itemGroups`, `itemInventoryAssemblies`, `itemNonInventory`, `itemOtherCharges`, `itemPayments`, `itemSalesTax`, `itemSalesTaxGroups`, `serviceItems`, `itemSubtotals` |
-| **Payroll** | `payrollItemNonWages`, `payrollItemWages`, `workersCompCodes` |
-| **Reports** | `reports.retrieveAging()`, `reports.retrieveGeneralDetail()`, `reports.retrieveGeneralSummary()`, `reports.retrieveBudgetSummary()`, `reports.retrieveJob()`, `reports.retrieveTime()`, `reports.retrieveCustomDetail()`, `reports.retrieveCustomSummary()`, `reports.retrievePayrollDetail()` |
-| **Core** | `authSessions`, `connections` |
-
+| **Lists**        | `accounts`, `customers`, `vendors`, `employees`, `otherNames`, `currencies`, `terms`, `dateDrivenTerms`, `paymentMethods`, `shipMethods`, `salesTaxCodes`, `priceLevels`, `qbdClasses`, `customerTypes`, `vendorTypes`, `billingRates`, `inventorySites`, `barCodes`, `accountTaxLineInfos`, `unitOfMeasureSets`, `specialItems`                                                |
+| **Read-only**    | `billToPay`                                                                                                                                                                                                                                                                                                                                                                     |
+| **Items**        | `items`, `inventoryItems`, `itemDiscounts`, `itemFixedAssets`, `itemGroups`, `itemInventoryAssemblies`, `itemNonInventory`, `itemOtherCharges`, `itemPayments`, `itemSalesTax`, `itemSalesTaxGroups`, `serviceItems`, `itemSubtotals`                                                                                                                                           |
+| **Payroll**      | `payrollItemNonWages`, `payrollItemWages`, `workersCompCodes`                                                                                                                                                                                                                                                                                                                   |
+| **Reports**      | `reports.retrieveAging()`, `reports.retrieveGeneralDetail()`, `reports.retrieveGeneralSummary()`, `reports.retrieveBudgetSummary()`, `reports.retrieveJob()`, `reports.retrieveTime()`, `reports.retrieveCustomDetail()`, `reports.retrieveCustomSummary()`, `reports.retrievePayrollDetail()`                                                                                  |
+| **Core**         | `authSessions`, `connections`                                                                                                                                                                                                                                                                                                                                                   |
 
 ## Custom fields and data extensions
 
 QuickBooks Desktop uses the same underlying mechanism for both UI-visible custom fields and application-only integration data:
 
-| QuickBooks concept | SDK/API name | Purpose |
-|---|---|---|
-| Data extension definition | `DataExtDef` / custom field definition | Describes a field's owner, name, data type, and supported object types. |
-| Data extension value | `DataExt` / custom field value | Stores the field's value on one specific QuickBooks list object, transaction, or transaction line. |
+| QuickBooks concept        | SDK/API name                           | Purpose                                                                                            |
+| ------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Data extension definition | `DataExtDef` / custom field definition | Describes a field's owner, name, data type, and supported object types.                            |
+| Data extension value      | `DataExt` / custom field value         | Stores the field's value on one specific QuickBooks list object, transaction, or transaction line. |
 
 A definition must exist before a value can be written. Definitions are identified by `ownerId + name`; values add the specific QuickBooks target to that composite identity. QuickBooks may omit `DataExtID` for private definitions, so SDK consumers must allow `DataExtDef.id` to be `null`.
 
@@ -362,7 +434,6 @@ The normal workflow is:
 4. Delete a private definition only after its values are no longer needed. Public definitions must be managed in the QuickBooks UI because QuickBooks does not support deleting them through `DataExtDefDel`.
 
 Public fields are typically used for information users should see or edit in QuickBooks. Private extensions are commonly used for external-system identifiers, synchronization or verification markers, workflow state, migration metadata, and other integration data that should not appear in the QuickBooks UI.
-
 
 ## License
 
