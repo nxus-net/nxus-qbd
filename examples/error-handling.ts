@@ -40,7 +40,7 @@ const nxus = new NxusClient({
   apiKey,
   baseUrl: process.env.NXUS_BASE_URL,
   environment: process.env.NXUS_ENVIRONMENT,
-  ...(connectionId && { headers: { "X-Connection-Id": connectionId } }),
+  ...(connectionId && { connectionId }),
 });
 
 // ---------------------------------------------------------------------------

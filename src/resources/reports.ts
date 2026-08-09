@@ -2,8 +2,9 @@
  * ReportsResource — QuickBooks Desktop report endpoints.
  */
 
-import type { NxusHttpTransport, RequestOptions } from '../transport';
-import { splitBodyAndOptions } from './base';
+import type { NxusHttpTransport, RequestOptions } from "../transport";
+import { NxusResponse } from "../helpers/response";
+import { assertNoRequestOptionKeys } from "./base";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,85 +25,150 @@ export type ReportParams = {
 export class ReportsResource {
   constructor(private readonly transport: NxusHttpTransport) {}
 
-  retrieveAging(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveAging(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveAging(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveAging(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/aging', params, options);
+    return this.retrieve("/api/v1/reports/aging", query, options);
   }
 
-  retrieveGeneralDetail(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveGeneralDetail(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveGeneralDetail(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveGeneralDetail(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/general-detail', params, options);
+    return this.retrieve("/api/v1/reports/general-detail", query, options);
   }
 
-  retrieveGeneralSummary(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveGeneralSummary(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveGeneralSummary(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveGeneralSummary(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/general-summary', params, options);
+    return this.retrieve("/api/v1/reports/general-summary", query, options);
   }
 
-  retrieveBudgetSummary(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveBudgetSummary(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveBudgetSummary(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveBudgetSummary(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/budget-summary', params, options);
+    return this.retrieve("/api/v1/reports/budget-summary", query, options);
   }
 
-  retrieveJob(params?: ReportParams & RequestOptions): Promise<unknown>;
   retrieveJob(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
   async retrieveJob(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/job', params, options);
+    return this.retrieve("/api/v1/reports/job", query, options);
   }
 
-  retrieveTime(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveTime(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveTime(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveTime(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/time', params, options);
+    return this.retrieve("/api/v1/reports/time", query, options);
   }
 
-  retrieveCustomDetail(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveCustomDetail(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveCustomDetail(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveCustomDetail(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/custom-detail', params, options);
+    return this.retrieve("/api/v1/reports/custom-detail", query, options);
   }
 
-  retrieveCustomSummary(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrieveCustomSummary(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrieveCustomSummary(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrieveCustomSummary(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/custom-summary', params, options);
+    return this.retrieve("/api/v1/reports/custom-summary", query, options);
   }
 
-  retrievePayrollDetail(params?: ReportParams & RequestOptions): Promise<unknown>;
-  retrievePayrollDetail(query?: ReportParams, options?: RequestOptions): Promise<unknown>;
+  retrievePayrollDetail(
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<unknown>;
   async retrievePayrollDetail(
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    return this.retrieve('/api/v1/reports/payroll-detail', params, options);
+    return this.retrieve("/api/v1/reports/payroll-detail", query, options);
+  }
+
+  get withResponse() {
+    return {
+      retrieveAging: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse("/api/v1/reports/aging", query, options),
+      retrieveGeneralDetail: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/general-detail",
+          query,
+          options,
+        ),
+      retrieveGeneralSummary: (
+        query?: ReportParams,
+        options?: RequestOptions,
+      ) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/general-summary",
+          query,
+          options,
+        ),
+      retrieveBudgetSummary: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/budget-summary",
+          query,
+          options,
+        ),
+      retrieveJob: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse("/api/v1/reports/job", query, options),
+      retrieveTime: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse("/api/v1/reports/time", query, options),
+      retrieveCustomDetail: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/custom-detail",
+          query,
+          options,
+        ),
+      retrieveCustomSummary: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/custom-summary",
+          query,
+          options,
+        ),
+      retrievePayrollDetail: (query?: ReportParams, options?: RequestOptions) =>
+        this.retrieveWithResponse(
+          "/api/v1/reports/payroll-detail",
+          query,
+          options,
+        ),
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -111,13 +177,28 @@ export class ReportsResource {
 
   private async retrieve(
     path: string,
-    params?: ReportParams & RequestOptions,
+    query?: ReportParams,
     options?: RequestOptions,
   ): Promise<unknown> {
-    const { body: query, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> | undefined,
+    assertNoRequestOptionKeys(query as Record<string, unknown> | undefined);
+    return this.transport.get<unknown>(
+      path,
+      query as Record<string, unknown> | undefined,
       options,
     );
-    return this.transport.get<unknown>(path, query, requestOptions);
+  }
+
+  private async retrieveWithResponse(
+    path: string,
+    query?: ReportParams,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<unknown>> {
+    assertNoRequestOptionKeys(query as Record<string, unknown> | undefined);
+    const wire = await this.transport.sendGet<unknown>(
+      path,
+      query as Record<string, unknown> | undefined,
+      options,
+    );
+    return NxusResponse.fromTransport(wire.body, wire);
   }
 }

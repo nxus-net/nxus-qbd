@@ -196,7 +196,7 @@ const nxus = new NxusClient({
 ## Response Metadata
 
 Every resource method has a `withResponse` twin that returns the parsed model
-*and* the response metadata that came with it:
+_and_ the response metadata that came with it:
 
 ```ts
 const check = await nxus.checks.create({ payeeId });
@@ -205,10 +205,10 @@ const check = await nxus.checks.create({ payeeId });
 const wrapped = await nxus.checks.withResponse.create({ payeeId });
 // -> NxusResponse<Check>
 
-wrapped.data;       // the same Check
+wrapped.data; // the same Check
 wrapped.statusCode; // 200
-wrapped.requestId;  // 'req_abc123' — quote this in support requests
-wrapped.headers;    // frozen, lower-cased names
+wrapped.requestId; // 'req_abc123' — quote this in support requests
+wrapped.headers; // frozen, lower-cased names
 ```
 
 Both forms are the same call. The plain method is a wrapper that discards the
@@ -306,7 +306,7 @@ const vendor = await nxus.vendors.retrieve("id", {
 // Global default
 const nxus = new NxusClient({
   apiKey: "sk_live_...",
-  headers: { "X-Connection-Id": "your-connection-id" },
+  connectionId: "your-connection-id",
 });
 ```
 
@@ -332,8 +332,6 @@ await nxus.reports.retrieveAging(
 ```
 
 This keeps transport options out of serialized request bodies and query strings.
-Legacy merged-bag calls such as `nxus.vendors.create({ name: "Acme", connectionId: "..." })`
-still work as a compatibility path.
 
 `authSessions.create()` is the main special case because `connectionId` is a real
 payload field on that endpoint. When you need both the auth-session payload
@@ -430,12 +428,12 @@ All QuickBooks Desktop resources are available as namespaced properties:
 
 QuickBooks Desktop uses the same underlying mechanism for both UI-visible custom fields and application-only integration data:
 
-| QuickBooks concept        | SDK/API name                           | Purpose                                                                                            |
-| ------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Data extension definition | `DataExtDef` / custom field definition | Describes a field's owner, name, data type, and supported object types.                            |
-| Data extension value      | `DataExt` / custom field value         | Stores the field's value on one specific QuickBooks list object, transaction, or transaction line. |
+| QuickBooks concept        | SDK/API name                                  | Purpose                                                                                            |
+| ------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Data extension definition | `DataExtDefinition` / custom field definition | Describes a field's owner, name, data type, and supported object types.                            |
+| Data extension value      | `DataExt` / custom field value                | Stores the field's value on one specific QuickBooks list object, transaction, or transaction line. |
 
-A definition must exist before a value can be written. Definitions are identified by `ownerId + name`; values add the specific QuickBooks target to that composite identity. QuickBooks may omit `DataExtID` for private definitions, so SDK consumers must allow `DataExtDef.id` to be `null`.
+A definition must exist before a value can be written. Definitions are identified by `ownerId + name`; values add the specific QuickBooks target to that composite identity. QuickBooks may omit `DataExtID` for private definitions, so SDK consumers must allow `DataExtDefinition.id` to be `null`.
 
 The `ownerId` determines how a definition is used:
 
@@ -446,7 +444,7 @@ The `assignToObjects` property is therefore optional in the SDK request type, bu
 
 The normal workflow is:
 
-1. Create the `DataExtDef`.
+1. Create the `DataExtDefinition`.
 2. Create a `DataExt` value using the same `ownerId` and field name, plus a target such as a Customer `ListID`, an Invoice `TxnID`, or a transaction-line `TxnLineID`.
 3. Update or delete the value using that same composite identity.
 4. Delete a private definition only after its values are no longer needed. Public definitions must be managed in the QuickBooks UI because QuickBooks does not support deleting them through `DataExtDefDel`.

@@ -9,7 +9,7 @@
  * request so it can return the right data.
  *
  * The SDK supports this in two ways:
- *   1. Set a default connection on the client with `X-Connection-Id`.
+ *   1. Set a default connection on the client with `connectionId`.
  *   2. Pass `connectionId` on individual requests.
  *
  * This example shows both approaches and optionally compares two connections.
@@ -62,7 +62,7 @@ async function main() {
   // -------------------------------------------------------------------------
   // 1: Set a default connection on the client
   //
-  // Create a NxusClient with X-Connection-Id set once at construction time.
+  // Create a NxusClient with connectionId set once at construction time.
   // Every request made through this client will use that connection by default.
   // -------------------------------------------------------------------------
   console.log("=== 1: Default connection on the client ===\n");
@@ -71,9 +71,7 @@ async function main() {
     apiKey,
     baseUrl: process.env.NXUS_BASE_URL,
     environment: process.env.NXUS_ENVIRONMENT,
-    headers: {
-      "X-Connection-Id": connectionIdA,
-    },
+    connectionId: connectionIdA,
   });
 
   // List vendors for connection A
@@ -100,10 +98,14 @@ async function main() {
   });
 
   // Query connection A
-  const pageA = await nxus.customers.list({
-    limit: 3,
-    connectionId: connectionIdA,
-  });
+  const pageA = await nxus.customers.list(
+    {
+      limit: 3,
+    },
+    {
+      connectionId: connectionIdA,
+    },
+  );
 
   console.log(`Connection A customers: ${pageA.totalCount} total`);
   for (const customer of pageA.data) {
@@ -112,10 +114,14 @@ async function main() {
 
   // Query connection B (if provided)
   if (connectionIdB) {
-    const pageB = await nxus.customers.list({
-      limit: 3,
-      connectionId: connectionIdB,
-    });
+    const pageB = await nxus.customers.list(
+      {
+        limit: 3,
+      },
+      {
+        connectionId: connectionIdB,
+      },
+    );
 
     console.log(`\nConnection B customers: ${pageB.totalCount} total`);
     for (const customer of pageB.data) {

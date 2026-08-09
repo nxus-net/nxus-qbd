@@ -41,115 +41,96 @@ const REQUEST_OPTION_KEYS = [
 
 const REQUEST_OPTION_KEY_SET = new Set<string>(REQUEST_OPTION_KEYS);
 const CURSOR_CLOSE_STRIPPED_HEADERS = new Set([
-  'x-connection-id',
-  'x-nxus-timeout-seconds',
+  "x-connection-id",
+  "x-nxus-timeout-seconds",
 ]);
 
-function stripRequestOptions(
-  params: Record<string, unknown>,
-  protectedKeys: ReadonlyArray<string> = [],
-): Record<string, unknown> {
-  const body: Record<string, unknown> = {};
-  const protectedKeySet = new Set(protectedKeys);
+function findRequestOptionKeys(
+  value: Record<string, unknown>,
+  allowedKeys: ReadonlyArray<string> = [],
+): Array<string> {
+  const allowedKeySet = new Set(allowedKeys);
 
-  for (const [key, value] of Object.entries(params)) {
-    if (REQUEST_OPTION_KEY_SET.has(key) && !protectedKeySet.has(key)) {
-      continue;
-    }
-    body[key] = value;
-  }
-
-  return body;
+  return REQUEST_OPTION_KEYS.filter(
+    (key) => !allowedKeySet.has(key) && value[key] !== undefined,
+  );
 }
 
-export function extractRequestOptions(
-  options?: Partial<RequestOptions>,
-  excludedKeys: ReadonlyArray<string> = [],
+export function assertNoRequestOptionKeys(
+  value: Record<string, unknown> | undefined,
+  allowedKeys: ReadonlyArray<string> = [],
+): void {
+  if (!value) {
+    return;
+  }
+
+  const conflictingKeys = findRequestOptionKeys(value, allowedKeys);
+  if (conflictingKeys.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `Request options must be passed in the second argument only; found transport keys in the first argument: ${conflictingKeys.join(", ")}`,
+  );
+}
+
+export function withDefaultMaxRetries(
+  options: RequestOptions | undefined,
+  maxRetries: number,
 ): RequestOptions {
-  const extracted: RequestOptions = {};
-  const excludedKeySet = new Set(excludedKeys);
-
-  for (const key of REQUEST_OPTION_KEYS) {
-    if (excludedKeySet.has(key)) {
-      continue;
-    }
-    const value = options?.[key];
-    if (value !== undefined) {
-      (extracted as Record<string, unknown>)[key] = value;
-    }
+  if (options?.maxRetries !== undefined) {
+    return options;
   }
 
-  return extracted;
-}
-
-export function splitBodyAndOptions<T extends Record<string, unknown>>(
-  params?: T,
-  options?: RequestOptions,
-  protectedKeys: ReadonlyArray<string> = [],
-): { body: Record<string, unknown>; options: RequestOptions } {
-  if (!params) {
-    return {
-      body: {},
-      options: extractRequestOptions(options),
-    };
-  }
-
-  if (options !== undefined) {
-    const conflictingKeys = REQUEST_OPTION_KEYS.filter(
-      (key) => !protectedKeys.includes(key) && params[key] !== undefined,
-    );
-
-    if (conflictingKeys.length > 0) {
-      throw new Error(
-        `Request options must be passed in the second argument only; found transport keys in the first argument: ${conflictingKeys.join(', ')}`,
-      );
-    }
-
-    return {
-      body: { ...params },
-      options: extractRequestOptions(options),
-    };
-  }
-
-  return {
-    body: stripRequestOptions(params, protectedKeys),
-    options: extractRequestOptions(params, protectedKeys),
-  };
+  return { ...(options ?? {}), maxRetries };
 }
 
 function splitListQueryAndOptions(
-  params?: ListParams & RequestOptions,
+  query?: ListParams,
   options?: RequestOptions,
-): { query: Record<string, unknown>; options: RequestOptions } {
-  const { body: query, options: requestOptions } = splitBodyAndOptions(
-    params as Record<string, unknown> | undefined,
-    options,
-  );
-  const timeoutSeconds = query.timeoutSeconds as number | undefined;
-  delete query.timeoutSeconds;
+): { query: Record<string, unknown>; options: RequestOptions | undefined } {
+  if (!query) {
+    return {
+      query: {},
+      options,
+    };
+  }
+
+  assertNoRequestOptionKeys(query as Record<string, unknown>);
+
+  const nextQuery = { ...query };
+  const timeoutSeconds = nextQuery.timeoutSeconds as number | undefined;
+  delete nextQuery.timeoutSeconds;
+
+  let requestOptions = options;
 
   if (
-    requestOptions.serverTimeoutSeconds === undefined &&
+    requestOptions?.serverTimeoutSeconds === undefined &&
     timeoutSeconds !== undefined
   ) {
-    requestOptions.serverTimeoutSeconds = timeoutSeconds;
+    requestOptions = {
+      ...(options ?? {}),
+      serverTimeoutSeconds: timeoutSeconds,
+    };
   }
 
   return {
-    query,
+    query: nextQuery,
     options: requestOptions,
   };
 }
 
-function extractCursorCloseOptions(options: RequestOptions): RequestOptions {
+function extractCursorCloseOptions(
+  options: RequestOptions | undefined,
+): RequestOptions {
   const {
     connectionId: _connectionId,
     headers,
     serverTimeoutSeconds: _serverTimeoutSeconds,
     ...rest
-  } = options;
+  } = options ?? {};
 
-  const cursorCloseOptions = extractRequestOptions(rest);
+  const cursorCloseOptions = withDefaultMaxRetries(rest, 0);
   const filteredHeaders = Object.fromEntries(
     Object.entries(headers ?? {}).filter(
       ([name]) => !CURSOR_CLOSE_STRIPPED_HEADERS.has(name.toLowerCase()),
@@ -298,17 +279,14 @@ export interface WrappedResourceMethods<
    * to continue, or the plain `list` when you want the async iterator.
    */
   list(
-    params?: ListParams & RequestOptions,
+    query?: ListParams,
     options?: RequestOptions,
   ): Promise<NxusResponse<CursorPage<T>>>;
   retrieve(id: string, options?: RequestOptions): Promise<NxusResponse<T>>;
-  create(
-    params: TCreate & RequestOptions,
-    options?: RequestOptions,
-  ): Promise<NxusResponse<T>>;
+  create(body: TCreate, options?: RequestOptions): Promise<NxusResponse<T>>;
   update(
     id: string,
-    params: TUpdate & RequestOptions,
+    body: TUpdate,
     options?: RequestOptions,
   ): Promise<NxusResponse<T>>;
   delete(
@@ -335,14 +313,12 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
   getSingularPath: (id: string) => string;
 }): WrappedResourceMethods<T, TCreate, TUpdate> {
   return {
-    async list(params, options) {
-      const { query, options: requestOptions } = splitListQueryAndOptions(
-        params,
-        options,
-      );
+    async list(listQuery, options) {
+      const { query: requestQuery, options: requestOptions } =
+        splitListQueryAndOptions(listQuery, options);
       const wire = await ctx.transport.sendGet<unknown>(
         ctx.basePath,
-        query,
+        requestQuery,
         requestOptions,
       );
       return NxusResponse.fromTransport(normalizePage<T>(wire.body), wire);
@@ -357,28 +333,22 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
       return NxusResponse.fromTransport(wire.body, wire);
     },
 
-    async create(params, options) {
-      const { body, options: requestOptions } = splitBodyAndOptions(
-        params as Record<string, unknown> & RequestOptions,
-        options,
-      );
+    async create(body, options) {
+      assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
       const wire = await ctx.transport.sendPost<T>(
         ctx.getCreatePath(),
-        body,
-        requestOptions,
+        body as Record<string, unknown>,
+        withDefaultMaxRetries(options, 0),
       );
       return NxusResponse.fromTransport(wire.body, wire);
     },
 
-    async update(id, params, options) {
-      const { body, options: requestOptions } = splitBodyAndOptions(
-        params as Record<string, unknown> & RequestOptions,
-        options,
-      );
+    async update(id, body, options) {
+      assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
       const wire = await ctx.transport.sendPost<T>(
         ctx.getSingularPath(id),
-        body,
-        requestOptions,
+        body as Record<string, unknown>,
+        options,
       );
       return NxusResponse.fromTransport(wire.body, wire);
     },
@@ -386,7 +356,7 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
     async delete(id, options) {
       const wire = await ctx.transport.sendDelete<undefined>(
         ctx.getSingularPath(id),
-        options,
+        withDefaultMaxRetries(options, 0),
       );
       return NxusResponse.fromTransport(wire.body, wire);
     },
@@ -395,11 +365,29 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
       const wire = await ctx.transport.sendPost<VoidResponse>(
         `${ctx.getSingularPath(id)}/void`,
         undefined,
-        options,
+        withDefaultMaxRetries(options, 0),
       );
       return NxusResponse.fromTransport(wire.body, wire);
     },
   };
+}
+
+function pickWrappedResourceMethods<
+  T,
+  TCreate,
+  TUpdate,
+  K extends keyof WrappedResourceMethods<T, TCreate, TUpdate>,
+>(
+  methods: WrappedResourceMethods<T, TCreate, TUpdate>,
+  keys: ReadonlyArray<K>,
+): Pick<WrappedResourceMethods<T, TCreate, TUpdate>, K> {
+  const picked = {} as Pick<WrappedResourceMethods<T, TCreate, TUpdate>, K>;
+
+  for (const key of keys) {
+    picked[key] = methods[key];
+  }
+
+  return picked;
 }
 
 export class Resource<
@@ -436,26 +424,23 @@ export class Resource<
    *
    * ```ts
    * // Get the first page
-   * const page = await resource.list({ limit: 50, connectionId: "..." });
+   * const page = await resource.list({ limit: 50 }, { connectionId: "..." });
    *
    * // Auto-paginate
    * for await (const item of resource.list({ limit: 50 })) { ... }
    * ```
    */
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
-    const { query, options: requestOptions } = splitListQueryAndOptions(
-      params,
-      options,
-    );
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
+    const { query: requestQuery, options: requestOptions } =
+      splitListQueryAndOptions(query, options);
     const cursorCloseOptions = extractCursorCloseOptions(requestOptions);
 
     const fetchPage = async (cursor?: string): Promise<PaginatedPage<T>> => {
-      const pageQuery = cursor ? { ...query, cursor } : { ...query };
+      const pageQuery = cursor
+        ? { ...requestQuery, cursor }
+        : { ...requestQuery };
       const raw = await this.transport.get<unknown>(
         this.basePath,
         pageQuery,
@@ -491,48 +476,44 @@ export class Resource<
   }
 
   /**
-   * Create a new resource. Fields are passed flat — `connectionId` and `headers`
-   * are extracted and sent as request options.
+   * Create a new resource.
    *
    * ```ts
-   * const vendor = await resource.create({ name: "Acme", connectionId: "..." });
+   * const vendor = await resource.create({ name: "Acme" }, { connectionId: "..." });
    * ```
    */
-  async create(params: TCreate & RequestOptions): Promise<T>;
   async create(body: TCreate, options?: RequestOptions): Promise<T>;
-  async create(
-    params: TCreate & RequestOptions,
-    options?: RequestOptions,
-  ): Promise<T> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> & RequestOptions,
-      options,
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getCreatePath(),
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
     );
-    return this.transport.post<T>(this.getCreatePath(), body, requestOptions);
   }
 
   /**
    * Update a resource. The Nxus API uses POST for updates.
    *
    * ```ts
-   * const vendor = await resource.update("80000001-1234567890", { name: "Updated", connectionId: "..." });
+   * const vendor = await resource.update(
+   *   "80000001-1234567890",
+   *   { name: "Updated" },
+   *   { connectionId: "..." },
+   * );
    * ```
    */
-  async update(id: string, params: TUpdate & RequestOptions): Promise<T>;
   async update(id: string, body: TUpdate, options?: RequestOptions): Promise<T>;
   async update(
     id: string,
-    params: TUpdate & RequestOptions,
+    body: TUpdate,
     options?: RequestOptions,
   ): Promise<T> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> & RequestOptions,
-      options,
-    );
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
     return this.transport.post<T>(
       this.getSingularPath(id),
-      body,
-      requestOptions,
+      body as Record<string, unknown>,
+      options,
     );
   }
 
@@ -544,7 +525,10 @@ export class Resource<
    * ```
    */
   async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(this.getSingularPath(id), options);
+    await this.transport.delete<void>(
+      this.getSingularPath(id),
+      withDefaultMaxRetries(options, 0),
+    );
   }
 
   /**
@@ -564,12 +548,15 @@ export class Resource<
     WrappedResourceMethods<T, TCreate, TUpdate>,
     "list" | "retrieve" | "create" | "update" | "delete"
   > {
-    return buildWithResponse<T, TCreate, TUpdate>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.getCreatePath(),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, TUpdate>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "update", "delete"],
+    );
   }
 }
 
@@ -598,7 +585,7 @@ export class VoidableResource<
     return this.transport.post<VoidResponse>(
       `${this.getSingularPath(id)}/void`,
       undefined,
-      options,
+      withDefaultMaxRetries(options, 0),
     );
   }
 
@@ -607,12 +594,15 @@ export class VoidableResource<
     WrappedResourceMethods<T, TCreate, TUpdate>,
     "list" | "retrieve" | "create" | "update" | "delete" | "void"
   > {
-    return buildWithResponse<T, TCreate, TUpdate>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.getCreatePath(),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, TUpdate>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "update", "delete", "void"],
+    );
   }
 }
 
@@ -632,17 +622,14 @@ export class ReadOnlyResource<T> {
     return `${path}/${id}`;
   }
 
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
     // Delegate to a full Resource instance for the pagination logic
     return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
       this.transport,
       this.basePath,
-    ).list(params, options);
+    ).list(query, options);
   }
 
   async retrieve(id: string, options?: RequestOptions): Promise<T> {
@@ -650,16 +637,17 @@ export class ReadOnlyResource<T> {
   }
 
   /** See {@link Resource.withResponse}. */
-  get withResponse(): Pick<
-    WrappedResourceMethods<T>,
-    "list" | "retrieve"
-  > {
-    return buildWithResponse<T, never, never>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.singularPath ?? this.basePath.replace(/s$/, ""),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+  get withResponse(): Pick<WrappedResourceMethods<T>, "list" | "retrieve"> {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, never, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () =>
+          this.singularPath ?? this.basePath.replace(/s$/, ""),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve"],
+    );
   }
 }
 
@@ -668,15 +656,65 @@ export class ReadOnlyResource<T> {
 // ---------------------------------------------------------------------------
 
 /** list + retrieve + create + delete (no update) */
-export class NoUpdateResource<
-  T,
-  TCreate = Record<string, unknown>,
-> extends Resource<T, TCreate, Record<string, unknown>> {
-  override update(
-    _id: string,
-    _params: Record<string, unknown> & RequestOptions,
-  ): Promise<T> {
-    throw new Error(`update() is not supported on ${this.basePath}`);
+export class NoUpdateResource<T, TCreate = Record<string, unknown>> {
+  constructor(
+    protected readonly transport: NxusHttpTransport,
+    protected readonly basePath: string,
+    protected readonly createPath?: string,
+  ) {}
+
+  protected getCreatePath(): string {
+    if (this.createPath) return this.createPath;
+    return this.basePath.replace(/s$/, "");
+  }
+
+  protected getSingularPath(id: string): string {
+    return `${this.getCreatePath()}/${id}`;
+  }
+
+  list(query?: ListParams): AutoPaginationPromise<T>;
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
+    return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
+      this.transport,
+      this.basePath,
+      this.createPath,
+    ).list(query, options);
+  }
+
+  async retrieve(id: string, options?: RequestOptions): Promise<T> {
+    return this.transport.get<T>(this.getSingularPath(id), undefined, options);
+  }
+
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getCreatePath(),
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
+    );
+  }
+
+  async delete(id: string, options?: RequestOptions): Promise<void> {
+    await this.transport.delete<void>(
+      this.getSingularPath(id),
+      withDefaultMaxRetries(options, 0),
+    );
+  }
+
+  get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate>,
+    "list" | "retrieve" | "create" | "delete"
+  > {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "delete"],
+    );
   }
 }
 
@@ -685,9 +723,71 @@ export class NoDeleteResource<
   T,
   TCreate = Record<string, unknown>,
   TUpdate = Record<string, unknown>,
-> extends Resource<T, TCreate, TUpdate> {
-  override delete(_id: string, _options?: RequestOptions): Promise<void> {
-    throw new Error(`delete() is not supported on ${this.basePath}`);
+> {
+  constructor(
+    protected readonly transport: NxusHttpTransport,
+    protected readonly basePath: string,
+    protected readonly createPath?: string,
+  ) {}
+
+  protected getCreatePath(): string {
+    if (this.createPath) return this.createPath;
+    return this.basePath.replace(/s$/, "");
+  }
+
+  protected getSingularPath(id: string): string {
+    return `${this.getCreatePath()}/${id}`;
+  }
+
+  list(query?: ListParams): AutoPaginationPromise<T>;
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
+    return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
+      this.transport,
+      this.basePath,
+      this.createPath,
+    ).list(query, options);
+  }
+
+  async retrieve(id: string, options?: RequestOptions): Promise<T> {
+    return this.transport.get<T>(this.getSingularPath(id), undefined, options);
+  }
+
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getCreatePath(),
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
+    );
+  }
+
+  async update(
+    id: string,
+    body: TUpdate,
+    options?: RequestOptions,
+  ): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getSingularPath(id),
+      body as Record<string, unknown>,
+      options,
+    );
+  }
+
+  get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate, TUpdate>,
+    "list" | "retrieve" | "create" | "update"
+  > {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, TUpdate>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "update"],
+    );
   }
 }
 
@@ -702,16 +802,13 @@ export class ListRetrieveDeleteResource<T> {
     return `${this.basePath.replace(/s$/, "")}/${id}`;
   }
 
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
     return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
       this.transport,
       this.basePath,
-    ).list(params, options);
+    ).list(query, options);
   }
 
   async retrieve(id: string, options?: RequestOptions): Promise<T> {
@@ -719,7 +816,10 @@ export class ListRetrieveDeleteResource<T> {
   }
 
   async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(this.getSingularPath(id), options);
+    await this.transport.delete<void>(
+      this.getSingularPath(id),
+      withDefaultMaxRetries(options, 0),
+    );
   }
 
   /** See {@link Resource.withResponse}. */
@@ -727,12 +827,15 @@ export class ListRetrieveDeleteResource<T> {
     WrappedResourceMethods<T>,
     "list" | "retrieve" | "delete"
   > {
-    return buildWithResponse<T, never, never>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.basePath.replace(/s$/, ""),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, never, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.basePath.replace(/s$/, ""),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "delete"],
+    );
   }
 }
 
@@ -749,30 +852,34 @@ export class ListDeleteResource<T> {
     return `${path}/${id}`;
   }
 
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
     return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
       this.transport,
       this.basePath,
-    ).list(params, options);
+    ).list(query, options);
   }
 
   async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(this.getSingularPath(id), options);
+    await this.transport.delete<void>(
+      this.getSingularPath(id),
+      withDefaultMaxRetries(options, 0),
+    );
   }
 
   /** See {@link Resource.withResponse}. */
   get withResponse(): Pick<WrappedResourceMethods<T>, "list" | "delete"> {
-    return buildWithResponse<T, never, never>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.singularPath ?? this.basePath.replace(/s$/, ""),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, never, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () =>
+          this.singularPath ?? this.basePath.replace(/s$/, ""),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "delete"],
+    );
   }
 }
 
@@ -793,33 +900,27 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
     return `${this.getCreatePath()}/${id}`;
   }
 
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
     return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
       this.transport,
       this.basePath,
-    ).list(params, options);
+    ).list(query, options);
   }
 
   async retrieve(id: string, options?: RequestOptions): Promise<T> {
     return this.transport.get<T>(this.getSingularPath(id), undefined, options);
   }
 
-  async create(params: TCreate & RequestOptions): Promise<T>;
   async create(body: TCreate, options?: RequestOptions): Promise<T>;
-  async create(
-    params: TCreate & RequestOptions,
-    options?: RequestOptions,
-  ): Promise<T> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> & RequestOptions,
-      options,
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getCreatePath(),
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
     );
-    return this.transport.post<T>(this.getCreatePath(), body, requestOptions);
   }
 
   /** See {@link Resource.withResponse}. */
@@ -827,12 +928,15 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
     WrappedResourceMethods<T, TCreate>,
     "list" | "retrieve" | "create"
   > {
-    return buildWithResponse<T, TCreate, never>({
-      transport: this.transport,
-      basePath: this.basePath,
-      getCreatePath: () => this.getCreatePath(),
-      getSingularPath: (id) => this.getSingularPath(id),
-    });
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create"],
+    );
   }
 }
 
@@ -853,37 +957,50 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
     return `${this.getCreatePath()}/${id}`;
   }
 
-  list(params?: ListParams & RequestOptions): AutoPaginationPromise<T>;
+  list(query?: ListParams): AutoPaginationPromise<T>;
   list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T>;
-  list(
-    params?: ListParams & RequestOptions,
-    options?: RequestOptions,
-  ): AutoPaginationPromise<T> {
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
     return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
       this.transport,
       this.basePath,
-    ).list(params, options);
+    ).list(query, options);
   }
 
   async retrieve(id: string, options?: RequestOptions): Promise<T> {
     return this.transport.get<T>(this.getSingularPath(id), undefined, options);
   }
 
-  async create(params: TCreate & RequestOptions): Promise<T>;
   async create(body: TCreate, options?: RequestOptions): Promise<T>;
-  async create(
-    params: TCreate & RequestOptions,
-    options?: RequestOptions,
-  ): Promise<T> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> & RequestOptions,
-      options,
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.getCreatePath(),
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
     );
-    return this.transport.post<T>(this.getCreatePath(), body, requestOptions);
   }
 
   async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(this.getSingularPath(id), options);
+    await this.transport.delete<void>(
+      this.getSingularPath(id),
+      withDefaultMaxRetries(options, 0),
+    );
+  }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate>,
+    "list" | "retrieve" | "create" | "delete"
+  > {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "delete"],
+    );
   }
 }
 
@@ -894,16 +1011,26 @@ export class CreateOnlyResource<T, TCreate = Record<string, unknown>> {
     protected readonly createPath: string,
   ) {}
 
-  async create(params: TCreate & RequestOptions): Promise<T>;
   async create(body: TCreate, options?: RequestOptions): Promise<T>;
-  async create(
-    params: TCreate & RequestOptions,
-    options?: RequestOptions,
-  ): Promise<T> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as Record<string, unknown> & RequestOptions,
-      options,
+  async create(body: TCreate, options?: RequestOptions): Promise<T> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<T>(
+      this.createPath,
+      body as Record<string, unknown>,
+      withDefaultMaxRetries(options, 0),
     );
-    return this.transport.post<T>(this.createPath, body, requestOptions);
+  }
+
+  /** See {@link Resource.withResponse}. */
+  get withResponse(): Pick<WrappedResourceMethods<T, TCreate>, "create"> {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, never>({
+        transport: this.transport,
+        basePath: this.createPath,
+        getCreatePath: () => this.createPath,
+        getSingularPath: () => this.createPath,
+      }),
+      ["create"],
+    );
   }
 }

@@ -91,7 +91,7 @@ export type Account = {
   /**
    * The combined balance of this account and all its sub-accounts.
    *
-   * For example, the total balance for a bank would be the total of the balances of all its sub-accounts. If it has no sub-accounts, this will match <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Account.Models.AccountDto.Balance" />.
+   * For example, the total balance for a bank would be the total of the balances of all its sub-accounts. If it has no sub-accounts, this will match `balance`.
    */
   totalBalance: number | null;
   /**
@@ -251,15 +251,45 @@ export type AdditionalNote = {
  * The Address object is used to capture and store location information for these entities in QuickBooks.
  */
 export type Address = {
+  /**
+   * The first line of the address.
+   */
   line1: string | null;
+  /**
+   * The second line of the address.
+   */
   line2: string | null;
+  /**
+   * The third line of the address.
+   */
   line3: string | null;
+  /**
+   * The fourth line of the address.
+   */
   line4: string | null;
+  /**
+   * The fifth line of the address.
+   */
   line5: string | null;
+  /**
+   * The city, district, suburb, town, or village name of the address.
+   */
   city: string | null;
+  /**
+   * The state, county, province, or region name of the address.
+   */
   state: string | null;
+  /**
+   * The postal code or ZIP code of the address.
+   */
   postalCode: string | null;
+  /**
+   * The country name of the address.
+   */
   country: string | null;
+  /**
+   * A note written at the bottom of the address in the form in which it appears, such as the invoice form.
+   */
   note: string | null;
 };
 
@@ -480,35 +510,10 @@ export type ApplicableCredit = {
 };
 
 /**
- * Request model for AppliedToTxn line items.
- * Represents an invoice or transaction that this payment is being applied to.
- */
-export type AppliedToTransactionRequest = {
-  /**
-   * Transaction ID of the invoice/transaction to apply payment to (required for add).
-   */
-  id: string;
-  paymentAmount?: number | null;
-  setCredits?: Array<SetCreditRequest> | null;
-  /**
-   * Discount amount to apply.
-   */
-  discountAmount?: number | null;
-  /**
-   * Account to post the discount to.
-   */
-  discountAccountId?: string | null;
-  /**
-   * Class for the discount (if using class tracking).
-   */
-  discountClassId?: string | null;
-};
-
-/**
  * Represents a transaction that a parent transaction (e.g., a Payment) has been applied to.
  * This element is typically found in response objects like ReceivePaymentRet or BillPaymentCheckRet.
  */
-export type AppliedToTxn = {
+export type AppliedToTransaction = {
   /**
    * The unique identifier for the transaction this one is applied to.
    */
@@ -598,7 +603,7 @@ export type ApplyToTransactionRequest = {
    * - Creating a credit, on the other hand, means making a credit available to be applied in the future.
    * </remarks>
    */
-  appliedCredits?: Array<CreateSetCreditRequest> | null;
+  applyCredits?: Array<SetCreditRequest> | null;
   /**
    * The amount of discount to apply.
    * (Optional)
@@ -687,7 +692,7 @@ export type ArRefundCreditCard = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -709,7 +714,7 @@ export type ArRefundCreditCard = {
   /**
    * The CreditCardTxnInfo associated with this object.
    */
-  creditCardTransaction: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo: CreditCardTransactionInfo | null;
   /**
    * (Required) List of credit transactions (e.g., Credit Memos) to apply this refund to.
    */
@@ -2960,7 +2965,7 @@ export type Check = {
    */
   salesTaxCode: QbdRef | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -3104,7 +3109,7 @@ export type CheckBillPayment = {
    * List of transactions this payment is applied to e.g. Bills.
    * This is the equivalent of line items for a BillPayment.
    */
-  appliedToTransactions: Array<AppliedToTxn> | null;
+  appliedToTransactions: Array<AppliedToTransaction> | null;
   /**
    * The total monetary amount of the transaction.
    *
@@ -3626,7 +3631,7 @@ export type CreateArRefundCreditCardRequest = {
   /**
    * (Optional) Information about the credit card transaction if processed outside QuickBooks.
    */
-  creditCardTransaction?: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -3638,7 +3643,7 @@ export type CreateArRefundCreditCardRequest = {
   /**
    * (Required) List of credit transactions (e.g., Credit Memos) to apply this refund to.
    */
-  refundAppliedToTransactions: Array<RefundAppliedToTransactionRequest>;
+  refundApplyToTransactions: Array<RefundAppliedToTransactionRequest>;
 };
 
 /**
@@ -3766,10 +3771,6 @@ export type CreateBillingRateRequest = {
    * Mutually exclusive with FixedBillingRate.
    */
   billingRateItems?: Array<BillingRateItemRequest> | null;
-  /**
-   * (Optional) A unique GUID used to prevent duplicate processing.
-   */
-  externalId?: string | null;
 };
 
 /**
@@ -3975,7 +3976,7 @@ export type CreateCheckBillPaymentRequest = {
    * QBD requiring at least one AppliedToTransactionAddRequest for BillPaymentCheckAdd.
    * paymentAmount, applyCredits, discountAmount, or any combination of these must be specified.
    */
-  applyToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
 /**
@@ -4022,7 +4023,7 @@ export type CreateCheckRequest = {
   /**
    * Payee address (optional)
    */
-  address?: Address | null;
+  address?: AddressRequest | null;
   /**
    * Exchange rate (for multi-currency)
    */
@@ -4043,8 +4044,8 @@ export type CreateCheckRequest = {
    * Transactions to which this check is applied
    * The ARAccountRef will be obtained from the ExpenseLineAdd
    * The sum of the ApplyCheckToTxn amounts MUST equal the amount of the ExpenseLine
-   * Any transactions linked from a check in the ApplyToTxnAdd aggregate MUST use the same AR account specified in the ExpenseLineAdd AccountRef, which MUST be an ARAccount
-   * Any transactions linked from a check in the ApplyToTxnAdd aggregate must apply to the same entity referred to in the check PayeeEntityRef.
+   * Any transactions linked from a check in the applyCheckToTransaction object MUST use the same receivables account specified in the expenseLine.accountId, which MUST be an receivables account
+   * Any transactions linked from a check in the applyCheckToTransaction object MUST apply to the same entity referred to in the check payeeId.
    */
   applyToTransactions?: Array<ApplyCheckToTransactionRequest> | null;
 };
@@ -4169,9 +4170,8 @@ export type CreateCreditCardCreditRequest = {
    */
   payeeId?: string | null;
   /**
-   * Macro name (Optional). Need to look into this before implementing.
-   * this helps to SetCredit, can create an object, that is needed in order to
-   * create the initially reequested object
+   * (Optional) Names a macro that defines this credit for later reference, so a subsequent
+   * request in the same batch can refer to the object this request creates.
    */
   defMacro?: string | null;
   /**
@@ -4282,11 +4282,11 @@ export type CreateCreditCardTransactionInfoRequest = {
   /**
    * (Required) Input details for the credit card transaction.
    */
-  inputInfo: CreateCreditCardTransactionInputInfoRequest;
+  creditCardTransactionInputInfo: CreateCreditCardTransactionInputInfoRequest;
   /**
    * (Required) Result details from the credit card processor.
    */
-  resultInfo: CreateCreditCardTransactionResultInfoRequest;
+  creditCardTransactionResultInfo: CreateCreditCardTransactionResultInfoRequest;
 };
 
 /**
@@ -4301,7 +4301,7 @@ export type CreateCreditCardTransactionInputInfoRequest = {
   creditCardPostalCode?: string | null;
   commercialCardCode?: string | null;
   transactionMode?: TransactionMode | null;
-  creditCardTxnType?: CreditCardTransactionType | null;
+  transactionType?: CreditCardTransactionType | null;
 };
 
 /**
@@ -4310,18 +4310,18 @@ export type CreateCreditCardTransactionInputInfoRequest = {
 export type CreateCreditCardTransactionResultInfoRequest = {
   resultCode: number;
   resultMessage: string;
-  creditCardTransId: string;
+  creditCardTransactionId: string;
   merchantAccountNumber: string;
   paymentStatus: PaymentStatus;
-  txnAuthorizationTime: string;
+  transactionAuthorizationTime: string;
   authorizationCode?: string | null;
   avsStreet?: AvsStreet | null;
   avsZip?: AvsZip | null;
   cardSecurityCodeMatch?: CardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
-  txnAuthorizationStamp?: number | null;
-  clientTransId?: string | null;
+  transactionAuthorizationStamp?: number | null;
+  clientTransactionId?: string | null;
 };
 
 /**
@@ -4586,7 +4586,6 @@ export type CreateCurrencyRequest = {
   currencyFormat?: CurrencyFormatRequest | null;
   /**
    * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
    */
   externalId?: string | null;
 };
@@ -4611,7 +4610,7 @@ export type CreateCustomFieldDefinitionRequest = {
   type: DataExtensionType;
   /**
    * The QuickBooks object types this definition is assignable to. Public definitions
-   * (<see cref="P:QbdWebService.Application.Resources.Qbd.Entities.DataExtDef.Models.CreateCustomFieldDefinitionRequest.OwnerId" /> == `"0"`) require at least one of Customer, Employee,
+   * (`ownerId` == `"0"`) require at least one of Customer, Employee,
    * Item, or Vendor and must use STR255TYPE. This collection is optional for private
    * definitions; when supplied, list and transaction object types are supported.
    */
@@ -4682,7 +4681,7 @@ export type CreateCustomerRequest = {
    * The unique identifier of the hierarchical parent customer.
    *
    * Leave this null if creating a top-level customer.
-   * **Important:** This field is strictly required if you provide a <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStatus" />, as that indicates this record is a sub-customer (job).
+   * **Important:** This field is strictly required if you provide a `jobStatus`, as that indicates this record is a sub-customer (job).
    */
   parentId?: string | null;
   /**
@@ -4730,7 +4729,7 @@ export type CreateCustomerRequest = {
   /**
    * A secondary telephone number.
    */
-  altPhone?: string | null;
+  alternatePhone?: string | null;
   /**
    * The fax number of the primary contact.
    */
@@ -4788,7 +4787,7 @@ export type CreateCustomerRequest = {
   /**
    * The identifier for the specific tax agency rate applied to this customer's purchases.
    *
-   * This drives the actual percentage calculation, unlike the binary <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.SalesTaxCodeId" />.
+   * This drives the actual percentage calculation, unlike the binary `salesTaxCodeId`.
    */
   itemSalesTaxId?: string | null;
   /**
@@ -4815,32 +4814,32 @@ export type CreateCustomerRequest = {
   /**
    * The current operational state of the job.
    *
-   * **Important:** Supplying this value explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
+   * **Important:** Supplying this value explicitly requires `parentId` to be populated, indicating this is a sub-customer/job entity.
    * Available values: Awarded, Closed, InProgress, None, NotAwarded, Pending.
    */
   jobStatus?: JobStatus | null;
   /**
    * The date active work commenced on the job.
    *
-   * Must be chronologically before or equal to <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobProjectedEndDate" /> and <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobEndDate" />, if they are provided.
+   * Must be chronologically before or equal to `jobProjectedEndDate` and `jobEndDate`, if they are provided.
    */
   jobStartDate?: string | null;
   /**
    * The estimated deadline for job completion.
    *
-   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStartDate" />, if provided.
+   * Must be chronologically on or after the `jobStartDate`, if provided.
    */
   jobProjectedEndDate?: string | null;
   /**
    * The actual date the job was finalized.
    *
-   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.CreateCustomerRequest.JobStartDate" />, if provided.
+   * Must be chronologically on or after the `jobStartDate`, if provided.
    */
   jobEndDate?: string | null;
   /**
    * A short summary outlining the scope of work for the job.
    */
-  jobDesc?: string | null;
+  jobDescription?: string | null;
   /**
    * The unique identifier categorizing the nature of the job (e.g., Commercial, Residential, Maintenance).
    */
@@ -4922,7 +4921,6 @@ export type CreateCustomerTypeRequest = {
   parentId?: string | null;
   /**
    * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
    */
   externalId?: string | null;
 };
@@ -5012,7 +5010,6 @@ export type CreateDepositRequest = {
   depositLines?: Array<CreateDepositLineRequest> | null;
   /**
    * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
    */
   externalId?: string | null;
 };
@@ -5215,7 +5212,6 @@ export type CreateEmployeeRequest = {
    */
   employeePayrollInfo?: EmployeePayrollInfoRequest | null;
   /**
-   * Fulfills the ICreateRequest interface.
    * Used for tracking the "Add" job.
    *
    * GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -5444,13 +5440,9 @@ export type CreateEstimateRequest = {
    */
   lineItemGroups?: Array<CreateEstimateLineGroupRequest> | null;
   /**
-   * (Optional) A unique identifier assigned by the client application for tracking the asynchronous request. (GUIDTYPE, from ICreateRequest)
+   * (Optional) A unique identifier assigned by the client application for tracking the asynchronous request.
    */
   externalId?: string | null;
-  /**
-   * (Optional) List of custom fields (DataExt) for the Estimate. (DataExtRequest)
-   */
-  dataExt?: Array<DataExtRequest> | null;
 };
 
 /**
@@ -5555,14 +5547,12 @@ export type CreateInventoryAdjustmentRequest = {
   inventoryAdjustmentLines: Array<CreateInventoryAdjustmentLineRequest>;
   /**
    * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
    */
   externalId?: string | null;
 };
 
 /**
  * Request for creating a new inventory item.
- * Implements ICreateRequest for the abstraction pattern.
  */
 export type CreateInventoryItemRequest = {
   /**
@@ -5660,7 +5650,6 @@ export type CreateInventoryItemRequest = {
    */
   isActive?: boolean;
   /**
-   * Fulfills the ICreateRequest interface.
    * Used for tracking the "Add" job.
    *
    * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
@@ -5809,7 +5798,11 @@ export type CreateInvoiceRequest = {
    */
   customerSalesTaxCodeId?: string | null;
   /**
-   * The Other associated with this object.
+   * The native custom field used to store supplemental invoice information.
+   *
+   * Functions similarly to custom field array as a standard QuickBooks field built into
+   * all invoices, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard invoice tracking.
    */
   otherCustomField?: string | null;
   /**
@@ -5827,7 +5820,7 @@ export type CreateInvoiceRequest = {
   /**
    * Specific credit transactions to apply while creating the invoice.
    */
-  applyCredits?: Array<CreateSetCreditRequest> | null;
+  applyCredits?: Array<SetCreditRequest> | null;
   /**
    * Item line items for the invoice.
    */
@@ -5865,7 +5858,7 @@ export type CreateItemDiscountRequest = {
    *
    * Optional. If omitted, QuickBooks will use the default description set on the item itself.
    */
-  itemDesc?: string | null;
+  description?: string | null;
   /**
    * The unique QuickBooks ListID of the default sales tax code applied to this discount item.
    */
@@ -6052,7 +6045,7 @@ export type CreateItemFixedAssetRequest = {
    *
    * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
-  externalid?: string | null;
+  externalId?: string | null;
 };
 
 /**
@@ -6088,7 +6081,6 @@ export type CreateItemGroupLineRequest = {
 
 /**
  * Request for creating a new item group.
- * Implements ICreateRequest for the new abstraction.
  */
 export type CreateItemGroupRequest = {
   /**
@@ -6102,7 +6094,7 @@ export type CreateItemGroupRequest = {
    *
    * Optional barcode configuration.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * A general description of the item group.
    *
@@ -6134,7 +6126,6 @@ export type CreateItemGroupRequest = {
    */
   lines?: Array<ItemGroupLineDetailRequest> | null;
   /**
-   * Fulfills the ICreateRequest interface.
    * Used for tracking the "Add" job.
    *
    * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
@@ -6155,20 +6146,58 @@ export type CreateItemInventoryAssemblyRequest = {
    * The case-insensitive name of this inventory assembly item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory assembly items could both have the `name` "Deluxe Kit", but they could have unique `fullName` values, such as "Assemblies:Deluxe Kit" and "Inventory:Deluxe Kit".
    */
   name: string;
+  /**
+   * The income account used to track the income from this assembly's inventory.
+   */
   incomeAccountId?: string | null;
-  assetAccountId: string | null;
+  /**
+   * The asset account used to track the value of this assembly's inventory.
+   *
+   * Optional. QBXML marks AssetAccountRef as `opt` on both ItemInventoryAssemblyAdd and
+   * ItemInventoryAssemblyMod.
+   */
+  assetAccountId?: string | null;
+  /**
+   * The cost of goods sold (COGS) account used to track the cost of this assembly's inventory.
+   *
+   * Optional. QBXML marks CogsAccountId as `opt`.
+   */
   cogsAccountId?: string | null;
-  barCode?: BarCodeRequest | null;
+  /**
+   * The barcode for this inventory assembly item.
+   */
+  barcode?: BarCodeRequest | null;
   /**
    * Indicates whether this inventory assembly item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
   classId?: string | null;
+  /**
+   * The parent ID for this inventory assembly item.
+   */
   parentId?: string | null;
+  /**
+   * The SKU (also known as the manufacturer part number) for this inventory assembly item.
+   */
   sku?: string | null;
+  /**
+   * The unit of measure set ID for this inventory assembly item.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Indicates whether tax is included in the sales price of this inventory assembly item.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * The sales tax code ID for this inventory assembly item.
+   */
   salesTaxCodeId?: string | null;
+  /**
+   * The sales description for this inventory assembly item.
+   *
+   * Appears in the Description column of a sales form when the QuickBooks user sells this item.
+   * For a fixed asset, describes the sale of the asset (for accounting purposes).
+   */
   salesDescription?: string | null;
   /**
    * The price at which this inventory assembly item is sold to customers, represented as a decimal string.
@@ -6179,7 +6208,13 @@ export type CreateItemInventoryAssemblyRequest = {
    * The cost at which this inventory assembly item is purchased from vendors, represented as a decimal string.
    */
   purchaseCost?: number | null;
+  /**
+   * The tax code ID for this inventory assembly item's purchase.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * The preferred vendor ID for this inventory assembly item.
+   */
   preferredVendorId?: string | null;
   /**
    * The inventory assembly item's minimum quantity threshold that triggers a build notification in QuickBooks. When the sum of `quantityOnHand` (current inventory) and `quantityOnOrder` (pending purchase orders) drops below this threshold, QuickBooks will notify users that more units need to be built or assembled. This helps ensure adequate inventory levels for inventory assembly items.
@@ -6193,12 +6228,21 @@ export type CreateItemInventoryAssemblyRequest = {
    * The number of units of this inventory assembly item currently in inventory. `quantityOnHand` multiplied by `averageCost` equals `totalValue` for inventory item lists. To change the `quantityOnHand` for an inventory assembly item, you must use an inventory-adjustment instead of updating the inventory assembly item directly.
    */
   quantityOnHand?: number | null;
+  /**
+   * The total value of this inventory assembly item in inventory.
+   */
   totalValue?: number | null;
+  /**
+   * The inventory date for this inventory assembly item.
+   */
   inventoryDate?: string | null;
   /**
    * The inventory assembly item's lines.
    */
   lines?: Array<CreateItemInventoryAssemblyLineRequest> | null;
+  /**
+   * The external ID for this inventory assembly item (GUID).
+   */
   externalId?: string | null;
 };
 
@@ -6224,13 +6268,29 @@ export type CreateItemLineRequest = {
    */
   unitOfMeasure?: string | null;
   /**
-   * (Optional) Cost per item (used in purchases).
+   * (Optional) Cost per item. PURCHASE-side lines only (Bill, ItemReceipt, Check,
+   * CreditCardCharge, CreditCardCredit, VendorCredit). Ignored on Invoice, whose line
+   * element has no Cost.
    */
   cost?: number | null;
   /**
-   * (Optional) Price per item (used in sales).
+   * (Optional) Unit rate. SALES-side lines only (Invoice) — purchase-side line elements have
+   * no Rate and will reject it.
+   *
+   * Mutually exclusive with RatePercent and PriceLevelId; QBXML
+   * defines the three as an OR group and accepts at most one.
    */
   rate?: number | null;
+  /**
+   * (Optional) Rate expressed as a percentage. SALES-side lines only.
+   * Mutually exclusive with Rate and PriceLevelId.
+   */
+  ratePercent?: number | null;
+  /**
+   * (Optional) ListID or FullName of a price level to apply. SALES-side lines only.
+   * Mutually exclusive with Rate and RatePercent.
+   */
+  priceLevelId?: string | null;
   /**
    * (Optional) Total amount for the line.
    */
@@ -6363,9 +6423,16 @@ export type CreateItemOtherChargeRequest = {
  */
 export type CreateItemPaymentRequest = {
   name: string;
+  /**
+   * (Optional) The barcode to assign to this payment item.
+   *
+   * Add/Mod accept the full `BarCode` aggregate (value, AssignEvenIfUsed, AllowOverride);
+   * `ItemPaymentRet` returns only the flat `BarCodeValue`, surfaced as
+   * `barcodeValue` on the response via the inherited `ItemDto`.
+   */
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
-  parentId?: string | null;
   description?: string | null;
   depositToAccountId?: string | null;
   paymentMethodId?: string | null;
@@ -6382,11 +6449,6 @@ export type CreateItemReceiptRequest = {
    * At least one of APAccountId or LiabilityAccountId must be provided.
    */
   payablesAccountId?: string | null;
-  /**
-   * Liability Account ListID (Optional - OR condition with APAccountId).
-   * At least one of APAccountId or LiabilityAccountId must be provided.
-   */
-  liabilityAccountId?: string | null;
   /**
    * Transaction date (Optional - defaults to today).
    */
@@ -6407,10 +6469,6 @@ export type CreateItemReceiptRequest = {
    * Sales Tax Code ListID (Optional).
    */
   salesTaxCodeId?: string | null;
-  /**
-   * Currency ListID (Optional - for multi-currency).
-   */
-  currencyId?: string | null;
   /**
    * Exchange rate for multi-currency transactions (Optional).
    */
@@ -6442,7 +6500,7 @@ export type CreateItemReceiptRequest = {
  */
 export type CreateItemSalesTaxGroupRequest = {
   name: string;
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   description?: string | null;
   externalId?: string | null;
@@ -6501,7 +6559,7 @@ export type CreateItemSubtotalRequest = {
    * Description of the item.
    * Max Length: 4095 characters.
    */
-  itemDesc?: string | null;
+  description?: string | null;
   /**
    * Special Item Type.
    * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
@@ -6526,13 +6584,13 @@ export type CreateItemSubtotalRequest = {
    *
    * Raw barcode text value.
    */
-  barCodeValue?: string | null;
+  barcodeValue?: string | null;
   /**
    * The barcode request object linking barcode properties.
    *
    * Optional barcode configuration.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * External GUID for the item.
    *
@@ -6542,7 +6600,7 @@ export type CreateItemSubtotalRequest = {
 };
 
 /**
- * Request model for creating a new journal entry in QuickBooks.
+ * Creates a new journal entry in QuickBooks with balanced credit and debit entries.
  */
 export type CreateJournalEntryRequest = {
   /**
@@ -6585,7 +6643,7 @@ export type CreateJournalEntryRequest = {
 };
 
 /**
- * Request model for creating a journal line (debit or credit).
+ * Creates a line item for a journal entry (debit or credit).
  */
 export type CreateJournalLineRequest = {
   /**
@@ -6620,7 +6678,6 @@ export type CreateJournalLineRequest = {
 
 /**
  * Request for creating a new OtherName.
- * Implements ICreateRequest for the abstraction pattern.
  */
 export type CreateOtherNameRequest = {
   /**
@@ -6688,13 +6745,6 @@ export type CreateOtherNameRequest = {
    */
   notes?: string | null;
   /**
-   * The other-name's custom fields.
-   *
-   * A list of each of which represents a custom field that has been added to
-   * QuickBooks as a custom field (data extension).
-   */
-  customFields?: Array<DataExtRequest> | null;
-  /**
    * An external GUID identifier.
    */
   externalId?: string | null;
@@ -6702,7 +6752,6 @@ export type CreateOtherNameRequest = {
 
 /**
  * Represents a request to create a new Payment Method.
- * Based on the PaymentMethodAdd QBXML type.
  */
 export type CreatePaymentMethodRequest = {
   /**
@@ -6758,8 +6807,8 @@ export type CreatePayrollItemWageRequest = {
  * - IsActive: Optional, defaults to true
  * - PriceLevelFixedPercentage: Optional (mutually exclusive with PriceLevelPerItem)
  * - PriceLevelPerItem: Optional (mutually exclusive with PriceLevelFixedPercentage)
- * - CurrencyRef: Optional, max length = 64
- * - ExternalGUID: Optional
+ * - CurrencyRef: Optional, max length = 64 (PriceLevelPerItem side of the OR group only)
+ * - ExternalGUID: NOT supported by PriceLevelAdd
  */
 export type CreatePriceLevelRequest = {
   /**
@@ -6784,10 +6833,6 @@ export type CreatePriceLevelRequest = {
    * (Optional) The ListID of the currency associated with this price level. Only used with 'per item' price levels.
    */
   currencyId?: string | null;
-  /**
-   * (Optional) External GUID for tracking/deduplication.
-   */
-  externalId?: string | null;
 };
 
 /**
@@ -6830,10 +6875,6 @@ export type CreatePurchaseOrderLineRequest = {
    */
   quantity?: number | null;
   unitOfMeasure?: string | null;
-  /**
-   * (Optional) The ListID or FullName of the unit of measure set to override.
-   */
-  overrideUOMSetId?: string | null;
   /**
    * (Optional) Cost/Rate per item unit.
    */
@@ -6955,7 +6996,7 @@ export type CreatePurchaseOrderRequest = {
   /**
    * (Optional) Message displayed to the vendor. (Max 99 characters)
    */
-  vendorMsg?: string | null;
+  vendorMessage?: string | null;
   /**
    * (Optional) If true, the Purchase Order should be printed.
    */
@@ -7004,7 +7045,6 @@ export type CreatePurchaseOrderRequest = {
   lineGroups?: Array<CreatePurchaseOrderLineGroupRequest> | null;
   /**
    * (Optional) A GUID specified by the client to track the request asynchronously.
-   * Implemented from ICreateRequest.
    */
   externalId?: string | null;
 };
@@ -7051,8 +7091,9 @@ export type CreateReceivePaymentRequest = {
   depositToAccountId?: string | null;
   /**
    * Credit card transaction information (if payment method is credit card, v4.1+).
+   * When supplied, QuickBooks requires both the input info and the processor result info.
    */
-  creditCardTransactionInfo?: CreditCardTxnInfoRequest | null;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
   /**
    * An optional, client-provided GUID for external tracking.
    * If not provided, a new GUID will be generated automatically.
@@ -7067,7 +7108,7 @@ export type CreateReceivePaymentRequest = {
    * List of invoices/transactions to apply this payment to.
    * Mutually exclusive with IsAutoApply.
    */
-  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
 export type CreateSalesAndPurchaseRequest = {
@@ -7283,10 +7324,6 @@ export type CreateSalesReceiptLineRequest = {
    */
   unitOfMeasure?: string | null;
   /**
-   * (Optional) The ListID or FullName of the unit of measure set to override.
-   */
-  overrideUOMSetId?: string | null;
-  /**
    * (Optional) The direct rate per unit. Use either Rate, RatePercent, or PriceLevelId.
    */
   rate?: number | null;
@@ -7323,10 +7360,6 @@ export type CreateSalesReceiptLineRequest = {
    */
   lotNumber?: string | null;
   /**
-   * (Optional) Expiration date for the serial or lot number. (Max 1099 characters)
-   */
-  expirationDate?: string | null;
-  /**
    * (Optional) The date the service was performed.
    */
   serviceDate?: string | null;
@@ -7345,7 +7378,7 @@ export type CreateSalesReceiptLineRequest = {
   /**
    * (Optional) Credit card transaction info specific to this line item.
    */
-  creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
 };
 
 /**
@@ -7448,7 +7481,7 @@ export type CreateSalesReceiptRequest = {
   /**
    * (Optional) Credit card transaction details from a processor for recording in QuickBooks.
    */
-  creditCardTransaction?: CreateCreditCardTransactionInfoRequest | null;
+  creditCardTransactionInfo?: CreateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) Exchange rate if this is a foreign currency Sales Receipt.
    */
@@ -7541,7 +7574,7 @@ export type CreateSalesTaxPaymentCheckRequest = {
   /**
    * (Optional) Specifies whether the payment check is queued for batch printing in QuickBooks.
    *
-   * **Mutually Exclusive:** Do not set this field if `refNumber` (<see cref="P:QbdWebService.Application.Resources.Qbd.Transactions.SalesTaxPaymentCheck.Models.CreateSalesTaxPaymentCheckRequest.ReferenceNumber" />) is provided.
+   * **Mutually Exclusive:** Do not set this field if `refNumber` is provided.
    * - **`true`:** Adds the check to the QuickBooks *"Print Checks"* queue. The check number will be assigned at print time.
    * - **`false`:** Saves the payment as non-printable (e.g., hand-written or external payment).
    */
@@ -7549,7 +7582,7 @@ export type CreateSalesTaxPaymentCheckRequest = {
   /**
    * Custom reference or check number for the payment (Optional, maximum 11 characters).
    *
-   * **Mutually Exclusive:** Do not set this field if `isQueuedForPrint` (<see cref="P:QbdWebService.Application.Resources.Qbd.Transactions.SalesTaxPaymentCheck.Models.CreateSalesTaxPaymentCheckRequest.IsToBePrinted" />) is provided.
+   * **Mutually Exclusive:** Do not set this field if `isQueuedForPrint` is provided.
    * - **When provided:** Explicitly sets the check/reference number in QuickBooks.
    * - **When omitted:** QuickBooks saves the record with a blank reference number (does not auto-increment).
    */
@@ -7582,7 +7615,7 @@ export type CreateServiceItemRequest = {
   /**
    * The hardware optical scanner classification properties linked to this item.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine.
    *
@@ -7618,43 +7651,17 @@ export type CreateServiceItemRequest = {
    */
   isTaxIncluded?: boolean | null;
   /**
-   * A series of unique user-defined field records mapping additional metadata properties onto the core structure.
-   */
-  dataExt?: Array<QbdDataExt> | null;
-  /**
    * Single-sided details mapping operational rules when this record is exclusively purchased or exclusively sold.
    *
-   * This property is mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.CreateServiceItemRequest.SalesAndPurchase" />.
+   * This property is mutually exclusive with `salesAndPurchase`.
    */
   salesOrPurchase?: CreateSalesOrPurchaseRequest | null;
   /**
    * Double-sided data matrix specifying independent client rates and vendor costs for flexible fulfillment models.
    *
-   * This property is mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.CreateServiceItemRequest.SalesOrPurchase" />.
+   * This property is mutually exclusive with `salesOrPurchase`.
    */
   salesAndPurchase?: CreateSalesAndPurchaseRequest | null;
-};
-
-/**
- * Represents the SetCredit aggregate in QBXML.
- * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
- */
-export type CreateSetCreditRequest = {
-  /**
-   * The TxnID of the credit transaction (e.g., Credit Memo) to apply.
-   * (Required)
-   */
-  creditTransactionId: string;
-  /**
-   * The amount of the credit to apply.
-   * (Required)
-   */
-  appliedAmount: number;
-  /**
-   * If true, overrides default logic for applying credits.
-   * (Optional)
-   */
-  override?: boolean | null;
 };
 
 /**
@@ -7701,7 +7708,7 @@ export type CreateSpecialItemRequest = {
   /**
    * (Optional) Bar Code details for the special item.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * (Optional) External GUID for tracking/deduplication.
    */
@@ -7709,15 +7716,31 @@ export type CreateSpecialItemRequest = {
 };
 
 /**
- * Placeholder request model for creating Terms.
- * NOTE: Terms is a READ-ONLY resource in QuickBooks - Create operations are NOT supported.
- * This model exists only for interface compatibility. The validator will reject all requests.
+ * Request model for creating a standard term. Emitted as `StandardTermsAddRq`.
  */
 export type CreateTermRequest = {
   /**
-   * External GUID (not used - Terms cannot be created).
+   * The case-insensitive unique name of this term, unique across all terms.
    */
-  externalId?: string | null;
+  name: string;
+  /**
+   * Indicates whether this term is active. Inactive objects are typically hidden from views and
+   * reports in QuickBooks. Defaults to `true`.
+   */
+  isActive?: boolean | null;
+  /**
+   * Number of days after the invoice date that payment is due.
+   */
+  dueDays?: number | null;
+  /**
+   * Number of days after the invoice date within which payment qualifies for the discount in
+   * `discountPercentage`.
+   */
+  discountDays?: number | null;
+  /**
+   * The discount percentage applied when payment arrives within `discountDays`.
+   */
+  discountPercentage?: number | null;
 };
 
 /**
@@ -7876,7 +7899,6 @@ export type CreateVendorCreditRequest = {
 
 /**
  * Request for creating a new vendor.
- * Implements ICreateRequest for the new abstraction.
  */
 export type CreateVendorRequest = {
   /**
@@ -7995,7 +8017,6 @@ export type CreateVendorRequest = {
   defaultExpenseAccountIds?: Array<string> | null;
   currencyId?: string | null;
   /**
-   * Fulfills the ICreateRequest interface.
    * Used for tracking the "Add" job.
    */
   externalId?: string | null;
@@ -8049,7 +8070,7 @@ export type CreateWorkersCompCodeRequest = {
   /**
    * (Optional) Description of the code. Max length: 31.
    */
-  desc?: string | null;
+  description?: string | null;
   /**
    * (Required) List of rate entries associated with this code.
    * Must have at least one entry.
@@ -8134,7 +8155,7 @@ export type CreditCardBillPayment = {
   /**
    * The bill or list of bills that this bill credit card payment is applied to.
    */
-  appliedToTransactions: Array<AppliedToTxn> | null;
+  appliedToTransactions: Array<AppliedToTransaction> | null;
   /**
    * The total monetary amount of the transaction.
    *
@@ -8264,7 +8285,7 @@ export type CreditCardCharge = {
   memo: string | null;
   payee: QbdRef | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: string | null;
   /**
@@ -8498,11 +8519,11 @@ export type CreditCardTransactionInfo = {
   /**
    * The CreditCardTxnInputInfo associated with this object.
    */
-  request: CreditCardTransactionInputInfo;
+  creditCardTransactionInputInfo: CreditCardTransactionInputInfo;
   /**
    * The CreditCardTxnResultInfo associated with this object.
    */
-  response: CreditCardTransactionResultInfo;
+  creditCardTransactionResultInfo: CreditCardTransactionResultInfo;
 };
 
 /**
@@ -8528,7 +8549,7 @@ export type CreditCardTransactionInputInfo = {
   /**
    * The CreditCardAddress associated with this object.
    */
-  sddress: string | null;
+  address: string | null;
   /**
    * The CreditCardPostalCode associated with this object.
    */
@@ -8562,7 +8583,7 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The creditCardTransID associated with this object.
    */
-  creditCardTransID: string;
+  creditCardTransactionId: string;
   /**
    * The merchantAccountNumber associated with this object.
    */
@@ -8586,7 +8607,7 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The reconBatchID associated with this object.
    */
-  reconBatchID: string | null;
+  reconBatchId: string | null;
   /**
    * The paymentGroupingCode associated with this object.
    */
@@ -8616,48 +8637,6 @@ export enum CreditCardTransactionType {
   REFUND = "Refund",
   VOICE_AUTHORIZATION = "VoiceAuthorization",
 }
-
-/**
- * Request model for credit card transaction information.
- */
-export type CreditCardTxnInfoRequest = {
-  /**
-   * The CreditCardNumber associated with this object.
-   */
-  creditCardNumber?: string | null;
-  /**
-   * The ExpirationMonth associated with this object.
-   */
-  expirationMonth?: number | null;
-  /**
-   * The ExpirationYear associated with this object.
-   */
-  expirationYear?: number | null;
-  /**
-   * The NameOnCard associated with this object.
-   */
-  nameOnCard?: string | null;
-  /**
-   * The CreditCardAddress associated with this object.
-   */
-  creditCardAddress?: string | null;
-  /**
-   * The CreditCardPostalCode associated with this object.
-   */
-  creditCardPostalCode?: string | null;
-  /**
-   * The CommercialCardCode associated with this object.
-   */
-  commercialCardCode?: string | null;
-  /**
-   * The TransactionMode associated with this object.
-   */
-  transactionMode?: string | null;
-  /**
-   * The CVCNumber associated with this object.
-   */
-  cvcNumber?: string | null;
-};
 
 /**
  * Data Transfer Object for CreditMemoRet.
@@ -8723,7 +8702,7 @@ export type CreditMemo = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -8818,7 +8797,7 @@ export type CreditMemo = {
   /**
    * The customerMsg associated with this object.
    */
-  customerMsg: QbdRef | null;
+  customerMessage: QbdRef | null;
   /**
    * (Optional) Indicates if the transaction is to be printed.
    */
@@ -8986,7 +8965,7 @@ export type CreditMemoLine = {
   /**
    * The CreditCardTxnInfo associated with this object.
    */
-  creditCardTransaction: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo: CreditCardTransactionInfo | null;
   /**
    * The DataExtRet associated with this object.
    */
@@ -9509,7 +9488,7 @@ export type DataExtDataExt = {
 /**
  * Data Transfer Object exposing the structure, typing limits, and layout targeting rules of a custom field defined inside the company file.
  */
-export type DataExtDef = {
+export type DataExtDefinition = {
   /**
    * The optional system-assigned database integer code generated by QuickBooks for
    * tracking the custom definition record. QuickBooks can omit this value for
@@ -9577,9 +9556,9 @@ export type DataExtRequest = {
 export type DataExtTargetKind = number;
 
 /**
- * The composite target for a custom field value. Exactly one of DataExtTargetKind
- * is selected via DataExtTargetKind DataExtTargetRequest.Kind; the id fields relevant to that kind must be populated
- * and the fields belonging to the other kinds must be left null.
+ * The composite target for a custom field value. Exactly one target family is selected via
+ * `kind`; the id fields relevant to that kind must be populated and the fields belonging
+ * to the other kinds must be left null.
  */
 export type DataExtTargetRequest = {
   /**
@@ -9587,20 +9566,20 @@ export type DataExtTargetRequest = {
    */
   kind: DataExtTargetKind;
   /**
-   * The list entity type when <see cref="P:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetRequest.Kind" /> is <see cref="F:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetKind.List" />
+   * The list entity type when `kind` is `list`
    * (e.g. Customer, Vendor, Employee, OtherName, Item, Account).
    */
   listType?: ListType | null;
   /**
-   * The ListID of the target list entity. Mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetRequest.FullName" />.
+   * The ListID of the target list entity. Mutually exclusive with `fullName`.
    */
   listId?: string | null;
   /**
-   * The FullName of the target list entity. Mutually exclusive with <see cref="P:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetRequest.ListId" />.
+   * The FullName of the target list entity. Mutually exclusive with `listId`.
    */
   fullName?: string | null;
   /**
-   * The transaction type when <see cref="P:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetRequest.Kind" /> is <see cref="F:QbdWebService.Application.Resources.Qbd.Entities.DataExt.Models.DataExtTargetKind.Transaction" />
+   * The transaction type when `kind` is `transaction`
    * (e.g. Invoice, Bill, Estimate, SalesOrder, Check).
    */
   transactionType?: TransactionType | null;
@@ -9856,7 +9835,7 @@ export type Deposit = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -10038,7 +10017,7 @@ export type DepositPaymentLineRequest = {
   /**
    * (Optional) The TxnLineID of the specific line within the payment transaction (if applicable, typically for Undeposited Funds line).
    */
-  paymentTxnLineId?: string | null;
+  paymentTransactionLineId?: string | null;
   /**
    * (Optional) Memo override for this line item. (Max 4095 characters)
    */
@@ -10578,7 +10557,7 @@ export type Estimate = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -10645,7 +10624,7 @@ export type Estimate = {
   /**
    * The customerMsg associated with this object.
    */
-  customerMsg: QbdRef | null;
+  customerMessage: QbdRef | null;
   /**
    * (Optional) Whether the Estimate should be flagged to be emailed. (BOOLTYPE)
    */
@@ -10923,7 +10902,7 @@ export type FixedAssetSalesInfo = {
    *
    * Documenting the reason or parameters of the disposal.
    */
-  salesDesc: string | null;
+  salesDescription: string | null;
   /**
    * The date on which the asset was sold or disposed of.
    *
@@ -11019,7 +10998,7 @@ export type InventoryAdjustment = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -11201,7 +11180,7 @@ export type InventoryItem = {
    *
    * Visible to customers on invoices.
    */
-  salesDesc: string | null;
+  salesDescription: string | null;
   /**
    * The price at which this inventory item is sold to customers, represented as a decimal string.
    *
@@ -11219,7 +11198,7 @@ export type InventoryItem = {
    *
    * Visible to suppliers.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
    *
@@ -11397,7 +11376,7 @@ export type InventorySite = {
   revisionNumber: string;
   parentSite: QbdRef | null;
   isDefaultSite: boolean | null;
-  siteDesc: string | null;
+  description: string | null;
   /**
    * The name of the primary contact person for this inventory site.
    */
@@ -11561,7 +11540,7 @@ export type Invoice = {
   /**
    * The customerMsg associated with this object.
    */
-  customerMsg: QbdRef | null;
+  customerMessage: QbdRef | null;
   /**
    * The IsToBePrinted associated with this object.
    */
@@ -11579,7 +11558,11 @@ export type Invoice = {
    */
   customerSalesTaxCode: QbdRef | null;
   /**
-   * The Other associated with this object.
+   * The native custom field used to store supplemental invoice information.
+   *
+   * Functions similarly to custom field array as a standard QuickBooks field built into
+   * all invoices, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard invoice tracking.
    */
   otherCustomField: string | null;
   /**
@@ -11739,12 +11722,6 @@ export type ItemDiscount = {
    */
   revisionNumber: string;
   /**
-   * The customer-facing description printed on sales documents when applying this discount item.
-   *
-   * **NOTE**: If omitted, QuickBooks will use the default description set on the item itself.
-   */
-  itemDesc: string | null;
-  /**
    * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
    *
    * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
@@ -11882,7 +11859,7 @@ export type ItemFixedAsset = {
    *
    * Stamped on procurement forms and purchase documentation.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The date on which the business purchased or acquired the asset.
    *
@@ -11918,7 +11895,7 @@ export type ItemFixedAsset = {
    *
    * Main asset reference label.
    */
-  assetDesc: string | null;
+  assetDescription: string | null;
   /**
    * The physical location or department where the asset is currently kept.
    *
@@ -12357,7 +12334,8 @@ export type ItemInventoryAssembly = {
   /**
    * The asset account used to track the current value of this inventory assembly item in inventory.
    *
-   * The active balance sheet asset ledger account representing the current monetary capital locked in stored physical stock.
+   * Refers to the account QuickBooks uses to track the current value of the company’s inventory.
+   * The AccountType of this account will be FixedAsset, OtherAsset, or OtherCurrentAsset.
    */
   assetAccount: QbdRef | null;
   /**
@@ -12534,7 +12512,7 @@ export type ItemInventoryItem = {
    *
    * Visible to customers on invoices.
    */
-  salesDesc: string | null;
+  salesDescription: string | null;
   /**
    * The price at which this inventory item is sold to customers, represented as a decimal string.
    *
@@ -12552,7 +12530,7 @@ export type ItemInventoryItem = {
    *
    * Visible to suppliers.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The cost at which this inventory item is purchased from vendors, represented as a decimal string.
    *
@@ -12737,12 +12715,6 @@ export type ItemItemDiscount = {
    */
   revisionNumber: string;
   /**
-   * The customer-facing description printed on sales documents when applying this discount item.
-   *
-   * **NOTE**: If omitted, QuickBooks will use the default description set on the item itself.
-   */
-  itemDesc: string | null;
-  /**
    * The monetary amount to subtract from the total or subtotal when applying this discount item to a transaction, represented as a decimal string.
    *
    * **NOTE**: A flat rate discount applies to ALL lines recorded above it and distributes the discount amount equally across those lines, which affects tax calculations. For example, a $10 discount applied to a $100 taxable item and $100 non-taxable item would result in a $5 taxable discount and $5 non-taxable discount.
@@ -12889,7 +12861,7 @@ export type ItemItemFixedAsset = {
    *
    * Stamped on procurement forms and purchase documentation.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The date on which the business purchased or acquired the asset.
    *
@@ -12925,7 +12897,7 @@ export type ItemItemFixedAsset = {
    *
    * Main asset reference label.
    */
-  assetDesc: string | null;
+  assetDescription: string | null;
   /**
    * The physical location or department where the asset is currently kept.
    *
@@ -13289,7 +13261,8 @@ export type ItemItemInventoryAssembly = {
   /**
    * The asset account used to track the current value of this inventory assembly item in inventory.
    *
-   * The active balance sheet asset ledger account representing the current monetary capital locked in stored physical stock.
+   * Refers to the account QuickBooks uses to track the current value of the company’s inventory.
+   * The AccountType of this account will be FixedAsset, OtherAsset, or OtherCurrentAsset.
    */
   assetAccount: QbdRef | null;
   /**
@@ -13458,7 +13431,7 @@ export type ItemItemNonInventory = {
   /**
    * A variable factor percentage multiplier applied to generate context-driven surcharges.
    *
-   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemNonInventory.Models.ItemNonInventoryDto.Price" /> declarations.
+   * Mutually exclusive during transaction generation with direct numeric `price` declarations.
    */
   pricePercent: number | null;
   /**
@@ -13630,7 +13603,7 @@ export type ItemItemOtherCharge = {
   /**
    * A variable factor percentage multiplier applied to generate context-driven surcharges.
    *
-   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemOtherCharge.Models.ItemOtherChargeDto.Price" /> declarations.
+   * Mutually exclusive during transaction generation with direct numeric `price` declarations.
    */
   pricePercent: number | null;
   /**
@@ -13779,10 +13752,6 @@ export type ItemItemPayment = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The account to which the payment will be deposited. This is required for all payment types except for "Cash" and "Check".
    */
   depositToAccount: QbdRef | null;
@@ -13832,6 +13801,14 @@ export type ItemItemPayment = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -13900,10 +13877,6 @@ export type ItemItemSalesTax = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The tax rate defined by this sales-tax item, represented as a decimal string. For example, "7.5" represents a 7.5% tax rate. This rate determines the amount of sales tax applied when this item is used in transactions. If a non-zero `taxRate` is specified, then the `taxVendor` field is required.
    */
   taxRate: number | null;
@@ -13957,6 +13930,14 @@ export type ItemItemSalesTax = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -14027,10 +14008,6 @@ export type ItemItemSalesTaxGroup = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * List of sales tax items that are part of this sales tax group. Each item in the list represents a single sales tax that is included in the group.
    */
   itemSalesTax: Array<QbdRef> | null;
@@ -14076,6 +14053,14 @@ export type ItemItemSalesTaxGroup = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -14152,10 +14137,6 @@ export type ItemItemSubtotal = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The type of special item for this subtotal item.
    */
   specialItemType: SpecialItemType | null;
@@ -14201,6 +14182,14 @@ export type ItemItemSubtotal = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -14385,7 +14374,7 @@ export type ItemNonInventory = {
   /**
    * A variable factor percentage multiplier applied to generate context-driven surcharges.
    *
-   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemNonInventory.Models.ItemNonInventoryDto.Price" /> declarations.
+   * Mutually exclusive during transaction generation with direct numeric `price` declarations.
    */
   pricePercent: number | null;
   /**
@@ -14575,7 +14564,7 @@ export type ItemOtherCharge = {
   /**
    * A variable factor percentage multiplier applied to generate context-driven surcharges.
    *
-   * Mutually exclusive during transaction generation with direct numeric <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ItemOtherCharge.Models.ItemOtherChargeDto.Price" /> declarations.
+   * Mutually exclusive during transaction generation with direct numeric `price` declarations.
    */
   pricePercent: number | null;
   /**
@@ -14742,10 +14731,6 @@ export type ItemPayment = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The account to which the payment will be deposited. This is required for all payment types except for "Cash" and "Check".
    */
   depositToAccount: QbdRef | null;
@@ -14795,6 +14780,14 @@ export type ItemPayment = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -14891,6 +14884,9 @@ export type ItemReceipt = {
    * The vendor who sent this item receipt for goods or services purchased.
    */
   vendor: QbdRef;
+  /**
+   * The transaction number associated with this object.
+   */
   transactionNumber: number | null;
   /**
    * The AP account. This is an OR condition with LiabilityAccountRef.
@@ -14994,10 +14990,6 @@ export type ItemSalesTax = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The tax rate defined by this sales-tax item, represented as a decimal string. For example, "7.5" represents a 7.5% tax rate. This rate determines the amount of sales tax applied when this item is used in transactions. If a non-zero `taxRate` is specified, then the `taxVendor` field is required.
    */
   taxRate: number | null;
@@ -15051,6 +15043,14 @@ export type ItemSalesTax = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -15120,10 +15120,6 @@ export type ItemSalesTaxGroup = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * List of sales tax items that are part of this sales tax group. Each item in the list represents a single sales tax that is included in the group.
    */
   itemSalesTax: Array<QbdRef> | null;
@@ -15169,6 +15165,14 @@ export type ItemSalesTaxGroup = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -15242,7 +15246,7 @@ export type ItemServiceItem = {
   /**
    * The standard line item price multiplier formulated as a percentage rather than a static monetary value.
    *
-   * Configured as an operational alternative to <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.ServiceItemDto.Price" />.
+   * Configured as an operational alternative to `price`.
    */
   pricePercent: number | null;
   /**
@@ -15264,7 +15268,7 @@ export type ItemServiceItem = {
   /**
    * The vendor-facing description printed on procurement documents such as supplier bills and purchase checks.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The standard expenditure rate incurred when sourcing this service from external partners.
    */
@@ -15390,10 +15394,6 @@ export type ItemSubtotal = {
    */
   revisionNumber: string;
   /**
-   * Unified dynamic text override pointer matching base declarations.
-   */
-  description: string | null;
-  /**
    * The type of special item for this subtotal item.
    */
   specialItemType: SpecialItemType | null;
@@ -15439,6 +15439,14 @@ export type ItemSubtotal = {
    * Determines whether sales tax is normally calculated for this item.
    */
   salesTaxCode: QbdRef | null;
+  /**
+   * General item description.
+   * Many items have a description field (ItemDesc, Desc, SalesDesc, etc.).
+   * This field maps to the primary description for the item type.
+   *
+   * The primary statement description printed on customer invoices or receipts.
+   */
+  description: string | null;
   /**
    * The external ID associated with the item.
    *
@@ -15533,7 +15541,7 @@ export type JournalEntry = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -16351,7 +16359,7 @@ export type PurchaseOrder = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -16822,7 +16830,7 @@ export type ReceivePayment = {
    */
   memo: string | null;
   /**
-   * The txnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -16844,7 +16852,7 @@ export type ReceivePayment = {
   /**
    * The CreditCardTxnInfo associated with this object.
    */
-  creditCardTransaction: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo: CreditCardTransactionInfo | null;
   /**
    * The amount of this receive-payment that remains unapplied to any transactions. This occurs in two cases: (1) When the sum of `paymentAmount` amounts in `applyToTransactions` is less than `totalAmount`, leaving a portion of the payment unused, or (2) When a payment is received that equals the exact amount of an invoice, but credits or discounts are also applied, resulting in excess payment.
    */
@@ -16856,7 +16864,7 @@ export type ReceivePayment = {
   /**
    * List of invoices/transactions to apply this payment to. Mutually exclusive with IsAutoApply.
    */
-  appliedToTransactions: Array<AppliedToTxn> | null;
+  appliedToTransactions: Array<AppliedToTransaction> | null;
   /**
    * The total monetary amount of the transaction.
    *
@@ -17611,7 +17619,7 @@ export type SalesReceipt = {
    */
   memo: string | null;
   /**
-   * The txnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -17727,7 +17735,7 @@ export type SalesReceipt = {
   /**
    * The CreditCardTxnInfo associated with this object.
    */
-  creditCardTransaction: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo: CreditCardTransactionInfo | null;
   /**
    * The Other associated with this object.
    */
@@ -17827,9 +17835,9 @@ export type SalesReceiptLine = {
    */
   unitOfMeasure: string | null;
   /**
-   * The OverrideUOMSet associated with this object.
+   * The unit-of-measure set that overrides the item's default for this line.
    */
-  overrideUOMSet: QbdRef | null;
+  overrideUnitOfMeasureSet: QbdRef | null;
   /**
    * The Rate associated with this object.
    */
@@ -17887,7 +17895,7 @@ export type SalesReceiptLine = {
   /**
    * The CreditCardTxnInfo associated with this object.
    */
-  creditCardTransaction: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo: CreditCardTransactionInfo | null;
   /**
    * The DataExtRet associated with this object.
    */
@@ -17986,7 +17994,7 @@ export type SalesTaxCode = {
    * Indicates whether this sales-tax code is tracking taxable sales. This field cannot be modified once the sales-tax code has been used in a transaction.
    */
   isTaxable: boolean;
-  desc: string | null;
+  description: string | null;
   itemPurchaseTax: QbdRef | null;
   itemSalesTax: QbdRef | null;
   /**
@@ -18069,7 +18077,7 @@ export type SalesTaxPaymentCheck = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -18226,7 +18234,7 @@ export type ServiceItem = {
   /**
    * The standard line item price multiplier formulated as a percentage rather than a static monetary value.
    *
-   * Configured as an operational alternative to <see cref="P:QbdWebService.Application.Resources.Qbd.Items.ServiceItem.Models.ServiceItemDto.Price" />.
+   * Configured as an operational alternative to `price`.
    */
   pricePercent: number | null;
   /**
@@ -18248,7 +18256,7 @@ export type ServiceItem = {
   /**
    * The vendor-facing description printed on procurement documents such as supplier bills and purchase checks.
    */
-  purchaseDesc: string | null;
+  purchaseDescription: string | null;
   /**
    * The standard expenditure rate incurred when sourcing this service from external partners.
    */
@@ -18342,31 +18350,29 @@ export type SetCredit = {
    */
   amount: number;
   /**
-   * The override associated with this object.
+   * Override application.
    */
   override: boolean | null;
 };
 
+/**
+ * Represents the SetCredit aggregate in QBXML.
+ * Used within AppliedToTxnAdd to apply specific credit memos or other credits.
+ */
 export type SetCreditRequest = {
   /**
-   * Gets the credit transaction identifier (Required).
-   *
-   * Corresponds to the JSON property 'creditTransactionId'.
+   * The TxnID of the credit transaction (e.g., Credit Memo) to apply.
+   * (Required)
    */
   creditTransactionId: string;
   /**
-   * Gets the transaction line identifier.
-   */
-  id?: string | null;
-  /**
-   * Amount applied to an account, invoice, or payment (Optional).
-   *
-   * Represents a monetary value; currency and precision are determined by the surrounding
-   * context.
+   * The amount of the credit to apply.
+   * (Required)
    */
   appliedAmount: number;
   /**
-   * Indicates whether to override the default credit application behavior.
+   * If true, overrides default logic for applying credits.
+   * (Optional)
    */
   override?: boolean | null;
 };
@@ -18890,7 +18896,7 @@ export type TimeTracking = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   /**
@@ -19290,7 +19296,7 @@ export type UpdateAdditionalNoteRequest = {
   /**
    * The ID of the note to modify (required for updates).
    */
-  noteID?: number;
+  noteId?: number;
   /**
    * A note or comment about this employee.
    */
@@ -19342,7 +19348,7 @@ export type UpdateArRefundCreditCardRequest = {
   /**
    * (Optional) Information about the credit card transaction if processed outside QuickBooks.
    */
-  creditCardTransaction?: CreditCardTransactionInfo | null;
+  creditCardTransactionInfo?: UpdateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) The exchange rate for the transaction.
    */
@@ -19350,7 +19356,7 @@ export type UpdateArRefundCreditCardRequest = {
   /**
    * (Optional) List of credit transactions (e.g., Credit Memos) to apply this refund to.
    */
-  refundAppliedToTransactions?: Array<RefundAppliedToTransactionRequest> | null;
+  refundApplyToTransactions?: Array<RefundAppliedToTransactionRequest> | null;
 };
 
 /**
@@ -19360,6 +19366,9 @@ export type UpdateBillPaymentOrCreditRequest = {
   [key: string]: unknown;
 };
 
+/**
+ * Request model for modifying an existing Bill.
+ */
 export type UpdateBillRequest = {
   /**
    * The concurrency identifier for the record.
@@ -19416,6 +19425,14 @@ export type UpdateBillRequest = {
    * Whether tax is included in item amounts.
    */
   isTaxIncluded?: boolean | null;
+  /**
+   * The id value of the Sales Tax Code for this bill (e.g., "Tax" or "Non").
+   *
+   * **Behavior &amp; Overrides:**<br />- If provided, this value **overrides** the default sales tax code defined on the Vendor record.
+   * <br />- This can be further overridden at the individual line item level (Expense/Item lines).
+   * <br />- **System Defaults:** Typically `Tax` (Taxable) or `Non` (Non-Taxable).
+   * <br />- **Global Settings:** If Sales Tax is disabled in QuickBooks Preferences, this field may be ignored or default to `Non` for all transactions.
+   */
   salesTaxCodeId?: string | null;
   /**
    * The market exchange rate between the bill's currency and the home currency.
@@ -19552,7 +19569,7 @@ export type UpdateChargeRequest = {
   /**
    * (Optional) The ListID or FullName of the override unit of measure set.
    */
-  overrideUomSetId?: string | null;
+  overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) The rate or price per unit.
    */
@@ -19653,11 +19670,11 @@ export type UpdateCheckBillPaymentRequest = {
   /**
    * (Optional) List of transactions to apply updates to.
    */
-  applyToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
 /**
- * Request model for updating an existing check payment
+ * Updates an existing Check transaction in QuickBooks Desktop.
  */
 export type UpdateCheckRequest = {
   /**
@@ -19669,11 +19686,11 @@ export type UpdateCheckRequest = {
    */
   refNumber?: string | null;
   /**
-   * Transaction date
+   * The date of the transaction.
    */
   transactionDate?: string | null;
   /**
-   * Bank account
+   * The id of the bank account that the check is being paid with.
    */
   accountId?: string | null;
   /**
@@ -19681,7 +19698,7 @@ export type UpdateCheckRequest = {
    */
   payeeId?: string | null;
   /**
-   * Memo/description
+   * Memo/description.
    */
   memo?: string | null;
   /**
@@ -19691,7 +19708,7 @@ export type UpdateCheckRequest = {
   /**
    * Payee address
    */
-  address?: Address | null;
+  address?: AddressRequest | null;
   /**
    * If true, the amount includes sales tax.
    */
@@ -19953,12 +19970,12 @@ export type UpdateCreditCardTransactionInfoRequest = {
   /**
    * (Optional) Modifiable information about the credit card itself.
    */
-  creditCardTxnInputInfoMod?: UpdateCreditCardTransactionInputInfoRequest | null;
+  creditCardTransactionInputInfo?: UpdateCreditCardTransactionInputInfoRequest | null;
   /**
    * (Optional) Modifiable information about the result from the credit card processing gateway.
    * Note: This object is only included if external transaction data changes.
    */
-  creditCardTxnResultInfoMod?: UpdateCreditCardTransactionResultInfoRequest | null;
+  creditCardTransactionResultInfo?: UpdateCreditCardTransactionResultInfoRequest | null;
 };
 
 /**
@@ -20002,24 +20019,24 @@ export type UpdateCreditCardTransactionInputInfoRequest = {
    * (Optional) New type of credit card transaction.
    * Used for actions like changing an Authorization to a Capture (1).
    */
-  creditCardTxnType?: CreditCardTransactionType | null;
+  transactionType?: CreditCardTransactionType | null;
 };
 
 export type UpdateCreditCardTransactionResultInfoRequest = {
   resultCode: number;
   resultMessage: string;
-  creditCardTransId: string;
+  creditCardTransactionId: string;
   merchantAccountNumber: string;
   paymentStatus: PaymentStatus;
-  txnAuthorizationTime: string;
+  transactionAuthorizationTime: string;
   authorizationCode?: string | null;
   avsStreet?: AvsStreet | null;
   avsZip?: AvsZip | null;
   cardSecurityCodeMatch?: CardSecurityCodeMatch | null;
   reconBatchId?: string | null;
   paymentGroupingCode?: number | null;
-  txnAuthorizationStamp?: number | null;
-  clientTransId?: string | null;
+  transactionAuthorizationStamp?: number | null;
+  clientTransactionId?: string | null;
 };
 
 /**
@@ -20046,7 +20063,7 @@ export type UpdateCreditMemoLineGroupRequest = {
   /**
    * (Optional) The ListID or FullName of the override UOM set.
    */
-  overrideUomSetId?: string | null;
+  overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) List of modifications for the individual items within this group.
    */
@@ -20081,7 +20098,7 @@ export type UpdateCreditMemoLineRequest = {
   /**
    * (Optional) The ListID or FullName of the UOM set to override.
    */
-  overrideUomSetId?: string | null;
+  overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) Rate or price per unit.
    */
@@ -20266,7 +20283,6 @@ export type UpdateCreditMemoRequest = {
 export type UpdateCurrencyRequest = {
   /**
    * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
-   * Implemented from IUpdateRequest.
    */
   revisionNumber: string;
   /**
@@ -20328,7 +20344,7 @@ export type UpdateCustomFieldDefinitionRequest = {
 /**
  * Request to modify the value of an existing custom field on a QuickBooks Desktop target.
  * Emitted as `DataExtModRq`. To clear a value entirely, use
- * DeleteCustomFieldValueRequest instead — sending an empty value here is rejected.
+ * the delete-custom-field-value endpoint instead — sending an empty value here is rejected.
  */
 export type UpdateCustomFieldValueRequest = {
   /**
@@ -20397,7 +20413,7 @@ export type UpdateCustomerRequest = {
   /**
    * The unique identifier of the hierarchical parent customer.
    *
-   * **Important:** This field is required if you are actively updating or setting the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStatus" />, as that indicates this record is a sub-customer (job).
+   * **Important:** This field is required if you are actively updating or setting the `jobStatus`, as that indicates this record is a sub-customer (job).
    */
   parentId?: string | null;
   /**
@@ -20487,7 +20503,7 @@ export type UpdateCustomerRequest = {
   /**
    * A secondary telephone number.
    */
-  altPhone?: string | null;
+  alternatePhone?: string | null;
   /**
    * The primary email address used for digital correspondence and e-invoicing.
    */
@@ -20515,31 +20531,31 @@ export type UpdateCustomerRequest = {
   /**
    * The current operational state of the job.
    *
-   * **Important:** Modifying this explicitly requires <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.ParentId" /> to be populated, indicating this is a sub-customer/job entity.
+   * **Important:** Modifying this explicitly requires `parentId` to be populated, indicating this is a sub-customer/job entity.
    */
   jobStatus?: JobStatus | null;
   /**
    * The date active work commenced on the job.
    *
-   * Must be chronologically before or equal to <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobProjectedEndDate" /> and <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobEndDate" />, if they are provided.
+   * Must be chronologically before or equal to `jobProjectedEndDate` and `jobEndDate`, if they are provided.
    */
   jobStartDate?: string | null;
   /**
    * The estimated deadline for job completion.
    *
-   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStartDate" />, if provided.
+   * Must be chronologically on or after the `jobStartDate`, if provided.
    */
   jobProjectedEndDate?: string | null;
   /**
    * The actual date the job was finalized.
    *
-   * Must be chronologically on or after the <see cref="P:QbdWebService.Application.Resources.Qbd.Lists.Customer.Models.UpdateCustomerRequest.JobStartDate" />, if provided.
+   * Must be chronologically on or after the `jobStartDate`, if provided.
    */
   jobEndDate?: string | null;
   /**
    * A short summary outlining the scope of work for the job.
    */
-  jobDesc?: string | null;
+  jobDescription?: string | null;
   /**
    * An overarching internal comment or memo regarding the customer.
    */
@@ -20566,31 +20582,6 @@ export type UpdateCustomerRequest = {
   fax?: string | null;
 };
 
-export type UpdateCustomerTypeRequest = {
-  revisionNumber: string;
-  /**
-   * The case-insensitive name of this customer type. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two customer types could both have the `name` "Healthcare", but they could have unique `fullName` values, such as "Industry:Healthcare" and "Region:Healthcare".
-   */
-  name?: string | null;
-  /**
-   * Indicates whether this customer type is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
-   */
-  isActive?: boolean | null;
-  parentId?: string | null;
-};
-
-/**
- * Placeholder request model for updating Terms.
- * NOTE: Terms is a READ-ONLY resource in QuickBooks - Update operations are NOT supported.
- * This model exists only for interface compatibility. The validator will reject all requests.
- */
-export type UpdateDateDrivenTermRequest = {
-  /**
-   * The EditSequence (not used - Terms cannot be modified).
-   */
-  revisionNumber: string;
-};
-
 /**
  * Defines a single Deposit Line item to be modified on the Deposit (uses discriminator pattern and TxnLineId).
  */
@@ -20603,12 +20594,12 @@ export type UpdateDepositLineRequest = {
    * (Optional) Modification details for a payment line (PaymentTxnID, OverrideMemo, etc.).
    * Mutually exclusive with ManualLineMod.
    */
-  paymentLineMod?: DepositPaymentLineRequest | null;
+  paymentLine?: DepositPaymentLineRequest | null;
   /**
    * (Optional) Modification details for a manual line (EntityId, AccountId, Amount, etc.).
    * Mutually exclusive with PaymentLineMod.
    */
-  manualLineMod?: DepositManualLineRequest | null;
+  manualLine?: DepositManualLineRequest | null;
 };
 
 /**
@@ -20618,7 +20609,6 @@ export type UpdateDepositLineRequest = {
 export type UpdateDepositRequest = {
   /**
    * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
-   * Implemented from IUpdateRequest.
    */
   revisionNumber: string;
   /**
@@ -20891,7 +20881,7 @@ export type UpdateEstimateLineGroupRequest = {
   /**
    * (Optional) The ListID or FullName of the Override Unit of Measure Set. (OverrideUOMSetRef, Flattened-ID Pattern)
    */
-  overrideUnitOfMSetId?: string | null;
+  overrideUnitOfMeasureSetId?: string | null;
   /**
    * (Optional) The ListID or FullName of the Inventory Site. (InventorySiteRef, Flattened-ID Pattern)
    */
@@ -20915,7 +20905,7 @@ export type UpdateEstimateLineRequest = {
   /**
    * (Required) The TxnLineID of the specific line item being modified or deleted. (IDTYPE)
    */
-  txnLineId: string;
+  transactionLineId: string;
   /**
    * (Required for Mod) The TxnLineID of the specific line item being modified or deleted. (IDTYPE)
    */
@@ -21178,7 +21168,6 @@ export type UpdateInventoryAdjustmentLineRequest = {
 export type UpdateInventoryAdjustmentRequest = {
   /**
    * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
-   * Implemented from IUpdateRequest.
    */
   revisionNumber: string;
   /**
@@ -21225,7 +21214,6 @@ export type UpdateInventoryAdjustmentRequest = {
 
 /**
  * Request for updating an existing inventory item.
- * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdateInventoryItemRequest = {
   /**
@@ -21281,7 +21269,7 @@ export type UpdateInventoryItemRequest = {
   /**
    * Indicates whether to apply the income account reference to existing transactions retroactively.
    */
-  applyIncomeAccountRefToExistingTxns?: boolean | null;
+  applyIncomeAccountToExistingTransactions?: boolean | null;
   /**
    * Vendor-facing description printed on purchase forms like purchase orders or bills.
    */
@@ -21301,7 +21289,7 @@ export type UpdateInventoryItemRequest = {
   /**
    * Indicates whether to apply the COGS account reference to existing transactions retroactively.
    */
-  applyCOGSAccountRefToExistingTxns?: boolean | null;
+  applyCOGSAccountToExistingTransactions?: boolean | null;
   /**
    * The unique QuickBooks ListID of the preferred vendor from whom this inventory item is typically purchased.
    */
@@ -21323,7 +21311,6 @@ export type UpdateInventoryItemRequest = {
    */
   isActive?: boolean | null;
   /**
-   * Fulfills the IUpdateRequest interface.
    * Required for QuickBooks "Mod" operations for optimistic concurrency.
    *
    * The concurrency sequencing token validated prior to modification.
@@ -21452,7 +21439,11 @@ export type UpdateInvoiceRequest = {
    */
   memo?: string | null;
   /**
-   * The Other associated with this object.
+   * The native custom field used to store supplemental invoice information.
+   *
+   * Functions similarly to custom field array as a standard QuickBooks field built into
+   * all invoices, separate from the dynamic custom field collection. It provides
+   * extra storage for non-standard invoice tracking.
    */
   otherCustomField?: string | null;
   /**
@@ -21482,7 +21473,7 @@ export type UpdateInvoiceRequest = {
   /**
    * Specific credit transactions to apply while updating the invoice.
    */
-  applyCredits?: Array<CreateSetCreditRequest> | null;
+  applyCredits?: Array<SetCreditRequest> | null;
   /**
    * Item line items (replaces existing lines).
    */
@@ -21521,7 +21512,7 @@ export type UpdateItemDiscountRequest = {
    *
    * Optional. If omitted, QuickBooks will use the default description set on the item itself.
    */
-  itemDesc?: string | null;
+  description?: string | null;
   /**
    * The unique QuickBooks ListID of the default sales tax code applied to this discount item.
    */
@@ -21727,16 +21718,18 @@ export type UpdateItemGroupLineRequest = {
    */
   unitOfMeasure?: string | null;
   /**
+   * (Optional) Overrides the unit-of-measure set for this group line. Mod only (v7.0) —
+   * ItemGroupLineAdd has no counterpart.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
    * (Optional) A list of modifications for the child lines *within* this group.
    */
   lines?: Array<UpdateItemLineRequest> | null;
-  inventorySiteId?: string | null;
-  inventorySiteLocationId?: string | null;
 };
 
 /**
  * Request for updating (PUT) an existing item group.
- * Implements IUpdateRequest for the new abstraction.
  */
 export type UpdateItemGroupRequest = {
   /**
@@ -21750,7 +21743,7 @@ export type UpdateItemGroupRequest = {
    *
    * Optional barcode configuration.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * Indicates whether this item group is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    *
@@ -21794,7 +21787,6 @@ export type UpdateItemGroupRequest = {
    */
   lines?: Array<ItemGroupLineDetailRequest> | null;
   /**
-   * Fulfills the IUpdateRequest interface.
    * Required for QuickBooks "Mod" operations for optimistic concurrency.
    *
    * The current QuickBooks-assigned revision number of this object, which changes each time the object is modified. When updating this record, you must provide the most recent revisionNumber/EditSequence to ensure you're working with the latest data.
@@ -21825,31 +21817,73 @@ export type UpdateItemInventoryAssemblyRequest = {
    * The case-insensitive name of this inventory assembly item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory assembly items could both have the `name` "Deluxe Kit", but they could have unique `fullName` values, such as "Assemblies:Deluxe Kit" and "Inventory:Deluxe Kit".
    */
   name?: string | null;
-  barCode?: BarCodeRequest | null;
+  /**
+   * The barcode for this inventory assembly item.
+   */
+  barcode?: BarCodeRequest | null;
   /**
    * Indicates whether this inventory assembly item is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
+  /**
+   * The class id used to track the class for this inventory assembly item.
+   */
   classId?: string | null;
+  /**
+   * The parent id used to track the parent item for this inventory assembly item.
+   */
   parentId?: string | null;
   sku?: string | null;
+  /**
+   * The unit of measure set id used to track the unit of measure for this inventory assembly item.
+   */
   unitOfMeasureSetId?: string | null;
+  /**
+   * Indicates whether tax is included in the sales price for this inventory assembly item.
+   */
   isTaxIncluded?: boolean | null;
+  /**
+   * The tax code id used to track the tax rate for this inventory assembly item.
+   */
   salesTaxCodeId?: string | null;
   salesDescription?: string | null;
   /**
    * The price at which this inventory assembly item is sold to customers, represented as a decimal string.
    */
   salesPrice?: number | null;
+  /**
+   * The income account id used to track the income account for this inventory assembly item.
+   */
   incomeAccountId?: string | null;
+  /**
+   * The purchase description for this inventory assembly item.
+   */
   purchaseDescription?: string | null;
   /**
    * The cost at which this inventory assembly item is purchased from vendors, represented as a decimal string.
    */
   purchaseCost?: number | null;
+  /**
+   * The tax code id used to track the tax rate for this inventory assembly item.
+   */
   purchaseTaxCodeId?: string | null;
+  /**
+   * The cost of goods sold (COGS) account used to track the cost of this assembly's inventory.
+   *
+   * Optional. QBXML marks CogsAccountId as `opt`.
+   */
   cogsAccountId?: string | null;
+  /**
+   * The preferred vendor account id used to track the cost of this assembly's inventory.
+   *
+   * Optional. QBXML marks PreferredVendorId as `opt`.
+   */
   preferredVendorId?: string | null;
+  /**
+   * The asset account id used to track the current value of this inventory assembly item in inventory.
+   *
+   * Optional. QBXML marks AssetAccountId as `opt`.
+   */
   assetAccountId?: string | null;
   /**
    * The inventory assembly item's minimum quantity threshold that triggers a build notification in QuickBooks. When the sum of `quantityOnHand` (current inventory) and `quantityOnOrder` (pending purchase orders) drops below this threshold, QuickBooks will notify users that more units need to be built or assembled. This helps ensure adequate inventory levels for inventory assembly items.
@@ -21891,13 +21925,28 @@ export type UpdateItemLineRequest = {
    */
   unitOfMeasure?: string | null;
   /**
-   * (Optional) Cost per item (used in purchases).
+   * (Optional) Cost per item. PURCHASE-side lines only (Bill, ItemReceipt, Check,
+   * CreditCardCharge, CreditCardCredit, VendorCredit). Ignored on Invoice, whose line
+   * element has no Cost.
    */
   cost?: number | null;
   /**
-   * (Optional) Price per item (used in sales).
+   * (Optional) Unit rate. SALES-side lines only (Invoice) — purchase-side line elements have
+   * no Rate and will reject it.
+   * Mutually exclusive with RatePercent and PriceLevelId; QBXML
+   * defines the three as an OR group and accepts at most one.
    */
   rate?: number | null;
+  /**
+   * (Optional) Rate expressed as a percentage. SALES-side lines only.
+   * Mutually exclusive with Rate and PriceLevelId;.
+   */
+  ratePercent?: number | null;
+  /**
+   * (Optional) ListID or FullName of a price level to apply. SALES-side lines only.
+   * Mutually exclusive with Rate and RatePercent.
+   */
+  priceLevelId?: string | null;
   /**
    * (Optional) Total amount for the line.
    */
@@ -22017,9 +22066,16 @@ export type UpdateItemOtherChargeRequest = {
 export type UpdateItemPaymentRequest = {
   revisionNumber: string;
   name?: string | null;
+  /**
+   * (Optional) The barcode to assign to this payment item.
+   *
+   * Add/Mod accept the full `BarCode` aggregate (value, AssignEvenIfUsed,
+   * AllowOverride); `ItemPaymentRet` returns only the flat `BarCodeValue`,
+   * surfaced as `barcodeValue` on the response.
+   */
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   classId?: string | null;
-  parentId?: string | null;
   description?: string | null;
   depositToAccountId?: string | null;
   paymentMethodId?: string | null;
@@ -22040,10 +22096,6 @@ export type UpdateItemReceiptRequest = {
    */
   payablesAccountId?: string | null;
   /**
-   * Liability Account ListID (Optional for updates).
-   */
-  liabilityAccountId?: string | null;
-  /**
    * Transaction date (Optional).
    */
   transactionDate?: string | null;
@@ -22063,10 +22115,6 @@ export type UpdateItemReceiptRequest = {
    * Sales Tax Code ListID (Optional).
    */
   salesTaxCodeId?: string | null;
-  /**
-   * Currency ListID (Optional).
-   */
-  currencyId?: string | null;
   /**
    * Exchange rate for multi-currency transactions (Optional).
    */
@@ -22091,7 +22139,7 @@ export type UpdateItemReceiptRequest = {
 export type UpdateItemSalesTaxGroupRequest = {
   revisionNumber: string;
   name?: string | null;
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   isActive?: boolean | null;
   description?: string | null;
   itemSalesTaxIds?: Array<string> | null;
@@ -22153,7 +22201,7 @@ export type UpdateItemSubtotalRequest = {
    * Description of the item.
    * Max Length: 4095 characters.
    */
-  itemDesc?: string | null;
+  description?: string | null;
   /**
    * Special Item Type.
    * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
@@ -22178,13 +22226,13 @@ export type UpdateItemSubtotalRequest = {
    *
    * Raw barcode text value.
    */
-  barCodeValue?: string | null;
+  barcodeValue?: string | null;
   /**
    * The barcode request object linking barcode properties.
    *
    * Optional barcode configuration.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * External GUID for the item.
    *
@@ -22194,7 +22242,7 @@ export type UpdateItemSubtotalRequest = {
 };
 
 /**
- * Request model for updating an existing journal entry.
+ * Updates an existing journal entry.
  */
 export type UpdateJournalEntryRequest = {
   /**
@@ -22207,6 +22255,8 @@ export type UpdateJournalEntryRequest = {
   transactionDate?: string | null;
   /**
    * Reference number for the journal entry. (Max 20 characters)
+   *
+   * RefNumber is case-sensitive.
    */
   refNumber?: string | null;
   /**
@@ -22236,9 +22286,14 @@ export type UpdateJournalEntryRequest = {
 };
 
 /**
- * Request model for updating a journal line.
+ * Updates an existing journal entry's journal line.
  */
 export type UpdateJournalLineRequest = {
+  /**
+   * (Optional) TxnLineID of the existing journal line to modify. Omit to add a new line.
+   * Without it QuickBooks cannot tell which line the modification targets.
+   */
+  id?: string | null;
   /**
    * (Optional) The ListID or FullName of the account.
    */
@@ -22271,7 +22326,6 @@ export type UpdateJournalLineRequest = {
 
 /**
  * Request for updating an existing OtherName.
- * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdateOtherNameRequest = {
   /**
@@ -22339,12 +22393,6 @@ export type UpdateOtherNameRequest = {
    */
   notes?: string | null;
   /**
-   * The other-name's custom fields.
-   *
-   * Custom fields are used to store additional data about the other-name that is not included in the standard fields.
-   */
-  customFields?: Array<DataExtRequest> | null;
-  /**
    * The other-name's revision number, which is used to track changes to the other-name.
    */
   revisionNumber: string;
@@ -22352,7 +22400,6 @@ export type UpdateOtherNameRequest = {
 
 /**
  * Request for updating an existing payment method.
- * Implements IUpdateRequest for the abstraction pattern.
  */
 export type UpdatePaymentMethodRequest = {
   /**
@@ -22370,7 +22417,6 @@ export type UpdatePaymentMethodRequest = {
    */
   paymentMethodType?: string | null;
   /**
-   * Fulfills the IUpdateRequest interface.
    * Required for QuickBooks "Mod" operations for optimistic concurrency.
    */
   revisionNumber: string;
@@ -22531,7 +22577,6 @@ export type UpdatePurchaseOrderLineRequest = {
 export type UpdatePurchaseOrderRequest = {
   /**
    * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
-   * Implemented from IUpdateRequest.
    */
   revisionNumber: string;
   /**
@@ -22608,7 +22653,7 @@ export type UpdatePurchaseOrderRequest = {
   /**
    * (Optional) Message displayed to the vendor. (Max 99 characters)
    */
-  vendorMsg?: string | null;
+  vendorMessage?: string | null;
   /**
    * (Optional) If true, the Purchase Order should be printed. (Cannot be cleared if modifying existing value)
    */
@@ -22659,7 +22704,14 @@ export type UpdatePurchaseOrderRequest = {
 
 /**
  * Defines the request model for updating an existing ReceivePayment.
- * QB requires EditSequence to identify the record to update.
+ * <remarks>
+ * QuickBooks Permissions: Users must have Sales and Accounts Receivable and Changing and deleting transactions permissions set to yes to modify a receive payment transaction.
+ * Otherwise, INSUFFICIENT_PERMISSIONS error (3260) will be returned.
+ * </remarks>
+ * <remarks>
+ * QuickBooks Permissions: If the transaction date is before the closing date, they need also the Changing and deleting transactions before closing date permission.
+ * Otherwise, CANNOT_MODIFY_BEFORE_CLOSING_DATE error (3171) will be returned.
+ * </remarks>
  */
 export type UpdateReceivePaymentRequest = {
   /**
@@ -22705,11 +22757,11 @@ export type UpdateReceivePaymentRequest = {
   /**
    * Credit card transaction information (v7.0+ for mod).
    */
-  creditCardTxnInfo?: CreditCardTxnInfoRequest | null;
+  creditCardTransactionInfo?: UpdateCreditCardTransactionInfoRequest | null;
   /**
    * List of invoices/transactions to apply this payment to.
    */
-  appliedToTransactions?: Array<AppliedToTransactionRequest> | null;
+  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
 };
 
 export type UpdateSalesAndPurchaseRequest = {
@@ -22923,6 +22975,10 @@ export type UpdateSalesReceiptLineGroupRequest = {
    */
   unitOfMeasure?: string | null;
   /**
+   * (Optional) The ListID of the unit of measure set to override.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
    * (Optional) A list of modifications for the child item lines *within* this group.
    */
   lines?: Array<UpdateSalesReceiptLineRequest> | null;
@@ -22992,10 +23048,6 @@ export type UpdateSalesReceiptLineRequest = {
    * (Optional) Lot number for the item. Mutually exclusive with SerialNumber. (Max 40 characters)
    */
   lotNumber?: string | null;
-  /**
-   * (Optional) Expiration date for the serial or lot number. (Max 1099 characters)
-   */
-  expirationDate?: string | null;
   /**
    * (Optional) The new date the service was performed.
    */
@@ -23118,7 +23170,7 @@ export type UpdateSalesReceiptRequest = {
   /**
    * (Optional) Modifications to credit card transaction details.
    */
-  creditCardTransaction?: UpdateCreditCardTransactionInfoRequest | null;
+  creditCardTransactionInfo?: UpdateCreditCardTransactionInfoRequest | null;
   /**
    * (Optional) A list of item line modifications for the transaction.
    */
@@ -23136,7 +23188,6 @@ export type UpdateSalesReceiptRequest = {
 export type UpdateSalesTaxCodeRequest = {
   /**
    * (Required) The EditSequence is a sequence number value assigned to an object that is used for concurrency control. (Max 16 characters)
-   * Implemented from IUpdateRequest.
    */
   revisionNumber: string;
   /**
@@ -23217,7 +23268,7 @@ export type UpdateServiceItemRequest = {
   /**
    * Modified hardware scanning configurations associated with this record.
    */
-  barCode?: BarCodeRequest | null;
+  barcode?: BarCodeRequest | null;
   /**
    * Alters whether this listing is hidden from active operational workflows and ledger dropdowns.
    */
@@ -23257,15 +23308,15 @@ export type UpdateServiceItemRequest = {
   /**
    * Modified data sub-structure properties for single-sided transactional structures.
    */
-  salesOrPurchaseMod?: UpdateSalesOrPurchaseRequest | null;
+  salesOrPurchase?: UpdateSalesOrPurchaseRequest | null;
   /**
    * Modified data sub-structure properties for double-sided customer sales and vendor purchase models.
    */
-  salesAndPurchaseMod?: UpdateSalesAndPurchaseRequest | null;
+  salesAndPurchase?: UpdateSalesAndPurchaseRequest | null;
   /**
    * Custom filtering options specifying exactly which fields should be populated during a query response cycle.
    */
-  includeRetElement?: Array<string> | null;
+  includeReturnElements?: Array<string> | null;
 };
 
 /**
@@ -23287,18 +23338,6 @@ export type UpdateShipMethodRequest = {
    * Indicates whether this shipping method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
    */
   isActive?: boolean | null;
-};
-
-/**
- * Placeholder request model for updating Terms.
- * NOTE: Terms is a READ-ONLY resource in QuickBooks - Update operations are NOT supported.
- * This model exists only for interface compatibility. The validator will reject all requests.
- */
-export type UpdateTermRequest = {
-  /**
-   * The EditSequence (not used - Terms cannot be modified).
-   */
-  revisionNumber: string;
 };
 
 /**
@@ -23421,7 +23460,6 @@ export type UpdateVendorCreditRequest = {
 
 /**
  * Request for updating (PUT) an existing vendor.
- * Implements IUpdateRequest for the new abstraction.
  */
 export type UpdateVendorRequest = {
   revisionNumber: string;
@@ -23570,7 +23608,7 @@ export type UpdateWorkersCompCodeRequest = {
   /**
    * (Optional) Update the description. Max length: 31.
    */
-  desc?: string | null;
+  description?: string | null;
   /**
    * (Optional) Add or update rate entries.
    */
@@ -23978,7 +24016,7 @@ export type VendorCredit = {
    */
   memo: string | null;
   /**
-   * The TxnNumber associated with this object.
+   * The transaction number associated with this object.
    */
   transactionNumber: number | null;
   vendor: QbdRef | null;
@@ -24180,7 +24218,7 @@ export type WorkersCompCode = {
   /**
    * Description of the Workers' Compensation Code.
    */
-  desc: string | null;
+  description: string | null;
   /**
    * The current rate being used.
    */
@@ -24227,7 +24265,7 @@ export type CreateAccountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24318,7 +24356,7 @@ export type RetrieveAccountTaxLineInfoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24412,7 +24450,7 @@ export type DeleteAccountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24508,7 +24546,7 @@ export type RetrieveAccountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24605,7 +24643,7 @@ export type UpdateAccountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24701,7 +24739,7 @@ export type ListAccountsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -24809,13 +24847,14 @@ export type ListAccountsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -24908,7 +24947,7 @@ export type ListAccountTaxLineInfosData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25025,7 +25064,7 @@ export type CreateArRefundCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25117,7 +25156,7 @@ export type DeleteArRefundCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25211,7 +25250,7 @@ export type RetrieveArRefundCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25305,7 +25344,7 @@ export type UpdateArRefundCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25399,7 +25438,7 @@ export type VoidArRefundCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25493,7 +25532,7 @@ export type ListArRefundCreditCardsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25629,12 +25668,14 @@ export type ListArRefundCreditCardsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -25866,7 +25907,7 @@ export type DeleteBarCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -25959,7 +26000,7 @@ export type ListBarCodesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26081,7 +26122,7 @@ export type CreateBillData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26171,7 +26212,7 @@ export type CreateBillPaymentOrCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26263,7 +26304,7 @@ export type DeleteBillPaymentOrCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26357,7 +26398,7 @@ export type RetrieveBillPaymentOrCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26451,7 +26492,7 @@ export type UpdateBillPaymentOrCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26545,7 +26586,7 @@ export type VoidBillPaymentOrCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26639,7 +26680,7 @@ export type ListBillPaymentOrCreditsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26775,12 +26816,14 @@ export type ListBillPaymentOrCreditsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -26879,7 +26922,7 @@ export type DeleteBillData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -26977,7 +27020,7 @@ export type RetrieveBillData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27076,7 +27119,7 @@ export type UpdateBillData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27174,7 +27217,7 @@ export type VoidBillData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27272,7 +27315,7 @@ export type CreateBillingRateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27364,7 +27407,7 @@ export type DeleteBillingRateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27458,7 +27501,7 @@ export type RetrieveBillingRateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27552,7 +27595,7 @@ export type ListBillingRatesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27660,13 +27703,14 @@ export type ListBillingRatesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -27752,7 +27796,7 @@ export type ListBillsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -27897,12 +27941,14 @@ export type ListBillsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -27982,7 +28028,7 @@ export type ListBuildAssemblysData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28118,12 +28164,14 @@ export type ListBuildAssemblysData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -28213,7 +28261,7 @@ export type CreateBuildAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28305,7 +28353,7 @@ export type DeleteBuildAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28399,7 +28447,7 @@ export type RetrieveBuildAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28493,7 +28541,7 @@ export type UpdateBuildAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28587,7 +28635,7 @@ export type CreateChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28678,7 +28726,7 @@ export type DeleteChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28777,7 +28825,7 @@ export type RetrieveChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28877,7 +28925,7 @@ export type UpdateChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -28976,7 +29024,7 @@ export type VoidChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29074,7 +29122,7 @@ export type ListChargesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29210,12 +29258,14 @@ export type ListChargesData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -29300,7 +29350,7 @@ export type CreateCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29391,7 +29441,7 @@ export type CreateCheckBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29483,7 +29533,7 @@ export type DeleteCheckBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29577,7 +29627,7 @@ export type RetrieveCheckBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29671,7 +29721,7 @@ export type UpdateCheckBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29765,7 +29815,7 @@ export type VoidCheckBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29859,7 +29909,7 @@ export type ListCheckBillPaymentsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -29995,12 +30045,14 @@ export type ListCheckBillPaymentsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -30093,7 +30145,7 @@ export type DeleteCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30192,7 +30244,7 @@ export type RetrieveCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30291,7 +30343,7 @@ export type UpdateCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30390,7 +30442,7 @@ export type VoidCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30488,7 +30540,7 @@ export type ListChecksData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30624,12 +30676,14 @@ export type ListChecksData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -30709,7 +30763,7 @@ export type CreateQbdClassData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30801,7 +30855,7 @@ export type DeleteQbdClassData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30898,7 +30952,7 @@ export type RetrieveQbdClassData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -30995,7 +31049,7 @@ export type UpdateQbdClassData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -31081,102 +31135,6 @@ export type UpdateQbdClassResponses = {
 export type UpdateQbdClassResponse =
   UpdateQbdClassResponses[keyof UpdateQbdClassResponses];
 
-export type VoidQbdClassData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    /**
-     * The unique identifier assigned by QuickBooks to this object.
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/class/{id}/void";
-};
-
-export type VoidQbdClassErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidQbdClassError = VoidQbdClassErrors[keyof VoidQbdClassErrors];
-
-export type VoidQbdClassResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidQbdClassResponse =
-  VoidQbdClassResponses[keyof VoidQbdClassResponses];
-
 export type ListQbdClasssData = {
   body?: never;
   headers?: {
@@ -31188,7 +31146,7 @@ export type ListQbdClasssData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -31296,13 +31254,14 @@ export type ListQbdClasssData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -31957,7 +31916,7 @@ export type CreateCreditCardBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32049,7 +32008,7 @@ export type DeleteCreditCardBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32143,7 +32102,7 @@ export type RetrieveCreditCardBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32237,7 +32196,7 @@ export type UpdateCreditCardBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32331,7 +32290,7 @@ export type VoidCreditCardBillPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32425,7 +32384,7 @@ export type ListCreditCardBillPaymentsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32561,12 +32520,14 @@ export type ListCreditCardBillPaymentsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -32660,7 +32621,7 @@ export type CreateCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32752,7 +32713,7 @@ export type DeleteCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32846,7 +32807,7 @@ export type RetrieveCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -32940,7 +32901,7 @@ export type UpdateCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33034,7 +32995,7 @@ export type VoidCreditCardData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33128,7 +33089,7 @@ export type ListCreditCardsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33264,12 +33225,14 @@ export type ListCreditCardsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -33351,7 +33314,7 @@ export type CreateCreditCardCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33443,7 +33406,7 @@ export type DeleteCreditCardCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33537,7 +33500,7 @@ export type RetrieveCreditCardCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33631,7 +33594,7 @@ export type UpdateCreditCardCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33725,7 +33688,7 @@ export type VoidCreditCardCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33819,7 +33782,7 @@ export type ListCreditCardCreditsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -33955,12 +33918,14 @@ export type ListCreditCardCreditsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -34048,7 +34013,7 @@ export type CreateCreditMemoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34140,7 +34105,7 @@ export type DeleteCreditMemoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34234,7 +34199,7 @@ export type RetrieveCreditMemoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34328,7 +34293,7 @@ export type UpdateCreditMemoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34422,7 +34387,7 @@ export type VoidCreditMemoData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34516,7 +34481,7 @@ export type ListCreditMemosData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34739,7 +34704,7 @@ export type ListCurrencysData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -34847,13 +34812,14 @@ export type ListCurrencysData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -34934,7 +34900,7 @@ export type CreateCurrencyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35026,7 +34992,7 @@ export type RetrieveCurrencyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35123,7 +35089,7 @@ export type UpdateCurrencyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35211,7 +35177,12 @@ export type UpdateCurrencyResponse =
 
 export type CloseData = {
   body?: never;
-  path?: never;
+  path: {
+    /**
+     * The cursor operation identifier returned by a paginated response.
+     */
+    operationId: string;
+  };
   query?: never;
   url: "/api/v1/cursors/{operationId}/close";
 };
@@ -35289,7 +35260,7 @@ export type DeleteCustomFieldDefinitionData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35381,7 +35352,7 @@ export type ListCustomFieldDefinitionsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35467,7 +35438,7 @@ export type ListCustomFieldDefinitionsResponses = {
   /**
    * OK
    */
-  200: Array<DataExtDef>;
+  200: Array<DataExtDefinition>;
 };
 
 export type ListCustomFieldDefinitionsResponse =
@@ -35484,7 +35455,7 @@ export type CreateCustomFieldDefinitionData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35559,7 +35530,7 @@ export type CreateCustomFieldDefinitionResponses = {
   /**
    * Created
    */
-  201: DataExtDef;
+  201: DataExtDefinition;
 };
 
 export type CreateCustomFieldDefinitionResponse =
@@ -35576,7 +35547,7 @@ export type UpdateCustomFieldDefinitionData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35651,7 +35622,7 @@ export type UpdateCustomFieldDefinitionResponses = {
   /**
    * OK
    */
-  200: DataExtDef;
+  200: DataExtDefinition;
 };
 
 export type UpdateCustomFieldDefinitionResponse =
@@ -35668,7 +35639,7 @@ export type DeleteCustomFieldData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35760,7 +35731,7 @@ export type CreateCustomFieldData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35852,7 +35823,7 @@ export type UpdateCustomFieldData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -35944,7 +35915,7 @@ export type CreateCustomerData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36036,7 +36007,7 @@ export type CreateCustomerTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36128,7 +36099,7 @@ export type DeleteCustomerTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36222,7 +36193,7 @@ export type RetrieveCustomerTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36305,194 +36276,6 @@ export type RetrieveCustomerTypeResponses = {
 export type RetrieveCustomerTypeResponse =
   RetrieveCustomerTypeResponses[keyof RetrieveCustomerTypeResponses];
 
-export type UpdateCustomerTypeData = {
-  body: UpdateCustomerTypeRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/customer-type/{id}";
-};
-
-export type UpdateCustomerTypeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdateCustomerTypeError =
-  UpdateCustomerTypeErrors[keyof UpdateCustomerTypeErrors];
-
-export type UpdateCustomerTypeResponses = {
-  /**
-   * OK
-   */
-  200: CustomerType;
-};
-
-export type UpdateCustomerTypeResponse =
-  UpdateCustomerTypeResponses[keyof UpdateCustomerTypeResponses];
-
-export type VoidCustomerTypeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/customer-type/{id}/void";
-};
-
-export type VoidCustomerTypeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidCustomerTypeError =
-  VoidCustomerTypeErrors[keyof VoidCustomerTypeErrors];
-
-export type VoidCustomerTypeResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidCustomerTypeResponse =
-  VoidCustomerTypeResponses[keyof VoidCustomerTypeResponses];
-
 export type ListCustomerTypesData = {
   body?: never;
   headers?: {
@@ -36504,7 +36287,7 @@ export type ListCustomerTypesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36612,13 +36395,14 @@ export type ListCustomerTypesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -36700,7 +36484,7 @@ export type DeleteCustomerData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36797,7 +36581,7 @@ export type RetrieveCustomerData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36894,7 +36678,7 @@ export type UpdateCustomerData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -36980,102 +36764,6 @@ export type UpdateCustomerResponses = {
 export type UpdateCustomerResponse =
   UpdateCustomerResponses[keyof UpdateCustomerResponses];
 
-export type VoidCustomerData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    /**
-     * The unique identifier assigned by QuickBooks to this object.
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/customer/{id}/void";
-};
-
-export type VoidCustomerErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidCustomerError = VoidCustomerErrors[keyof VoidCustomerErrors];
-
-export type VoidCustomerResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidCustomerResponse =
-  VoidCustomerResponses[keyof VoidCustomerResponses];
-
 export type ListCustomersData = {
   body?: never;
   headers?: {
@@ -37087,7 +36775,7 @@ export type ListCustomersData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -37195,19 +36883,16 @@ export type ListCustomersData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
-    /**
-     * Optional: Filter by job status (customer-specific filter)
-     */
-    JobStatus?: JobStatus;
     /**
      * Filter by specific Class IDs.
      */
@@ -37221,6 +36906,10 @@ export type ListCustomersData = {
      * Example: ?excludeShipToAddress=false
      */
     excludeShipToAddress?: boolean;
+    /**
+     * Optional: Filter by job status (customer-specific filter)
+     */
+    JobStatus?: JobStatus;
     /**
      * Filter for customers whose totalBalance equals this amount.
      * Mutually exclusive with other totalBalance filters.
@@ -37324,7 +37013,7 @@ export type CreateDateDrivenTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -37416,7 +37105,7 @@ export type DeleteDateDrivenTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -37510,7 +37199,7 @@ export type RetrieveDateDrivenTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -37593,194 +37282,6 @@ export type RetrieveDateDrivenTermResponses = {
 export type RetrieveDateDrivenTermResponse =
   RetrieveDateDrivenTermResponses[keyof RetrieveDateDrivenTermResponses];
 
-export type UpdateDateDrivenTermData = {
-  body: UpdateDateDrivenTermRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/date-driven-term/{id}";
-};
-
-export type UpdateDateDrivenTermErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdateDateDrivenTermError =
-  UpdateDateDrivenTermErrors[keyof UpdateDateDrivenTermErrors];
-
-export type UpdateDateDrivenTermResponses = {
-  /**
-   * OK
-   */
-  200: DateDrivenTerm;
-};
-
-export type UpdateDateDrivenTermResponse =
-  UpdateDateDrivenTermResponses[keyof UpdateDateDrivenTermResponses];
-
-export type VoidDateDrivenTermData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/date-driven-term/{id}/void";
-};
-
-export type VoidDateDrivenTermErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidDateDrivenTermError =
-  VoidDateDrivenTermErrors[keyof VoidDateDrivenTermErrors];
-
-export type VoidDateDrivenTermResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidDateDrivenTermResponse =
-  VoidDateDrivenTermResponses[keyof VoidDateDrivenTermResponses];
-
 export type ListDateDrivenTermsData = {
   body?: never;
   headers?: {
@@ -37792,7 +37293,7 @@ export type ListDateDrivenTermsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -37900,13 +37401,14 @@ export type ListDateDrivenTermsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -37988,7 +37490,7 @@ export type CreateDepositData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38079,7 +37581,7 @@ export type DeleteDepositData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38178,7 +37680,7 @@ export type RetrieveDepositData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38278,7 +37780,7 @@ export type UpdateDepositData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38377,7 +37879,7 @@ export type VoidDepositData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38476,7 +37978,7 @@ export type ListDepositsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38612,12 +38114,14 @@ export type ListDepositsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -38704,7 +38208,7 @@ export type CreateEmployeeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38796,7 +38300,7 @@ export type DeleteEmployeeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38893,7 +38397,7 @@ export type RetrieveEmployeeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -38990,7 +38494,7 @@ export type UpdateEmployeeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39087,7 +38591,7 @@ export type ListEmployeesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39195,13 +38699,14 @@ export type ListEmployeesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -39282,7 +38787,7 @@ export type CreateEstimateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39374,7 +38879,7 @@ export type DeleteEstimateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39474,7 +38979,7 @@ export type RetrieveEstimateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39574,7 +39079,7 @@ export type UpdateEstimateData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39674,7 +39179,7 @@ export type ListEstimatesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39810,12 +39315,14 @@ export type ListEstimatesData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -39896,7 +39403,7 @@ export type CreateInventoryAdjustmentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -39988,7 +39495,7 @@ export type DeleteInventoryAdjustmentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40082,7 +39589,7 @@ export type RetrieveInventoryAdjustmentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40176,7 +39683,7 @@ export type UpdateInventoryAdjustmentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40270,7 +39777,7 @@ export type VoidInventoryAdjustmentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40364,7 +39871,7 @@ export type ListInventoryAdjustmentsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40500,12 +40007,14 @@ export type ListInventoryAdjustmentsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -40591,7 +40100,7 @@ export type CreateInventorySiteData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40683,7 +40192,7 @@ export type DeleteInventorySiteData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40777,7 +40286,7 @@ export type RetrieveInventorySiteData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40871,7 +40380,7 @@ export type UpdateInventorySiteData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -40965,7 +40474,7 @@ export type ListInventorySitesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41073,13 +40582,14 @@ export type ListInventorySitesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -41161,7 +40671,7 @@ export type CreateInvoiceData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41252,7 +40762,7 @@ export type DeleteInvoiceData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41351,7 +40861,7 @@ export type RetrieveInvoiceData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41451,7 +40961,7 @@ export type UpdateInvoiceData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41550,7 +41060,7 @@ export type VoidInvoiceData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41649,7 +41159,7 @@ export type ListInvoicesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41785,22 +41295,24 @@ export type ListInvoicesData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
-    /**
-     * Filter by paid status (All, PaidOnly, NotPaidOnly) - invoice-specific filter
-     */
-    PaidStatus?: NullablePaidStatus;
     /**
      * Filter by Currency ListIDs (v8.0+).
      */
     currencyIds?: Array<string>;
+    /**
+     * Filter by paid status (All, PaidOnly, NotPaidOnly) - invoice-specific filter
+     */
+    PaidStatus?: NullablePaidStatus;
   };
   url: "/api/v1/invoices";
 };
@@ -41879,7 +41391,7 @@ export type CreateItemDiscountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -41971,7 +41483,7 @@ export type DeleteItemDiscountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42065,7 +41577,7 @@ export type RetrieveItemDiscountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42159,7 +41671,7 @@ export type UpdateItemDiscountData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42253,7 +41765,7 @@ export type CreateItemFixedAssetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42345,7 +41857,7 @@ export type DeleteItemFixedAssetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42439,7 +41951,7 @@ export type RetrieveItemFixedAssetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42533,7 +42045,7 @@ export type UpdateItemFixedAssetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42627,7 +42139,7 @@ export type CreateItemGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42719,7 +42231,7 @@ export type DeleteItemGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42813,7 +42325,7 @@ export type RetrieveItemGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -42907,7 +42419,7 @@ export type UpdateItemGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43001,7 +42513,7 @@ export type CreateInventoryItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43093,7 +42605,7 @@ export type CreateItemInventoryAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43185,7 +42697,7 @@ export type DeleteItemInventoryAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43279,7 +42791,7 @@ export type RetrieveItemInventoryAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43373,7 +42885,7 @@ export type UpdateItemInventoryAssemblyData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43467,7 +42979,7 @@ export type DeleteInventoryItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43561,7 +43073,7 @@ export type RetrieveInventoryItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43655,7 +43167,7 @@ export type UpdateInventoryItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43749,7 +43261,7 @@ export type VoidInventoryItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43843,7 +43355,7 @@ export type CreateItemNonInventoryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -43935,7 +43447,7 @@ export type DeleteItemNonInventoryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44029,7 +43541,7 @@ export type RetrieveItemNonInventoryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44123,7 +43635,7 @@ export type UpdateItemNonInventoryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44217,7 +43729,7 @@ export type CreateItemOtherChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44309,7 +43821,7 @@ export type DeleteItemOtherChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44403,7 +43915,7 @@ export type RetrieveItemOtherChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44497,7 +44009,7 @@ export type UpdateItemOtherChargeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44591,7 +44103,7 @@ export type CreateItemPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44683,7 +44195,7 @@ export type DeleteItemPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44777,7 +44289,7 @@ export type RetrieveItemPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44871,7 +44383,7 @@ export type UpdateItemPaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -44965,7 +44477,7 @@ export type CreateItemReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45057,7 +44569,7 @@ export type DeleteItemReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45151,7 +44663,7 @@ export type RetrieveItemReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45245,7 +44757,7 @@ export type UpdateItemReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45339,7 +44851,7 @@ export type VoidItemReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45433,7 +44945,7 @@ export type ListItemReceiptsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45569,12 +45081,14 @@ export type ListItemReceiptsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -45668,7 +45182,7 @@ export type CreateItemSalesTaxData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45760,7 +45274,7 @@ export type CreateItemSalesTaxGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45852,7 +45366,7 @@ export type DeleteItemSalesTaxGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -45946,7 +45460,7 @@ export type RetrieveItemSalesTaxGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46040,7 +45554,7 @@ export type UpdateItemSalesTaxGroupData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46134,7 +45648,7 @@ export type DeleteItemSalesTaxData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46228,7 +45742,7 @@ export type RetrieveItemSalesTaxData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46322,7 +45836,7 @@ export type UpdateItemSalesTaxData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46416,7 +45930,7 @@ export type CreateServiceItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46508,7 +46022,7 @@ export type DeleteServiceItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46602,7 +46116,7 @@ export type RetrieveServiceItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46696,7 +46210,7 @@ export type UpdateServiceItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46790,7 +46304,7 @@ export type CreateItemSubtotalData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46882,7 +46396,7 @@ export type DeleteItemSubtotalData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -46976,7 +46490,7 @@ export type RetrieveItemSubtotalData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47070,7 +46584,7 @@ export type UpdateItemSubtotalData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47164,7 +46678,7 @@ export type RetrieveItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47260,7 +46774,7 @@ export type ListItemsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47368,13 +46882,14 @@ export type ListItemsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -47454,7 +46969,7 @@ export type ListItemDiscountsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47562,13 +47077,14 @@ export type ListItemDiscountsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -47650,7 +47166,7 @@ export type ListItemFixedAssetsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47758,13 +47274,14 @@ export type ListItemFixedAssetsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -47846,7 +47363,7 @@ export type ListItemGroupsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -47954,13 +47471,14 @@ export type ListItemGroupsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -48046,7 +47564,7 @@ export type ListInventoryItemsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -48154,13 +47672,14 @@ export type ListInventoryItemsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -48242,7 +47761,7 @@ export type ListItemInventoryAssemblysData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -48361,7 +47880,7 @@ export type ListItemNonInventorysData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -48469,13 +47988,14 @@ export type ListItemNonInventorysData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -48561,7 +48081,7 @@ export type ListItemOtherChargesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -48665,13 +48185,14 @@ export type ListItemOtherChargesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -48758,7 +48279,7 @@ export type ListItemPaymentsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -48866,13 +48387,14 @@ export type ListItemPaymentsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -48954,7 +48476,7 @@ export type ListItemSalesTaxsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -49062,13 +48584,14 @@ export type ListItemSalesTaxsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -49150,7 +48673,7 @@ export type ListItemSalesTaxGroupsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -49258,13 +48781,14 @@ export type ListItemSalesTaxGroupsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -49346,7 +48870,7 @@ export type ListServiceItemsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -49454,13 +48978,14 @@ export type ListServiceItemsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     IncludeRetElement?: Array<string>;
@@ -49544,7 +49069,7 @@ export type ListItemSubtotalsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -49652,13 +49177,14 @@ export type ListItemSubtotalsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -49740,7 +49266,7 @@ export type ListJournalEntrysData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -49876,12 +49402,14 @@ export type ListJournalEntrysData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -49967,7 +49495,7 @@ export type CreateJournalEntryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50059,7 +49587,7 @@ export type DeleteJournalEntryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50153,7 +49681,7 @@ export type RetrieveJournalEntryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50247,7 +49775,7 @@ export type UpdateJournalEntryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50341,7 +49869,7 @@ export type VoidJournalEntryData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50435,7 +49963,7 @@ export type CreateOtherNameData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50527,7 +50055,7 @@ export type DeleteOtherNameData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50621,7 +50149,7 @@ export type RetrieveOtherNameData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50715,7 +50243,7 @@ export type UpdateOtherNameData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50809,7 +50337,7 @@ export type ListOtherNamesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -50917,13 +50445,14 @@ export type ListOtherNamesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -51005,7 +50534,7 @@ export type CreatePaymentMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51097,7 +50626,7 @@ export type DeletePaymentMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51191,7 +50720,7 @@ export type RetrievePaymentMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51285,7 +50814,7 @@ export type UpdatePaymentMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51379,7 +50908,7 @@ export type ListPaymentMethodsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51487,13 +51016,14 @@ export type ListPaymentMethodsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -51579,7 +51109,7 @@ export type DeletePayrollItemNonWageData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51673,7 +51203,7 @@ export type RetrievePayrollItemNonWageData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51767,7 +51297,7 @@ export type ListPayrollItemNonWagesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -51875,13 +51405,14 @@ export type ListPayrollItemNonWagesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -51963,7 +51494,7 @@ export type CreatePayrollItemWageData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52055,7 +51586,7 @@ export type DeletePayrollItemWageData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52149,7 +51680,7 @@ export type RetrievePayrollItemWageData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52243,7 +51774,7 @@ export type ListPayrollItemWagesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52351,13 +51882,14 @@ export type ListPayrollItemWagesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -52439,7 +51971,7 @@ export type CreatePriceLevelData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52531,7 +52063,7 @@ export type DeletePriceLevelData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52625,7 +52157,7 @@ export type RetrievePriceLevelData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52719,7 +52251,7 @@ export type UpdatePriceLevelData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52813,7 +52345,7 @@ export type ListPriceLevelsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -52921,13 +52453,14 @@ export type ListPriceLevelsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**
@@ -53015,7 +52548,7 @@ export type CreatePurchaseOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53107,7 +52640,7 @@ export type DeletePurchaseOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53201,7 +52734,7 @@ export type RetrievePurchaseOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53295,7 +52828,7 @@ export type UpdatePurchaseOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53378,100 +52911,6 @@ export type UpdatePurchaseOrderResponses = {
 export type UpdatePurchaseOrderResponse =
   UpdatePurchaseOrderResponses[keyof UpdatePurchaseOrderResponses];
 
-export type VoidPurchaseOrderData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/purchase-order/{id}/void";
-};
-
-export type VoidPurchaseOrderErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidPurchaseOrderError =
-  VoidPurchaseOrderErrors[keyof VoidPurchaseOrderErrors];
-
-export type VoidPurchaseOrderResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidPurchaseOrderResponse =
-  VoidPurchaseOrderResponses[keyof VoidPurchaseOrderResponses];
-
 export type ListPurchaseOrdersData = {
   body?: never;
   headers?: {
@@ -53483,7 +52922,7 @@ export type ListPurchaseOrdersData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53619,12 +53058,14 @@ export type ListPurchaseOrdersData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -53783,7 +53224,7 @@ export type CreateReceivePaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53875,7 +53316,7 @@ export type DeleteReceivePaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -53969,7 +53410,7 @@ export type RetrieveReceivePaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -54063,7 +53504,7 @@ export type UpdateReceivePaymentData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -54157,7 +53598,7 @@ export type ListReceivePaymentsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -54293,12 +53734,14 @@ export type ListReceivePaymentsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -54383,10 +53826,10 @@ export type RetrieveAgingReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which aging is calculated. Valid values: ReportEndDate (default), Today
@@ -54399,8 +53842,8 @@ export type RetrieveAgingReportData = {
     AgingType?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -54416,16 +53859,16 @@ export type RetrieveAgingReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -54436,8 +53879,8 @@ export type RetrieveAgingReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -54557,10 +54000,10 @@ export type RetrieveBudgetSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -54579,8 +54022,8 @@ export type RetrieveBudgetSummaryReportData = {
     BudgetType?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -54596,16 +54039,16 @@ export type RetrieveBudgetSummaryReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     /**
      * The fiscal year for the budget report (4-digit, e.g. 2024).
@@ -54622,8 +54065,8 @@ export type RetrieveBudgetSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -54751,10 +54194,10 @@ export type RetrieveCustomDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -54764,8 +54207,8 @@ export type RetrieveCustomDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -54785,16 +54228,16 @@ export type RetrieveCustomDetailReportData = {
      * Valid values: CustomTxnDetail
      */
     CustomDetailType?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -54807,8 +54250,8 @@ export type RetrieveCustomDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -54928,10 +54371,10 @@ export type RetrieveCustomSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -54941,8 +54384,8 @@ export type RetrieveCustomSummaryReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -54962,16 +54405,16 @@ export type RetrieveCustomSummaryReportData = {
      * Valid values: CustomSummary, ProfitAndLossStandard, BalanceSheetStandard
      */
     CustomSummaryType?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -54984,8 +54427,8 @@ export type RetrieveCustomSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -55105,10 +54548,10 @@ export type RetrieveGeneralDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -55118,8 +54561,8 @@ export type RetrieveGeneralDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -55135,16 +54578,16 @@ export type RetrieveGeneralDetailReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -55169,8 +54612,8 @@ export type RetrieveGeneralDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -55290,10 +54733,10 @@ export type RetrieveGeneralSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -55303,8 +54746,8 @@ export type RetrieveGeneralSummaryReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -55320,16 +54763,16 @@ export type RetrieveGeneralSummaryReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -55355,8 +54798,8 @@ export type RetrieveGeneralSummaryReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -55476,10 +54919,10 @@ export type RetrieveJobReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -55489,8 +54932,8 @@ export type RetrieveJobReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -55506,16 +54949,16 @@ export type RetrieveJobReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -55528,8 +54971,8 @@ export type RetrieveJobReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -55655,10 +55098,10 @@ export type RetrievePayrollDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -55668,8 +55111,8 @@ export type RetrievePayrollDetailReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -55685,16 +55128,16 @@ export type RetrievePayrollDetailReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -55707,8 +55150,8 @@ export type RetrievePayrollDetailReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -55833,10 +55276,10 @@ export type RetrieveTimeReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNameWithChildren?: string;
     AccountFullNames?: Array<string>;
-    AccountIdWithChildren?: string;
+    AccountFullNameWithChildren?: string;
     AccountIds?: Array<string>;
+    AccountIdWithChildren?: string;
     AccountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
@@ -55846,8 +55289,8 @@ export type RetrieveTimeReportData = {
     AgingAsOf?: string;
     Calendar?: string;
     ClassFullNames?: Array<string>;
-    ClassIdWithChildren?: string;
     ClassIds?: Array<string>;
+    ClassIdWithChildren?: string;
     ClassNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
@@ -55863,16 +55306,16 @@ export type RetrieveTimeReportData = {
      * of the fetch sequence until `hasMore` is `false`.
      */
     Cursor?: string;
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
     DisplayReport?: boolean | null;
-    EntityFullNameWithChildren?: string;
     EntityFullNames?: Array<string>;
-    EntityIdWithChildren?: string;
+    EntityFullNameWithChildren?: string;
     EntityIds?: Array<string>;
+    EntityIdWithChildren?: string;
     EntityType?: string;
     FromModifiedDate?: string | null;
     FromReportDate?: string | null;
@@ -55885,8 +55328,8 @@ export type RetrieveTimeReportData = {
     IncludeColumnList?: Array<string>;
     IncludeSubcolumns?: boolean | null;
     ItemFullNames?: Array<string>;
-    ItemIdWithChildren?: string;
     ItemIds?: Array<string>;
+    ItemIdWithChildren?: string;
     ItemNameWithChildren?: string;
     ItemType?: string;
     /**
@@ -56007,7 +55450,7 @@ export type CreateSalesOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56099,7 +55542,7 @@ export type DeleteSalesOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56193,7 +55636,7 @@ export type RetrieveSalesOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56287,7 +55730,7 @@ export type UpdateSalesOrderData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56370,100 +55813,6 @@ export type UpdateSalesOrderResponses = {
 export type UpdateSalesOrderResponse =
   UpdateSalesOrderResponses[keyof UpdateSalesOrderResponses];
 
-export type VoidSalesOrderData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/sales-order/{id}/void";
-};
-
-export type VoidSalesOrderErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidSalesOrderError =
-  VoidSalesOrderErrors[keyof VoidSalesOrderErrors];
-
-export type VoidSalesOrderResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidSalesOrderResponse =
-  VoidSalesOrderResponses[keyof VoidSalesOrderResponses];
-
 export type ListSalesOrdersData = {
   body?: never;
   headers?: {
@@ -56475,7 +55824,7 @@ export type ListSalesOrdersData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56696,7 +56045,7 @@ export type CreateSalesReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56788,7 +56137,7 @@ export type DeleteSalesReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56882,7 +56231,7 @@ export type RetrieveSalesReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -56976,7 +56325,7 @@ export type UpdateSalesReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57070,7 +56419,7 @@ export type VoidSalesReceiptData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57164,7 +56513,7 @@ export type ListSalesReceiptsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57300,12 +56649,14 @@ export type ListSalesReceiptsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -57391,7 +56742,7 @@ export type CreateSalesTaxCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57483,7 +56834,7 @@ export type DeleteSalesTaxCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57577,7 +56928,7 @@ export type RetrieveSalesTaxCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57671,7 +57022,7 @@ export type UpdateSalesTaxCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57754,100 +57105,6 @@ export type UpdateSalesTaxCodeResponses = {
 export type UpdateSalesTaxCodeResponse =
   UpdateSalesTaxCodeResponses[keyof UpdateSalesTaxCodeResponses];
 
-export type VoidSalesTaxCodeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/sales-tax-code/{id}/void";
-};
-
-export type VoidSalesTaxCodeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidSalesTaxCodeError =
-  VoidSalesTaxCodeErrors[keyof VoidSalesTaxCodeErrors];
-
-export type VoidSalesTaxCodeResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidSalesTaxCodeResponse =
-  VoidSalesTaxCodeResponses[keyof VoidSalesTaxCodeResponses];
-
 export type ListSalesTaxCodesData = {
   body?: never;
   headers?: {
@@ -57859,7 +57116,7 @@ export type ListSalesTaxCodesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -57967,13 +57224,14 @@ export type ListSalesTaxCodesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -58055,7 +57313,7 @@ export type CreateSalesTaxPaymentCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58147,7 +57405,7 @@ export type DeleteSalesTaxPaymentCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58241,7 +57499,7 @@ export type RetrieveSalesTaxPaymentCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58335,7 +57593,7 @@ export type UpdateSalesTaxPaymentCheckData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58418,100 +57676,6 @@ export type UpdateSalesTaxPaymentCheckResponses = {
 export type UpdateSalesTaxPaymentCheckResponse =
   UpdateSalesTaxPaymentCheckResponses[keyof UpdateSalesTaxPaymentCheckResponses];
 
-export type VoidSalesTaxPaymentCheckData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/sales-tax-payment-check/{id}/void";
-};
-
-export type VoidSalesTaxPaymentCheckErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidSalesTaxPaymentCheckError =
-  VoidSalesTaxPaymentCheckErrors[keyof VoidSalesTaxPaymentCheckErrors];
-
-export type VoidSalesTaxPaymentCheckResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidSalesTaxPaymentCheckResponse =
-  VoidSalesTaxPaymentCheckResponses[keyof VoidSalesTaxPaymentCheckResponses];
-
 export type ListSalesTaxPaymentChecksData = {
   body?: never;
   headers?: {
@@ -58523,7 +57687,7 @@ export type ListSalesTaxPaymentChecksData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58659,12 +57823,14 @@ export type ListSalesTaxPaymentChecksData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -58770,7 +57936,7 @@ export type CreateShipMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58862,7 +58028,7 @@ export type DeleteShipMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -58956,7 +58122,7 @@ export type RetrieveShipMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59050,7 +58216,7 @@ export type UpdateShipMethodData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59144,7 +58310,7 @@ export type ListShipMethodsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59252,13 +58418,14 @@ export type ListShipMethodsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -59340,7 +58507,7 @@ export type CreateSpecialItemData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59574,7 +58741,7 @@ export type CreateTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59664,7 +58831,7 @@ export type DeleteTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59759,7 +58926,7 @@ export type RetrieveTermData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -59844,196 +59011,6 @@ export type RetrieveTermResponses = {
 export type RetrieveTermResponse =
   RetrieveTermResponses[keyof RetrieveTermResponses];
 
-export type UpdateTermData = {
-  body: UpdateTermRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    /**
-     * The unique identifier assigned by QuickBooks to this object.
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/term/{id}";
-};
-
-export type UpdateTermErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdateTermError = UpdateTermErrors[keyof UpdateTermErrors];
-
-export type UpdateTermResponses = {
-  /**
-   * OK
-   */
-  200: Term;
-};
-
-export type UpdateTermResponse = UpdateTermResponses[keyof UpdateTermResponses];
-
-export type VoidTermData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    /**
-     * The unique identifier assigned by QuickBooks to this object.
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/term/{id}/void";
-};
-
-export type VoidTermErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidTermError = VoidTermErrors[keyof VoidTermErrors];
-
-export type VoidTermResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidTermResponse = VoidTermResponses[keyof VoidTermResponses];
-
 export type ListTermsData = {
   body?: never;
   headers?: {
@@ -60045,7 +59022,7 @@ export type ListTermsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60153,13 +59130,14 @@ export type ListTermsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -60239,7 +59217,7 @@ export type ListTimeTrackingsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60375,12 +59353,14 @@ export type ListTimeTrackingsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -60470,7 +59450,7 @@ export type CreateTimeTrackingData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60562,7 +59542,7 @@ export type DeleteTimeTrackingData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60656,7 +59636,7 @@ export type RetrieveTimeTrackingData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60750,7 +59730,7 @@ export type UpdateTimeTrackingData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60844,7 +59824,7 @@ export type VoidTimeTrackingData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -60938,7 +59918,7 @@ export type DeleteTransactionData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61038,7 +60018,7 @@ export type RetrieveTransactionData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61127,106 +60107,6 @@ export type RetrieveTransactionResponses = {
 export type RetrieveTransactionResponse =
   RetrieveTransactionResponses[keyof RetrieveTransactionResponses];
 
-export type VoidTransactionData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    /**
-     * The unique identifier assigned by QuickBooks to this transaction.
-     *
-     * This ID is unique across **all** transaction types in the QuickBooks company file,
-     * not just within its own type. This value is assigned by QuickBooks and never changes.
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/transaction/{id}/void";
-};
-
-export type VoidTransactionErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidTransactionError =
-  VoidTransactionErrors[keyof VoidTransactionErrors];
-
-export type VoidTransactionResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidTransactionResponse =
-  VoidTransactionResponses[keyof VoidTransactionResponses];
-
 export type ListTransactionsData = {
   body?: never;
   headers?: {
@@ -61238,7 +60118,7 @@ export type ListTransactionsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61374,12 +60254,14 @@ export type ListTransactionsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
     /**
@@ -61394,7 +60276,7 @@ export type ListTransactionsData = {
      * <value>transaction_lines_only</value>
      * <value>transactions_without_lines</value>
      */
-    DetailLevel?: string;
+    detailLevel?: string;
     /**
      * Filter by Payment Status: "open", "closed"
      */
@@ -61490,7 +60372,7 @@ export type CreateUnitOfMeasureSetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61582,7 +60464,7 @@ export type RetrieveUnitOfMeasureSetData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61676,7 +60558,7 @@ export type ListUnitOfMeasureSetsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61784,13 +60666,14 @@ export type ListUnitOfMeasureSetsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -61872,7 +60755,7 @@ export type CreateVendorData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -61963,7 +60846,7 @@ export type CreateVendorCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62055,7 +60938,7 @@ export type DeleteVendorCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62149,7 +61032,7 @@ export type RetrieveVendorCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62243,7 +61126,7 @@ export type UpdateVendorCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62337,7 +61220,7 @@ export type VoidVendorCreditData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62431,7 +61314,7 @@ export type ListVendorCreditsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62567,12 +61450,14 @@ export type ListVendorCreditsData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
   };
@@ -62654,7 +61539,7 @@ export type CreateVendorTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62746,7 +61631,7 @@ export type DeleteVendorTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62840,7 +61725,7 @@ export type RetrieveVendorTypeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -62934,7 +61819,7 @@ export type ListVendorTypesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63042,13 +61927,14 @@ export type ListVendorTypesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -63130,7 +62016,7 @@ export type DeleteVendorData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63226,7 +62112,7 @@ export type RetrieveVendorData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63323,7 +62209,7 @@ export type UpdateVendorData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63419,7 +62305,7 @@ export type ListVendorsData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63527,13 +62413,14 @@ export type ListVendorsData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
   };
@@ -63614,7 +62501,7 @@ export type CreateWorkersCompCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63695,100 +62582,6 @@ export type CreateWorkersCompCodeResponses = {
 export type CreateWorkersCompCodeResponse =
   CreateWorkersCompCodeResponses[keyof CreateWorkersCompCodeResponses];
 
-export type DeleteWorkersCompCodeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/workers-comp-code/{id}";
-};
-
-export type DeleteWorkersCompCodeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type DeleteWorkersCompCodeError =
-  DeleteWorkersCompCodeErrors[keyof DeleteWorkersCompCodeErrors];
-
-export type DeleteWorkersCompCodeResponses = {
-  /**
-   * OK
-   */
-  200: DeleteResponse;
-};
-
-export type DeleteWorkersCompCodeResponse =
-  DeleteWorkersCompCodeResponses[keyof DeleteWorkersCompCodeResponses];
-
 export type RetrieveWorkersCompCodeData = {
   body?: never;
   headers?: {
@@ -63800,7 +62593,7 @@ export type RetrieveWorkersCompCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63894,7 +62687,7 @@ export type UpdateWorkersCompCodeData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -63977,100 +62770,6 @@ export type UpdateWorkersCompCodeResponses = {
 export type UpdateWorkersCompCodeResponse =
   UpdateWorkersCompCodeResponses[keyof UpdateWorkersCompCodeResponses];
 
-export type VoidWorkersCompCodeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/workers-comp-code/{id}/void";
-};
-
-export type VoidWorkersCompCodeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidWorkersCompCodeError =
-  VoidWorkersCompCodeErrors[keyof VoidWorkersCompCodeErrors];
-
-export type VoidWorkersCompCodeResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidWorkersCompCodeResponse =
-  VoidWorkersCompCodeResponses[keyof VoidWorkersCompCodeResponses];
-
 export type ListWorkersCompCodesData = {
   body?: never;
   headers?: {
@@ -64082,7 +62781,7 @@ export type ListWorkersCompCodesData = {
      * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
      * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
      *
-     * The middleware resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
      */
     "X-Connection-Id"?: string;
     /**
@@ -64190,13 +62889,14 @@ export type ListWorkersCompCodesData = {
      */
     nameTo?: string;
     /**
-     * Limit the response to only these top-level fields. Names must match exactly (case-sensitive QbXML element names e.g. ListIDRet, NameRet, AddressRet, PhoneRet  ).
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
      *
-     * **Note:** The names specified in the list are not parsed, so you must be especially careful to supply valid
-     * names, properly cased. No error is returned in the status code if you specify an invalid name. Notice that if you want to
-     * return custom data or private data extensions, you must specify the DataExtRet element and you must supply the OwnerID set
-     * to either a value of 0 (custom data) or the GUID for the private data.
-     * <example>["ListIDRet", "NameRet", "AddressRet", "PhoneRet"]</example>
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     IncludeRetElementList?: Array<string>;
     /**

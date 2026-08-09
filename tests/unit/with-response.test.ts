@@ -1,6 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { NxusApiError, NxusClient, NxusResponse, isNxusResponse } from '../../src/index';
+import {
+  NxusApiError,
+  NxusClient,
+  NxusResponse,
+  isNxusResponse,
+} from "../../src/index";
 
 const originalFetch = globalThis.fetch;
 
@@ -12,9 +17,9 @@ function jsonResponse(
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      'Content-Type': 'application/json',
-      'x-request-id': 'req_abc123',
-      'x-nxus-trace': 'trace-abc',
+      "Content-Type": "application/json",
+      "x-request-id": "req_abc123",
+      "x-nxus-trace": "trace-abc",
       ...headers,
     },
   });
@@ -26,7 +31,7 @@ function installFetchMock(...responses: Array<Response | Error>) {
     if (r instanceof Error) fetchMock.mockRejectedValueOnce(r);
     else fetchMock.mockResolvedValueOnce(r);
   }
-  Object.defineProperty(globalThis, 'fetch', {
+  Object.defineProperty(globalThis, "fetch", {
     configurable: true,
     value: fetchMock,
     writable: true,
@@ -35,13 +40,13 @@ function installFetchMock(...responses: Array<Response | Error>) {
 }
 
 function client(): NxusClient {
-  return new NxusClient({ apiKey: 'sk_test', baseUrl: 'https://api.test' });
+  return new NxusClient({ apiKey: "sk_test", baseUrl: "https://api.test" });
 }
 
-const VENDOR = { id: '80000001-1234567890', name: 'Acme' };
+const VENDOR = { id: "80000001-1234567890", name: "Acme" };
 
 afterEach(() => {
-  Object.defineProperty(globalThis, 'fetch', {
+  Object.defineProperty(globalThis, "fetch", {
     configurable: true,
     value: originalFetch,
     writable: true,
@@ -49,32 +54,40 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('withResponse — same call, more information', () => {
-  it('data matches what the plain call returns', async () => {
+describe("withResponse — same call, more information", () => {
+  it("data matches what the plain call returns", async () => {
     installFetchMock(jsonResponse(VENDOR), jsonResponse(VENDOR));
-    const nxus = client();
+    const nxus = new NxusClient({
+      apiKey: "sk_test",
+      baseUrl: "https://api.test",
+      maxRetries: 0,
+    });
 
-    const plain = await nxus.vendors.retrieve('80000001-1234567890');
+    const plain = await nxus.vendors.retrieve("80000001-1234567890");
     const wrapped = await nxus.vendors.withResponse.retrieve(
-      '80000001-1234567890',
+      "80000001-1234567890",
     );
 
     expect(isNxusResponse(wrapped)).toBe(true);
     expect(wrapped.data).toEqual(plain);
   });
 
-  it('issues an identical request', async () => {
+  it("issues an identical request", async () => {
     const fetchMock = installFetchMock(
       jsonResponse(VENDOR),
       jsonResponse(VENDOR),
     );
-    const nxus = client();
-
-    await nxus.vendors.retrieve('80000001-1234567890', {
-      connectionId: 'conn-1',
+    const nxus = new NxusClient({
+      apiKey: "sk_test",
+      baseUrl: "https://api.test",
+      maxRetries: 0,
     });
-    await nxus.vendors.withResponse.retrieve('80000001-1234567890', {
-      connectionId: 'conn-1',
+
+    await nxus.vendors.retrieve("80000001-1234567890", {
+      connectionId: "conn-1",
+    });
+    await nxus.vendors.withResponse.retrieve("80000001-1234567890", {
+      connectionId: "conn-1",
     });
 
     const [plainUrl, plainInit] = fetchMock.mock.calls[0];
@@ -84,89 +97,122 @@ describe('withResponse — same call, more information', () => {
     expect(wrappedInit.headers).toEqual(plainInit.headers);
   });
 
-  it('throws the same typed error, not a wrapped one', async () => {
+  it("throws the same typed error, not a wrapped one", async () => {
     installFetchMock(
       jsonResponse(
         {
           success: false,
-          message: 'Validation failed',
-          errors: { PayeeId: ['Entity is required'] },
+          message: "Validation failed",
+          errors: { PayeeId: ["Entity is required"] },
         },
         400,
       ),
     );
-    const nxus = client();
+    const nxus = new NxusClient({
+      apiKey: "sk_test",
+      baseUrl: "https://api.test",
+      maxRetries: 0,
+    });
 
     await expect(
-      nxus.checks.withResponse.create({ payeeId: '' } as never),
+      nxus.checks.withResponse.create({ payeeId: "" } as never),
     ).rejects.toBeInstanceOf(NxusApiError);
+  });
+
+  it("throws 2xx logical error envelopes on the wrapped path too", async () => {
+    installFetchMock(
+      jsonResponse(
+        {
+          success: false,
+          message: "Service unavailable",
+          status: 503,
+        },
+        200,
+      ),
+    );
+    const nxus = new NxusClient({
+      apiKey: "sk_test",
+      baseUrl: "https://api.test",
+      maxRetries: 0,
+    });
+
+    await expect(
+      nxus.vendors.withResponse.retrieve("80000001-1234567890"),
+    ).rejects.toMatchObject({
+      message: "Service unavailable",
+      status: 503,
+    });
   });
 });
 
-describe('withResponse — metadata', () => {
-  it('exposes status, headers and request id', async () => {
+describe("withResponse — metadata", () => {
+  it("exposes status, headers and request id", async () => {
     installFetchMock(jsonResponse(VENDOR, 200));
     const nxus = client();
 
     const wrapped = await nxus.vendors.withResponse.retrieve(
-      '80000001-1234567890',
+      "80000001-1234567890",
     );
 
     expect(wrapped.statusCode).toBe(200);
-    expect(wrapped.requestId).toBe('req_abc123');
-    expect(wrapped.headers['x-nxus-trace']).toBe('trace-abc');
+    expect(wrapped.requestId).toBe("req_abc123");
+    expect(wrapped.headers["x-nxus-trace"]).toBe("trace-abc");
   });
 
-  it('lower-cases header names', async () => {
+  it("lower-cases header names", async () => {
     installFetchMock(jsonResponse(VENDOR, 200, { ETag: 'W/"abc"' }));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1');
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1");
 
-    expect(wrapped.headers['etag']).toBe('W/"abc"');
+    expect(wrapped.headers["etag"]).toBe('W/"abc"');
   });
 
-  it('omits rawBody unless asked', async () => {
+  it("omits rawBody unless asked", async () => {
     installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1');
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1");
 
     expect(wrapped.rawBody).toBeUndefined();
   });
 
-  it('retains rawBody when includeRawBody is set', async () => {
+  it("retains rawBody when includeRawBody is set", async () => {
     installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1', {
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1", {
       includeRawBody: true,
     });
 
-    expect(wrapped.rawBody).toContain('80000001-1234567890');
+    expect(wrapped.rawBody).toContain("80000001-1234567890");
   });
 
-  it('never sends includeRawBody to the server', async () => {
+  it("never sends includeRawBody to the server", async () => {
     const fetchMock = installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    await nxus.vendors.withResponse.create({
-      name: 'Acme',
-      includeRawBody: true,
-    } as never);
+    await nxus.vendors.withResponse.create(
+      {
+        name: "Acme",
+      } as never,
+      {
+        includeRawBody: true,
+      },
+    );
 
     const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).not.toContain('includeRawBody');
-    expect(String(init.body ?? '')).not.toContain('includeRawBody');
+    expect(String(url)).not.toContain("includeRawBody");
+    expect(String(init.body ?? "")).not.toContain("includeRawBody");
   });
 });
 
-describe('withResponse — immutability', () => {
-  it('is frozen', async () => {
+describe("withResponse — immutability", () => {
+  it("is frozen", async () => {
     installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1');
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1");
 
     expect(Object.isFrozen(wrapped)).toBe(true);
     // ES modules are always strict mode, so assignment throws rather than
@@ -176,59 +222,62 @@ describe('withResponse — immutability', () => {
     }).toThrow();
   });
 
-  it('freezes the headers object too', async () => {
+  it("freezes the headers object too", async () => {
     installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1');
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1");
 
     expect(Object.isFrozen(wrapped.headers)).toBe(true);
   });
 
-  it('does not leak the fetch Response', async () => {
+  it("does not leak the fetch Response", async () => {
     installFetchMock(jsonResponse(VENDOR));
     const nxus = client();
 
-    const wrapped = await nxus.vendors.withResponse.retrieve('id-1');
+    const wrapped = await nxus.vendors.withResponse.retrieve("id-1");
 
     for (const value of Object.values(wrapped)) {
       expect(value).not.toBeInstanceOf(Response);
     }
     expect(Object.keys(wrapped)).toEqual([
-      'data',
-      'statusCode',
-      'headers',
-      'requestId',
-      'rawBody',
+      "data",
+      "statusCode",
+      "headers",
+      "requestId",
+      "rawBody",
     ]);
   });
 });
 
-describe('withResponse — across verbs', () => {
-  it('wraps create, update and delete', async () => {
+describe("withResponse — across verbs", () => {
+  it("wraps create, update and delete", async () => {
     installFetchMock(
       jsonResponse(VENDOR),
       jsonResponse(VENDOR),
-      new Response(null, { status: 204, headers: { 'x-request-id': 'req_del' } }),
+      new Response(null, {
+        status: 204,
+        headers: { "x-request-id": "req_del" },
+      }),
     );
     const nxus = client();
 
     expect(
-      (await nxus.vendors.withResponse.create({ name: 'Acme' } as never)).data,
+      (await nxus.vendors.withResponse.create({ name: "Acme" } as never)).data,
     ).toEqual(VENDOR);
     expect(
-      (await nxus.vendors.withResponse.update('id-1', { name: 'B' } as never))
+      (await nxus.vendors.withResponse.update("id-1", { name: "B" } as never))
         .data,
     ).toEqual(VENDOR);
 
-    const deleted = await nxus.vendors.withResponse.delete('id-1');
+    const deleted = await nxus.vendors.withResponse.delete("id-1");
     expect(deleted.statusCode).toBe(204);
-    expect(deleted.requestId).toBe('req_del');
+    expect(deleted.requestId).toBe("req_del");
   });
 
-  it('wraps the first page of list without auto-paginating', async () => {
+  it("wraps the first page of list without auto-paginating", async () => {
     const fetchMock = installFetchMock(
-      jsonResponse({ data: [VENDOR], hasMore: true, cursor: 'next-1' }),
+      jsonResponse({ data: [VENDOR], hasMore: true, cursor: "next-1" }),
     );
     const nxus = client();
 
@@ -242,26 +291,41 @@ describe('withResponse — across verbs', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('wraps void on transaction resources', async () => {
-    installFetchMock(jsonResponse({ id: 'txn-1', isVoided: true }));
+  it("wraps void on transaction resources", async () => {
+    installFetchMock(jsonResponse({ id: "txn-1", isVoided: true }));
     const nxus = client();
 
-    const wrapped = await nxus.invoices.withResponse.void('txn-1');
+    const wrapped = await nxus.invoices.withResponse.void("txn-1");
 
     expect(wrapped.statusCode).toBe(200);
-    expect(wrapped.requestId).toBe('req_abc123');
+    expect(wrapped.requestId).toBe("req_abc123");
+  });
+
+  it("exposes specialized wrapped methods only when supported", () => {
+    const nxus = client();
+
+    expect("delete" in nxus.currencies.withResponse).toBe(false);
+    expect("update" in nxus.billingRates.withResponse).toBe(false);
+    expect("create" in nxus.specialItems.withResponse).toBe(true);
+    expect(typeof nxus.connections.withResponse.restore).toBe("function");
+    expect(typeof nxus.authSessions.withResponse.create).toBe("function");
+    expect(typeof nxus.reports.withResponse.retrieveAging).toBe("function");
+    expect(typeof nxus.customFieldDefinitions.withResponse.list).toBe(
+      "function",
+    );
+    expect(typeof nxus.customFields.withResponse.delete).toBe("function");
   });
 });
 
-describe('NxusResponse construction', () => {
-  it('prefers a body request id over the header', () => {
+describe("NxusResponse construction", () => {
+  it("prefers a body request id over the header", () => {
     const wrapped = new NxusResponse({
       data: { ok: true },
       statusCode: 200,
-      headers: { 'x-request-id': 'from-header' },
-      requestId: 'from-body',
+      headers: { "x-request-id": "from-header" },
+      requestId: "from-body",
     });
 
-    expect(wrapped.requestId).toBe('from-body');
+    expect(wrapped.requestId).toBe("from-body");
   });
 });

@@ -1,18 +1,19 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { NxusClient } from '../../src/index';
-import {
-  NxusHttpTransport,
-  type NxusLogger,
-} from '../../src/transport';
+import { NxusApiError, NxusClient } from "../../src/index";
+import { NxusHttpTransport, type NxusLogger } from "../../src/transport";
 
 const originalFetch = globalThis.fetch;
 
-function jsonResponse(body: unknown, status = 200, headers?: Record<string, string>): Response {
+function jsonResponse(
+  body: unknown,
+  status = 200,
+  headers?: Record<string, string>,
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...headers,
     },
   });
@@ -27,7 +28,7 @@ function installFetchMock(...responses: Array<Response | Error>) {
       fetchMock.mockResolvedValueOnce(r);
     }
   }
-  Object.defineProperty(globalThis, 'fetch', {
+  Object.defineProperty(globalThis, "fetch", {
     configurable: true,
     value: fetchMock,
     writable: true,
@@ -35,19 +36,22 @@ function installFetchMock(...responses: Array<Response | Error>) {
   return fetchMock;
 }
 
-function makeLogger(): NxusLogger & { calls: Array<[string, string, Record<string, unknown> | undefined]> } {
-  const calls: Array<[string, string, Record<string, unknown> | undefined]> = [];
+function makeLogger(): NxusLogger & {
+  calls: Array<[string, string, Record<string, unknown> | undefined]>;
+} {
+  const calls: Array<[string, string, Record<string, unknown> | undefined]> =
+    [];
   return {
     calls,
-    debug: (m, c) => calls.push(['debug', m, c]),
-    info: (m, c) => calls.push(['info', m, c]),
-    warn: (m, c) => calls.push(['warn', m, c]),
-    error: (m, c) => calls.push(['error', m, c]),
+    debug: (m, c) => calls.push(["debug", m, c]),
+    info: (m, c) => calls.push(["info", m, c]),
+    warn: (m, c) => calls.push(["warn", m, c]),
+    error: (m, c) => calls.push(["error", m, c]),
   };
 }
 
 afterEach(() => {
-  Object.defineProperty(globalThis, 'fetch', {
+  Object.defineProperty(globalThis, "fetch", {
     configurable: true,
     value: originalFetch,
     writable: true,
@@ -55,199 +59,202 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('verbose logging', () => {
-  it('is off by default — logger is not invoked', async () => {
-    installFetchMock(jsonResponse({ id: 'conn_123' }));
+describe("verbose logging", () => {
+  it("is off by default — logger is not invoked", async () => {
+    installFetchMock(jsonResponse({ id: "conn_123" }));
     const logger = makeLogger();
 
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
       logger,
     });
     // logger was passed but verbose remains the implicit-on signal — this test
     // verifies that the logger receives nothing if we explicitly opt out.
-    await client.connections.retrieve('conn_123', { verbose: false });
+    await client.connections.retrieve("conn_123", { verbose: false });
     expect(logger.calls).toHaveLength(0);
   });
 
-  it('emits request + response events when verbose is true', async () => {
-    installFetchMock(jsonResponse({ id: 'conn_123' }));
+  it("emits request + response events when verbose is true", async () => {
+    installFetchMock(jsonResponse({ id: "conn_123" }));
     const logger = makeLogger();
 
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
       verbose: true,
       logger,
     });
 
-    await client.connections.retrieve('conn_123');
+    await client.connections.retrieve("conn_123");
 
     const events = logger.calls.map((c) => c[1]);
-    expect(events).toContain('request');
-    expect(events).toContain('response');
+    expect(events).toContain("request");
+    expect(events).toContain("response");
   });
 
-  it('redacts Authorization and other sensitive headers in logs', async () => {
-    installFetchMock(jsonResponse({ id: 'conn_123' }));
+  it("redacts Authorization and other sensitive headers in logs", async () => {
+    installFetchMock(jsonResponse({ id: "conn_123" }));
     const logger = makeLogger();
 
     const client = new NxusClient({
-      apiKey: 'sk_test_super_secret',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_super_secret",
+      baseUrl: "https://api.example.test",
       verbose: true,
       logger,
-      headers: { Cookie: 'session=very-secret' },
+      headers: { Cookie: "session=very-secret" },
     });
 
-    await client.connections.retrieve('conn_123');
+    await client.connections.retrieve("conn_123");
 
-    const requestEvent = logger.calls.find((c) => c[1] === 'request');
+    const requestEvent = logger.calls.find((c) => c[1] === "request");
     expect(requestEvent).toBeDefined();
     const headers = requestEvent![2]?.headers as Record<string, string>;
-    expect(headers.Authorization).toBe('[REDACTED]');
-    expect(headers.Cookie).toBe('[REDACTED]');
+    expect(headers.Authorization).toBe("[REDACTED]");
+    expect(headers.Cookie).toBe("[REDACTED]");
     // Non-sensitive headers should pass through unchanged.
-    expect(headers['Content-Type']).toBe('application/json');
+    expect(headers["Content-Type"]).toBe("application/json");
     // Secret should never appear anywhere in the serialized log payload.
     const serialized = JSON.stringify(logger.calls);
-    expect(serialized).not.toContain('sk_test_super_secret');
-    expect(serialized).not.toContain('very-secret');
+    expect(serialized).not.toContain("sk_test_super_secret");
+    expect(serialized).not.toContain("very-secret");
   });
 
-  it('logs retry-scheduled events on retryable failures', async () => {
+  it("logs retry-scheduled events on retryable failures", async () => {
     vi.useFakeTimers();
     installFetchMock(
-      jsonResponse({ error: { message: 'd', code: 'X', type: 'Y' } }, 503),
-      jsonResponse({ id: 'conn_123' }),
+      jsonResponse({ error: { message: "d", code: "X", type: "Y" } }, 503),
+      jsonResponse({ id: "conn_123" }),
     );
     const logger = makeLogger();
 
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
       verbose: true,
       logger,
     });
 
-    const promise = client.connections.retrieve('conn_123');
+    const promise = client.connections.retrieve("conn_123");
     for (let i = 0; i < 3; i++) await vi.advanceTimersByTimeAsync(15_000);
     await promise;
     vi.useRealTimers();
 
     const events = logger.calls.map((c) => c[1]);
-    expect(events).toContain('retry-scheduled');
+    expect(events).toContain("retry-scheduled");
   });
 });
 
-describe('proxy support', () => {
-  it('does not set dispatcher or proxy on fetch init when proxy is unset', async () => {
-    const fetchMock = installFetchMock(jsonResponse({ id: 'conn_123' }));
+describe("proxy support", () => {
+  it("does not set dispatcher or proxy on fetch init when proxy is unset", async () => {
+    const fetchMock = installFetchMock(jsonResponse({ id: "conn_123" }));
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      maxRetries: 0,
     });
-    await client.connections.retrieve('conn_123');
+    await client.connections.retrieve("conn_123");
 
     const init = fetchMock.mock.calls[0]?.[1] as Record<string, unknown>;
     expect(init.dispatcher).toBeUndefined();
     expect(init.proxy).toBeUndefined();
   });
 
-  it('passes proxy through to fetch init when configured', async () => {
-    const fetchMock = installFetchMock(jsonResponse({ id: 'conn_123' }));
+  it("passes proxy through to fetch init when configured", async () => {
+    const fetchMock = installFetchMock(jsonResponse({ id: "conn_123" }));
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
-      proxy: 'http://proxy.corp.test:8080',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      proxy: "http://proxy.corp.test:8080",
     });
-    await client.connections.retrieve('conn_123');
+    await client.connections.retrieve("conn_123");
 
     const init = fetchMock.mock.calls[0]?.[1] as Record<string, unknown>;
     // Bun-style proxy field is always set; dispatcher is best-effort and only
     // populated when undici resolves at runtime.
-    expect(init.proxy).toBe('http://proxy.corp.test:8080');
+    expect(init.proxy).toBe("http://proxy.corp.test:8080");
   });
 
-  it('merges fetchOptions (client-level and per-request) into fetch init', async () => {
-    const fetchMock = installFetchMock(jsonResponse({ id: 'conn_123' }));
+  it("merges fetchOptions (client-level and per-request) into fetch init", async () => {
+    const fetchMock = installFetchMock(jsonResponse({ id: "conn_123" }));
     const client = new NxusClient({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
-      fetchOptions: { cache: 'no-store', credentials: 'omit' },
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      fetchOptions: { cache: "no-store", credentials: "omit" },
     });
-    await client.connections.retrieve('conn_123', {
-      fetchOptions: { cache: 'reload' }, // per-call overrides client-level
+    await client.connections.retrieve("conn_123", {
+      fetchOptions: { cache: "reload" }, // per-call overrides client-level
     });
 
     const init = fetchMock.mock.calls[0]?.[1] as Record<string, unknown>;
-    expect(init.credentials).toBe('omit');
-    expect(init.cache).toBe('reload');
+    expect(init.credentials).toBe("omit");
+    expect(init.cache).toBe("reload");
   });
 });
 
-describe('raw HTTP access', () => {
-  it('transport.raw returns the Response unparsed', async () => {
-    installFetchMock(jsonResponse({ id: 'conn_123', name: 'Acme' }));
+describe("raw HTTP access", () => {
+  it("transport.raw returns the Response unparsed", async () => {
+    installFetchMock(jsonResponse({ id: "conn_123", name: "Acme" }));
 
     const transport = new NxusHttpTransport({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
     });
 
-    const res = await transport.raw('/api/v1/connections/conn_123');
+    const res = await transport.raw("/api/v1/connections/conn_123");
     expect(res).toBeInstanceOf(Response);
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toMatchObject({ id: 'conn_123', name: 'Acme' });
+    expect(body).toMatchObject({ id: "conn_123", name: "Acme" });
   });
 
-  it('transport.raw returns non-2xx responses without throwing', async () => {
+  it("transport.raw returns non-2xx responses without throwing", async () => {
     installFetchMock(
-      jsonResponse({ error: { message: 'nope', code: 'X', type: 'Y' } }, 404),
+      jsonResponse({ error: { message: "nope", code: "X", type: "Y" } }, 404),
     );
 
     const transport = new NxusHttpTransport({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
       maxRetries: 0,
     });
 
-    const res = await transport.raw('/api/v1/connections/missing');
+    const res = await transport.raw("/api/v1/connections/missing");
     expect(res.status).toBe(404);
     expect(res.ok).toBe(false);
   });
 
-  it('transport.raw applies Authorization and default headers', async () => {
+  it("transport.raw applies Authorization and default headers", async () => {
     const fetchMock = installFetchMock(jsonResponse({ ok: true }));
 
     const transport = new NxusHttpTransport({
-      apiKey: 'sk_test_abc',
-      baseUrl: 'https://api.example.test',
-      headers: { 'X-Custom': 'value' },
+      apiKey: "sk_test_abc",
+      baseUrl: "https://api.example.test",
+      headers: { "X-Custom": "value" },
     });
 
-    await transport.raw('/api/v1/anything');
+    await transport.raw("/api/v1/anything");
 
-    const init = fetchMock.mock.calls[0]?.[1] as { headers: Record<string, string> };
-    expect(init.headers.Authorization).toBe('Bearer sk_test_abc');
-    expect(init.headers['X-Custom']).toBe('value');
+    const init = fetchMock.mock.calls[0]?.[1] as {
+      headers: Record<string, string>;
+    };
+    expect(init.headers.Authorization).toBe("Bearer sk_test_abc");
+    expect(init.headers["X-Custom"]).toBe("value");
   });
 
-  it('typed request options override colliding headers case-insensitively', async () => {
+  it("typed request options override colliding headers case-insensitively", async () => {
     const fetchMock = installFetchMock(jsonResponse({ ok: true }));
     const transport = new NxusHttpTransport({
-      apiKey: 'sk_test_abc',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_abc",
+      baseUrl: "https://api.example.test",
     });
 
-    await transport.get('/api/v1/anything', undefined, {
-      connectionId: 'typed-connection',
+    await transport.get("/api/v1/anything", undefined, {
+      connectionId: "typed-connection",
       serverTimeoutSeconds: 75,
       headers: {
-        'x-connection-id': 'raw-connection',
-        'x-nxus-timeout-seconds': '999',
+        "x-connection-id": "raw-connection",
+        "x-nxus-timeout-seconds": "999",
       },
     });
 
@@ -255,36 +262,135 @@ describe('raw HTTP access', () => {
       headers: Record<string, string>;
     };
     const connectionHeaders = Object.entries(init.headers).filter(
-      ([name]) => name.toLowerCase() === 'x-connection-id',
+      ([name]) => name.toLowerCase() === "x-connection-id",
     );
     const timeoutHeaders = Object.entries(init.headers).filter(
-      ([name]) => name.toLowerCase() === 'x-nxus-timeout-seconds',
+      ([name]) => name.toLowerCase() === "x-nxus-timeout-seconds",
     );
 
     expect(connectionHeaders).toEqual([
-      ['X-Connection-Id', 'typed-connection'],
+      ["X-Connection-Id", "typed-connection"],
     ]);
-    expect(timeoutHeaders).toEqual([['X-Nxus-Timeout-Seconds', '75']]);
+    expect(timeoutHeaders).toEqual([["X-Nxus-Timeout-Seconds", "75"]]);
   });
 
-  it('transport.raw retries on 5xx like the typed path', async () => {
+  it("transport.raw retries on 5xx like the typed path", async () => {
     vi.useFakeTimers();
     const fetchMock = installFetchMock(
-      jsonResponse({ error: { message: 'd', code: 'X', type: 'Y' } }, 503),
+      jsonResponse({ error: { message: "d", code: "X", type: "Y" } }, 503),
       jsonResponse({ ok: true }, 200),
     );
 
     const transport = new NxusHttpTransport({
-      apiKey: 'sk_test_123',
-      baseUrl: 'https://api.example.test',
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
     });
 
-    const promise = transport.raw('/api/v1/anything');
+    const promise = transport.raw("/api/v1/anything");
     for (let i = 0; i < 3; i++) await vi.advanceTimersByTimeAsync(15_000);
     const res = await promise;
     vi.useRealTimers();
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(res.status).toBe(200);
+  });
+});
+
+describe("logical 2xx error envelopes", () => {
+  it("throws NxusApiError on success:false payloads in the plain path", async () => {
+    installFetchMock(
+      jsonResponse(
+        {
+          success: false,
+          message: "Service unavailable",
+          status: 503,
+        },
+        200,
+        { "x-request-id": "req_logical" },
+      ),
+    );
+
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      maxRetries: 0,
+    });
+
+    await expect(client.connections.retrieve("conn_123")).rejects.toMatchObject(
+      {
+        message: "Service unavailable",
+        requestId: "req_logical",
+        status: 503,
+      },
+    );
+  });
+
+  it("unwraps nested nxusApiError and qbdApiError payloads on 2xx responses", async () => {
+    installFetchMock(
+      jsonResponse(
+        {
+          nxusApiError: {
+            error: {
+              code: "QBD_CONNECTION_ERROR",
+              httpStatusCode: 503,
+              message: "Connection offline",
+              requestId: "req_nested_nxus",
+              type: "INTEGRATION_ERROR_TYPE",
+              userFacingMessage: "QuickBooks is offline.",
+            },
+          },
+        },
+        200,
+      ),
+      jsonResponse(
+        {
+          qbdApiError: {
+            error: {
+              code: "QBD_EDIT_SEQUENCE_ERROR",
+              httpStatusCode: 409,
+              message: "Edit sequence mismatch",
+              requestId: "req_nested_qbd",
+              type: "INTEGRATION_ERROR_TYPE",
+              userFacingMessage: "Refresh the record and try again.",
+            },
+          },
+        },
+        200,
+      ),
+    );
+
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(client.connections.retrieve("conn_123")).rejects.toMatchObject(
+      {
+        code: "QBD_CONNECTION_ERROR",
+        status: 503,
+      },
+    );
+    await expect(
+      client.connections.retrieve("conn_456"),
+    ).rejects.toBeInstanceOf(NxusApiError);
+  });
+
+  it("does not treat success:true payloads as errors", async () => {
+    installFetchMock(
+      jsonResponse({
+        data: { id: "conn_123" },
+        success: true,
+      }),
+    );
+
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(client.connections.retrieve("conn_123")).resolves.toEqual({
+      data: { id: "conn_123" },
+      success: true,
+    });
   });
 });

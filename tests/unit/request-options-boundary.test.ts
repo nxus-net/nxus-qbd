@@ -15,7 +15,13 @@ function createTransportStub() {
     delete: vi.fn(async () => undefined),
     get: vi.fn(async () => undefined),
     post: vi.fn(async () => undefined),
-    raw: vi.fn(async () => new Response(null, { status: 204 })),
+    sendDeleteWithBody: vi.fn(async () => ({
+      body: undefined,
+      headers: {},
+      rawBody: undefined,
+      requestId: undefined,
+      status: 204,
+    })),
   };
 
   return { transport };
@@ -111,21 +117,25 @@ describe("request option boundaries", () => {
       "/api/v1/vendor",
     );
 
-    for await (const item of resource.list({
-      connectionId: "transport_conn",
-      cursor: "cursor_1",
-      fetchOptions: { cache: "no-store" },
-      headers: {
-        "X-Test": "1",
-        "x-connection-id": "raw-connection",
-        "X-Nxus-Timeout-Seconds": "99",
+    for await (const item of resource.list(
+      {
+        cursor: "cursor_1",
+        limit: 1,
       },
-      limit: 1,
-      maxRetries: 0,
-      serverTimeoutSeconds: 0,
-      timeout: 0,
-      verbose: false,
-    })) {
+      {
+        connectionId: "transport_conn",
+        fetchOptions: { cache: "no-store" },
+        headers: {
+          "X-Test": "1",
+          "x-connection-id": "raw-connection",
+          "X-Nxus-Timeout-Seconds": "99",
+        },
+        maxRetries: 0,
+        serverTimeoutSeconds: 0,
+        timeout: 0,
+        verbose: false,
+      },
+    )) {
       expect(item.id).toBe("vendor_1");
       break;
     }
@@ -177,7 +187,7 @@ describe("request option boundaries", () => {
     ).rejects.toThrow(/second argument only/);
   });
 
-  it("supports split and merged payloads for generic create/update and create-only resources without leaking request options", async () => {
+  it("supports split payloads for generic create/update and create-only resources without leaking request options", async () => {
     const { transport } = createTransportStub();
     transport.post
       .mockResolvedValueOnce({ id: "vendor_1" })
@@ -196,7 +206,7 @@ describe("request option boundaries", () => {
     >(transport as never, "/api/v1/special-item");
 
     await resource.create({ name: "Acme" }, FULL_OPTIONS);
-    await resource.create({ ...FULL_OPTIONS, name: "Legacy Acme" });
+    await resource.create({ name: "Legacy Acme" }, FULL_OPTIONS);
     await resource.update("vendor_3", { name: "Updated Acme" }, FULL_OPTIONS);
     await specialItems.create({ code: "SPECIAL" }, FULL_OPTIONS);
 
@@ -208,7 +218,7 @@ describe("request option boundaries", () => {
     ]);
   });
 
-  it("supports split and merged report queries without leaking request options into the query string", async () => {
+  it("supports split report queries without leaking request options into the query string", async () => {
     const { transport } = createTransportStub();
     transport.get
       .mockResolvedValueOnce({ report: "aging" })
@@ -220,11 +230,13 @@ describe("request option boundaries", () => {
       { fromReportDate: "2026-01-01", reportType: "summary" },
       FULL_OPTIONS,
     );
-    await reports.retrieveGeneralSummary({
-      ...FULL_OPTIONS,
-      period: "ThisMonth",
-      reportType: "summary",
-    });
+    await reports.retrieveGeneralSummary(
+      {
+        period: "ThisMonth",
+        reportType: "summary",
+      },
+      FULL_OPTIONS,
+    );
 
     expect(transport.get.mock.calls).toEqual([
       [
@@ -265,16 +277,20 @@ describe("request option boundaries", () => {
       FULL_OPTIONS,
     );
 
-    await authSessions.create({
-      connectionId: "payload_only",
-      fetchOptions: { cache: "reload" },
-      headers: { "X-Test": "2" },
-      maxRetries: 0,
-      redirectUrl: "https://example.test/legacy",
-      serverTimeoutSeconds: 0,
-      timeout: 0,
-      verbose: false,
-    });
+    await authSessions.create(
+      {
+        connectionId: "payload_only",
+        redirectUrl: "https://example.test/legacy",
+      },
+      {
+        fetchOptions: { cache: "reload" },
+        headers: { "X-Test": "2" },
+        maxRetries: 0,
+        serverTimeoutSeconds: 0,
+        timeout: 0,
+        verbose: false,
+      },
+    );
 
     expect(transport.post.mock.calls).toEqual([
       [
@@ -305,7 +321,7 @@ describe("request option boundaries", () => {
     ]);
   });
 
-  it("supports split query/body signatures for custom field resources and strips request options from raw delete bodies", async () => {
+  it("supports split query/body signatures for custom field resources and strips request options from delete bodies", async () => {
     const { transport } = createTransportStub();
     transport.get.mockResolvedValueOnce([]);
     transport.post.mockResolvedValueOnce({ id: "def_1" });
@@ -328,18 +344,14 @@ describe("request option boundaries", () => {
       FULL_OPTIONS,
     );
 
-    await customFields.delete({
-      connectionId: "transport_conn",
-      fetchOptions: { cache: "no-store" },
-      headers: { "X-Test": "1" },
-      maxRetries: 0,
-      name: "SdkField",
-      ownerId: "0",
-      serverTimeoutSeconds: 0,
-      target: { kind: 0, listType: "Customer", fullName: "Acme" },
-      timeout: 0,
-      verbose: false,
-    } as never);
+    await customFields.delete(
+      {
+        name: "SdkField",
+        ownerId: "0",
+        target: { kind: 0, listType: "Customer", fullName: "Acme" },
+      } as never,
+      FULL_OPTIONS,
+    );
 
     expect(transport.get.mock.calls).toEqual([
       [
@@ -365,20 +377,17 @@ describe("request option boundaries", () => {
       ],
     ]);
 
-    expect(transport.raw.mock.calls).toHaveLength(1);
-    expect(transport.raw.mock.calls[0]?.[0]).toBe("/api/v1/custom-fields");
-    expect(transport.raw.mock.calls[0]?.[2]).toEqual(FULL_OPTIONS);
-    expect(
-      (transport.raw.mock.calls[0]?.[1] as RequestInit | undefined)?.method,
-    ).toBe("DELETE");
-    expect(
-      (transport.raw.mock.calls[0]?.[1] as RequestInit | undefined)?.body,
-    ).toBe(
-      JSON.stringify({
-        name: "SdkField",
-        ownerId: "0",
-        target: { kind: 0, listType: "Customer", fullName: "Acme" },
-      }),
+    expect(transport.sendDeleteWithBody.mock.calls).toHaveLength(1);
+    expect(transport.sendDeleteWithBody.mock.calls[0]?.[0]).toBe(
+      "/api/v1/custom-fields",
     );
+    expect(transport.sendDeleteWithBody.mock.calls[0]?.[2]).toEqual(
+      FULL_OPTIONS,
+    );
+    expect(transport.sendDeleteWithBody.mock.calls[0]?.[1]).toStrictEqual({
+      name: "SdkField",
+      ownerId: "0",
+      target: { kind: 0, listType: "Customer", fullName: "Acme" },
+    });
   });
 });

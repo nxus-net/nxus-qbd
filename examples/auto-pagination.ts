@@ -46,7 +46,7 @@ const nxus = new NxusClient({
   apiKey,
   baseUrl: process.env.NXUS_BASE_URL,
   environment: process.env.NXUS_ENVIRONMENT,
-  ...(connectionId && { headers: { "X-Connection-Id": connectionId } }),
+  ...(connectionId && { connectionId }),
 });
 
 async function main() {
@@ -61,7 +61,10 @@ async function main() {
   let count = 0;
   const MAX_ITEMS = 25; // cap for demo purposes
 
-  for await (const customer of nxus.customers.list({ limit: 10, timeoutSeconds: 45 })) {
+  for await (const customer of nxus.customers.list({
+    limit: 10,
+    timeoutSeconds: 45,
+  })) {
     count++;
     console.log(`  ${count}. ${customer.name} (${customer.id})`);
 
@@ -88,7 +91,10 @@ async function main() {
   const targetSubstring = "Store";
   let matched: string | null = null;
 
-  for await (const customer of nxus.customers.list({ limit: 10, timeoutSeconds: 45 })) {
+  for await (const customer of nxus.customers.list({
+    limit: 10,
+    timeoutSeconds: 45,
+  })) {
     const name = customer.name ?? "";
     if (name.toLowerCase().includes(targetSubstring.toLowerCase())) {
       matched = name;
@@ -116,7 +122,9 @@ async function main() {
   let page = await nxus.customers.list({ limit: 5, timeoutSeconds: 45 });
   let pageNumber = 1;
 
-  console.log(`Page ${pageNumber}: ${page.data.length} items (totalCount: ${page.totalCount})`);
+  console.log(
+    `Page ${pageNumber}: ${page.data.length} items (totalCount: ${page.totalCount})`,
+  );
   for (const customer of page.data) {
     console.log(`  - ${customer.name}`);
   }

@@ -4,7 +4,7 @@
     "AuthSession",
     "QwcAuthSetup"
   ],
-  "generatedFrom": "bf946954b4ca741dc10a09f1ac8e4493bac555f9be9acb82e3a675d1dd260ab0",
+  "generatedFrom": "1a55de17684b416e8e2b97ad900473710062e7aeefd0aec5b684931652fd6ba9",
   "schemas": {
     "Account": {
       "module": "account",
@@ -54,11 +54,7 @@
       "module": "bill_payment_or_credit",
       "package": "qbd"
     },
-    "AppliedToTransactionRequest": {
-      "module": "_shared",
-      "package": ""
-    },
-    "AppliedToTxn": {
+    "AppliedToTransaction": {
       "module": "_shared",
       "package": ""
     },
@@ -67,8 +63,8 @@
       "package": "qbd"
     },
     "ApplyToTransactionRequest": {
-      "module": "credit_card_bill_payment",
-      "package": "qbd"
+      "module": "_shared",
+      "package": ""
     },
     "ArRefundCreditCard": {
       "module": "ar_refund_credit_card",
@@ -734,10 +730,6 @@
       "module": "item_service",
       "package": "qbd"
     },
-    "CreateSetCreditRequest": {
-      "module": "_shared",
-      "package": ""
-    },
     "CreateShipMethodRequest": {
       "module": "ship_method",
       "package": "qbd"
@@ -806,10 +798,6 @@
       "module": "_shared",
       "package": ""
     },
-    "CreditCardTxnInfoRequest": {
-      "module": "receive_payment",
-      "package": "qbd"
-    },
     "CreditMemo": {
       "module": "credit_memo",
       "package": "qbd"
@@ -850,7 +838,7 @@
       "module": "custom_fields",
       "package": "qbd"
     },
-    "DataExtDef": {
+    "DataExtDefinition": {
       "module": "custom_field_definitions",
       "package": "qbd"
     },
@@ -1527,12 +1515,12 @@
       "package": "qbd"
     },
     "UpdateCreditCardTransactionInfoRequest": {
-      "module": "sales_receipt",
-      "package": "qbd"
+      "module": "_shared",
+      "package": ""
     },
     "UpdateCreditCardTransactionInputInfoRequest": {
-      "module": "sales_receipt",
-      "package": "qbd"
+      "module": "_shared",
+      "package": ""
     },
     "UpdateCreditCardTransactionResultInfoRequest": {
       "module": "_shared",
@@ -1564,14 +1552,6 @@
     },
     "UpdateCustomerRequest": {
       "module": "customer",
-      "package": "qbd"
-    },
-    "UpdateCustomerTypeRequest": {
-      "module": "customer_type",
-      "package": "qbd"
-    },
-    "UpdateDateDrivenTermRequest": {
-      "module": "date_driven_term",
       "package": "qbd"
     },
     "UpdateDepositLineRequest": {
@@ -1756,10 +1736,6 @@
     },
     "UpdateShipMethodRequest": {
       "module": "ship_method",
-      "package": "qbd"
-    },
-    "UpdateTermRequest": {
-      "module": "term",
       "package": "qbd"
     },
     "UpdateTimeTrackingRequest": {

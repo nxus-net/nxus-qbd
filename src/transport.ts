@@ -94,6 +94,8 @@ export interface TransportOptions {
   baseUrl: string;
   /** API key for authentication. */
   apiKey: string;
+  /** Default connection ID for request scoping (sets X-Connection-Id). */
+  connectionId?: string;
   /** Default headers merged into every request. */
   headers?: Record<string, string>;
   /** Default request timeout in milliseconds. */
@@ -213,7 +215,51 @@ function normalizeErrorPayload(
     return errorBody;
   }
 
-  const normalized = { ...(errorBody as Record<string, unknown>) };
+  const source = errorBody as Record<string, unknown>;
+  const nestedEnvelope =
+    asRecord(source.nxusApiError) ?? asRecord(source.qbdApiError);
+  const normalized = {
+    ...(nestedEnvelope ?? source),
+  };
+
+  if (nestedEnvelope) {
+    if (normalized.requestId == null && source.requestId != null) {
+      normalized.requestId = source.requestId;
+    }
+    if (normalized.status == null && source.status != null) {
+      normalized.status = source.status;
+    }
+    if (normalized.statusCode == null && source.statusCode != null) {
+      normalized.statusCode = source.statusCode;
+    }
+    if (normalized.retryAfter == null && source.retryAfter != null) {
+      normalized.retryAfter = source.retryAfter;
+    }
+    if (normalized.restriction == null && source.restriction != null) {
+      normalized.restriction = source.restriction;
+    }
+    if (normalized.billing == null && source.billing != null) {
+      normalized.billing = source.billing;
+    }
+    if (normalized.lifecycleState == null && source.lifecycleState != null) {
+      normalized.lifecycleState = source.lifecycleState;
+    }
+    if (
+      normalized.restrictionReason == null &&
+      source.restrictionReason != null
+    ) {
+      normalized.restrictionReason = source.restrictionReason;
+    }
+    if (normalized.restrictionCode == null && source.restrictionCode != null) {
+      normalized.restrictionCode = source.restrictionCode;
+    }
+    if (normalized.requiresPayment == null && source.requiresPayment != null) {
+      normalized.requiresPayment = source.requiresPayment;
+    }
+    if (normalized.checkoutUrl == null && source.checkoutUrl != null) {
+      normalized.checkoutUrl = source.checkoutUrl;
+    }
+  }
 
   if (normalized.status == null) {
     normalized.status = response.status;
@@ -228,17 +274,40 @@ function normalizeErrorPayload(
     }
   }
 
-  const nestedError = normalized.error;
-  if (nestedError && typeof nestedError === "object") {
+  const normalizedError = normalized.error;
+  if (normalizedError && typeof normalizedError === "object") {
     normalized.error = {
-      ...(nestedError as Record<string, unknown>),
+      ...(normalizedError as Record<string, unknown>),
       httpStatusCode:
-        (nestedError as Record<string, unknown>).httpStatusCode ??
+        (normalizedError as Record<string, unknown>).httpStatusCode ??
         response.status,
     };
   }
 
   return normalized;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined;
+}
+
+function extractLogicalErrorPayload(body: unknown): unknown | undefined {
+  const record = asRecord(body);
+  if (!record) {
+    return undefined;
+  }
+
+  if (record.success === false) {
+    return body;
+  }
+
+  if (asRecord(record.nxusApiError) || asRecord(record.qbdApiError)) {
+    return body;
+  }
+
+  return undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -248,6 +317,7 @@ function normalizeErrorPayload(
 export class NxusHttpTransport {
   private readonly baseUrl: string;
   private readonly apiKey: string;
+  private readonly defaultConnectionId?: string;
   private readonly defaultHeaders: Record<string, string>;
   private readonly defaultTimeout: number;
   private readonly defaultServerTimeoutSeconds?: number;
@@ -263,6 +333,7 @@ export class NxusHttpTransport {
     // Ensure trailing slash for consistent URL joining
     this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     this.apiKey = options.apiKey;
+    this.defaultConnectionId = options.connectionId;
     this.defaultHeaders = options.headers ?? {};
     this.defaultTimeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
     this.defaultServerTimeoutSeconds = options.serverTimeoutSeconds;
@@ -294,6 +365,15 @@ export class NxusHttpTransport {
 
   async delete<T>(path: string, options?: RequestOptions): Promise<T> {
     return (await this.sendDelete<T>(path, options)).body;
+  }
+
+  /** @internal */
+  async deleteWithBody<T>(
+    path: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return (await this.sendDeleteWithBody<T>(path, body, options)).body;
   }
 
   /**
@@ -339,6 +419,23 @@ export class NxusHttpTransport {
   ): Promise<TransportResponse<T>> {
     const url = this.buildUrl(path);
     return this.request<T>(url, { method: "DELETE" }, options);
+  }
+
+  /** @internal */
+  async sendDeleteWithBody<T>(
+    path: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ): Promise<TransportResponse<T>> {
+    const url = this.buildUrl(path);
+    return this.request<T>(
+      url,
+      {
+        method: "DELETE",
+        body: JSON.stringify(body),
+      },
+      options,
+    );
   }
 
   /**
@@ -550,6 +647,11 @@ export class NxusHttpTransport {
 
     if (options?.connectionId !== undefined) {
       setHeader(headers, "X-Connection-Id", options.connectionId);
+    } else if (
+      this.defaultConnectionId != null &&
+      !hasHeader(headers, "X-Connection-Id")
+    ) {
+      setHeader(headers, "X-Connection-Id", this.defaultConnectionId);
     }
 
     if (options?.serverTimeoutSeconds !== undefined) {
@@ -739,7 +841,12 @@ export class NxusHttpTransport {
       if (response.status === 204) {
         return {
           kind: "success",
-          value: snapshot<T>(response, undefined as T, undefined, includeRawBody),
+          value: snapshot<T>(
+            response,
+            undefined as T,
+            undefined,
+            includeRawBody,
+          ),
         };
       }
 
@@ -751,9 +858,27 @@ export class NxusHttpTransport {
         };
       }
 
+      const parsed = JSON.parse(text) as T;
+      const logicalErrorPayload = extractLogicalErrorPayload(parsed);
+      if (logicalErrorPayload !== undefined) {
+        const normalizedError = normalizeErrorPayload(
+          logicalErrorPayload,
+          response,
+        );
+        return {
+          kind: "http-error",
+          status:
+            (asRecord(normalizedError)?.status as number | undefined) ??
+            response.status,
+          retryAfter: parseBodyRetryAfter(normalizedError),
+          shouldRetry: parseShouldRetry(response.headers.get("x-should-retry")),
+          error: NxusApiError.from(normalizedError),
+        };
+      }
+
       return {
         kind: "success",
-        value: snapshot<T>(response, JSON.parse(text) as T, text, includeRawBody),
+        value: snapshot<T>(response, parsed, text, includeRawBody),
       };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {

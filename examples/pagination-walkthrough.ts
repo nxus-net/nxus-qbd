@@ -46,9 +46,7 @@ const nxus = new NxusClient({
   apiKey,
   baseUrl: process.env.NXUS_BASE_URL,
   environment: process.env.NXUS_ENVIRONMENT,
-  headers: {
-    "X-Connection-Id": connectionId,
-  },
+  connectionId,
 });
 
 // ---------------------------------------------------------------------------
@@ -88,7 +86,9 @@ async function main() {
 
     console.log(`  Page ${pageNumber}`);
     console.log(`  \u251C\u2500\u2500 items on page : ${itemCount}`);
-    console.log(`  \u251C\u2500\u2500 total_count   : ${page.totalCount ?? "N/A"}`);
+    console.log(
+      `  \u251C\u2500\u2500 total_count   : ${page.totalCount ?? "N/A"}`,
+    );
     console.log(`  \u251C\u2500\u2500 has_more      : ${page.hasMore}`);
     console.log(`  \u251C\u2500\u2500 next_cursor   : ${cursorDisplay}`);
 
@@ -117,7 +117,9 @@ async function main() {
   }
 
   console.log(`${SEPARATOR}`);
-  console.log(`  Done! Walked ${pageNumber} page(s), ${totalItems} total items.`);
+  console.log(
+    `  Done! Walked ${pageNumber} page(s), ${totalItems} total items.`,
+  );
   console.log(`${SEPARATOR}\n`);
 }
 

@@ -5,16 +5,16 @@
  * const nxus = new NxusClient({ apiKey: 'sk_live_...' });
  *
  * // List vendors
- * const page = await nxus.vendors.list({ limit: 50, connectionId: '...' });
+ * const page = await nxus.vendors.list({ limit: 50 }, { connectionId: '...' });
  *
- * // Create a vendor (flat params)
- * const vendor = await nxus.vendors.create({ name: 'Acme', connectionId: '...' });
+ * // Create a vendor
+ * const vendor = await nxus.vendors.create({ name: 'Acme' }, { connectionId: '...' });
  *
  * // Retrieve by ID
  * const v = await nxus.vendors.retrieve('80000001-1234567890', { connectionId: '...' });
  *
  * // Update (ID first, flat fields)
- * await nxus.vendors.update('80000001-1234567890', { name: 'Updated', connectionId: '...' });
+ * await nxus.vendors.update('80000001-1234567890', { name: 'Updated' }, { connectionId: '...' });
  *
  * // Delete
  * await nxus.vendors.delete('80000001-1234567890', { connectionId: '...' });
@@ -181,8 +181,8 @@ import type {
   UpdateClassRequest,
   UpdateCurrencyRequest,
   UpdateCustomerRequest,
-  UpdateCustomerTypeRequest,
-  UpdateDateDrivenTermRequest,
+  CreateCustomerTypeRequest as UpdateCustomerTypeRequest,
+  CreateDateDrivenTermRequest as UpdateDateDrivenTermRequest,
   UpdateEmployeeRequest,
   UpdateInventorySiteRequest,
   UpdateOtherNameRequest,
@@ -190,7 +190,7 @@ import type {
   UpdatePriceLevelRequest,
   UpdateSalesTaxCodeRequest,
   UpdateShipMethodRequest,
-  UpdateTermRequest,
+  CreateTermRequest as UpdateTermRequest,
   UpdateVendorRequest,
   // Items — response types
   Item,
@@ -264,7 +264,9 @@ export interface NxusClientOptions {
    * Use `"development"` or `"local"` for `https://localhost:7242/`.
    */
   environment?: string | NxusEnvironment;
-  /** Extra headers merged into every request (e.g. X-Connection-Id). */
+  /** Default connection ID for request scoping (sets X-Connection-Id). */
+  connectionId?: string;
+  /** Extra headers merged into every request. */
   headers?: Record<string, string>;
   /** Default request timeout in milliseconds. Defaults to 100_000ms. */
   timeout?: number;
@@ -348,6 +350,7 @@ export class NxusClient {
       apiKey,
       baseUrl,
       environment,
+      connectionId,
       headers,
       timeout = DEFAULT_TIMEOUT_MS,
       serverTimeoutSeconds,
@@ -364,6 +367,7 @@ export class NxusClient {
         environment,
       }),
       apiKey,
+      connectionId,
       headers,
       timeout,
       serverTimeoutSeconds,
@@ -433,10 +437,11 @@ export class NxusClient {
 
   /** Deposits — full CRUD + void */
   get deposits() {
-    return new VoidableResource<Deposit, CreateDepositRequest, UpdateDepositRequest>(
-      this.transport,
-      "/api/v1/deposits",
-    );
+    return new VoidableResource<
+      Deposit,
+      CreateDepositRequest,
+      UpdateDepositRequest
+    >(this.transport, "/api/v1/deposits");
   }
 
   /** Estimates — full CRUD */
@@ -533,10 +538,11 @@ export class NxusClient {
 
   /** Charges — full CRUD + void */
   get charges() {
-    return new VoidableResource<Charge, CreateChargeRequest, UpdateChargeRequest>(
-      this.transport,
-      "/api/v1/charges",
-    );
+    return new VoidableResource<
+      Charge,
+      CreateChargeRequest,
+      UpdateChargeRequest
+    >(this.transport, "/api/v1/charges");
   }
 
   /** Credit Card Charges — full CRUD + void */
@@ -568,10 +574,11 @@ export class NxusClient {
 
   /** Invoices — full CRUD + void */
   get invoices() {
-    return new VoidableResource<Invoice, CreateInvoiceRequest, UpdateInvoiceRequest>(
-      this.transport,
-      "/api/v1/invoices",
-    );
+    return new VoidableResource<
+      Invoice,
+      CreateInvoiceRequest,
+      UpdateInvoiceRequest
+    >(this.transport, "/api/v1/invoices");
   }
 
   /** Receive Payments — full CRUD */

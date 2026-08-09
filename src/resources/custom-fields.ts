@@ -21,20 +21,20 @@
  * everything off an id path segment), these are hand-written.
  */
 
-import type { NxusHttpTransport, RequestOptions } from '../transport';
-import { NxusApiError } from '../helpers/errors';
-import { splitBodyAndOptions } from './base';
+import type { NxusHttpTransport, RequestOptions } from "../transport";
+import { NxusResponse } from "../helpers/response";
+import { assertNoRequestOptionKeys, withDefaultMaxRetries } from "./base";
 import type {
   CreateCustomFieldDefinitionRequest,
   UpdateCustomFieldDefinitionRequest,
   DeleteCustomFieldDefinitionRequest,
-  DataExtDef,
+  DataExtDefinition,
   CreateCustomFieldValueRequest,
   UpdateCustomFieldValueRequest,
   DeleteCustomFieldValueRequest,
   DataExtDataExt,
   DeleteResponse,
-} from '../generated/types.gen';
+} from "../generated/types.gen";
 
 /**
  * Optional filters for {@link CustomFieldDefinitionsResource.list}. Mirrors the
@@ -90,35 +90,28 @@ export type DataExtTargetKindValue =
  *   assignToObjects: ["Customer", "Invoice"],
  *   listRequired: false,
  *   transactionRequired: false,
- *   connectionId: "conn_...",
- * });
+ * }, { connectionId: "conn_..." });
  * ```
  */
 export class CustomFieldDefinitionsResource {
   constructor(private readonly transport: NxusHttpTransport) {}
 
-  private static readonly BASE = '/api/v1/custom-field-definitions';
+  private static readonly BASE = "/api/v1/custom-field-definitions";
 
-  /** Create a new custom field definition. Returns the created `DataExtDef`. */
-  create(
-    params: CreateCustomFieldDefinitionRequest & RequestOptions,
-  ): Promise<DataExtDef>;
+  /** Create a new custom field definition. Returns the created `DataExtDefinition`. */
   create(
     body: CreateCustomFieldDefinitionRequest,
     options?: RequestOptions,
-  ): Promise<DataExtDef>;
+  ): Promise<DataExtDefinition>;
   async create(
-    params: CreateCustomFieldDefinitionRequest & RequestOptions,
+    body: CreateCustomFieldDefinitionRequest,
     options?: RequestOptions,
-  ): Promise<DataExtDef> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
-    return this.transport.post<DataExtDef>(
+  ): Promise<DataExtDefinition> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<DataExtDefinition>(
       CustomFieldDefinitionsResource.BASE,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
   }
 
@@ -127,24 +120,18 @@ export class CustomFieldDefinitionsResource {
    * objects, toggle required). POSTs to the `/update` sub-path.
    */
   update(
-    params: UpdateCustomFieldDefinitionRequest & RequestOptions,
-  ): Promise<DataExtDef>;
-  update(
     body: UpdateCustomFieldDefinitionRequest,
     options?: RequestOptions,
-  ): Promise<DataExtDef>;
+  ): Promise<DataExtDefinition>;
   async update(
-    params: UpdateCustomFieldDefinitionRequest & RequestOptions,
+    body: UpdateCustomFieldDefinitionRequest,
     options?: RequestOptions,
-  ): Promise<DataExtDef> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
-    return this.transport.post<DataExtDef>(
+  ): Promise<DataExtDefinition> {
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+    return this.transport.post<DataExtDefinition>(
       `${CustomFieldDefinitionsResource.BASE}/update`,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
   }
 
@@ -161,28 +148,23 @@ export class CustomFieldDefinitionsResource {
    *   the given object types (`Customer`, `Vendor`, `Invoice`, …).
    */
   list(
-    params?: ListCustomFieldDefinitionsParams & RequestOptions,
-  ): Promise<Array<DataExtDef>>;
-  list(
     query?: ListCustomFieldDefinitionsParams,
     options?: RequestOptions,
-  ): Promise<Array<DataExtDef>>;
+  ): Promise<Array<DataExtDefinition>>;
   async list(
-    params: ListCustomFieldDefinitionsParams & RequestOptions = {},
+    query: ListCustomFieldDefinitionsParams = {},
     options?: RequestOptions,
-  ): Promise<Array<DataExtDef>> {
-    const { ownerIds, assignToObjects, ...rest } = params;
-    const { options: requestOptions } = splitBodyAndOptions(
-      rest as Record<string, unknown> & RequestOptions,
-      options,
-    );
-    const query: Record<string, unknown> = {};
-    if (ownerIds !== undefined) query.OwnerIds = ownerIds;
-    if (assignToObjects !== undefined) query.AssignToObjects = assignToObjects;
-    return this.transport.get<Array<DataExtDef>>(
+  ): Promise<Array<DataExtDefinition>> {
+    assertNoRequestOptionKeys(query as Record<string, unknown> | undefined);
+    const requestQuery: Record<string, unknown> = {};
+    if (query.ownerIds !== undefined) requestQuery.OwnerIds = query.ownerIds;
+    if (query.assignToObjects !== undefined) {
+      requestQuery.AssignToObjects = query.assignToObjects;
+    }
+    return this.transport.get<Array<DataExtDefinition>>(
       CustomFieldDefinitionsResource.BASE,
-      query,
-      requestOptions,
+      requestQuery,
+      options,
     );
   }
 
@@ -191,26 +173,78 @@ export class CustomFieldDefinitionsResource {
    * id path segment). Returns the standard `DeleteResponse`.
    */
   delete(
-    params: DeleteCustomFieldDefinitionRequest & RequestOptions,
-  ): Promise<DeleteResponse>;
-  delete(
     body: DeleteCustomFieldDefinitionRequest,
     options?: RequestOptions,
   ): Promise<DeleteResponse>;
   async delete(
-    params: DeleteCustomFieldDefinitionRequest & RequestOptions,
+    body: DeleteCustomFieldDefinitionRequest,
     options?: RequestOptions,
   ): Promise<DeleteResponse> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
     return deleteWithBody<DeleteResponse>(
       this.transport,
       CustomFieldDefinitionsResource.BASE,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
+  }
+
+  get withResponse() {
+    return {
+      create: async (
+        body: CreateCustomFieldDefinitionRequest,
+        options?: RequestOptions,
+      ) => {
+        assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+        const wire = await this.transport.sendPost<DataExtDefinition>(
+          CustomFieldDefinitionsResource.BASE,
+          body,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+      update: async (
+        body: UpdateCustomFieldDefinitionRequest,
+        options?: RequestOptions,
+      ) => {
+        assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+        const wire = await this.transport.sendPost<DataExtDefinition>(
+          `${CustomFieldDefinitionsResource.BASE}/update`,
+          body,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+      list: async (
+        query?: ListCustomFieldDefinitionsParams,
+        options?: RequestOptions,
+      ) => {
+        assertNoRequestOptionKeys(query as Record<string, unknown> | undefined);
+        const requestQuery: Record<string, unknown> = {};
+        if (query?.ownerIds !== undefined)
+          requestQuery.OwnerIds = query.ownerIds;
+        if (query?.assignToObjects !== undefined) {
+          requestQuery.AssignToObjects = query.assignToObjects;
+        }
+        const wire = await this.transport.sendGet<Array<DataExtDefinition>>(
+          CustomFieldDefinitionsResource.BASE,
+          requestQuery,
+          options,
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+      delete: async (
+        body: DeleteCustomFieldDefinitionRequest,
+        options?: RequestOptions,
+      ) => {
+        const wire = await deleteWithBodyResponse<DeleteResponse>(
+          this.transport,
+          CustomFieldDefinitionsResource.BASE,
+          body as Record<string, unknown>,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+    };
   }
 }
 
@@ -228,83 +262,104 @@ export class CustomFieldDefinitionsResource {
  *   name: "SdkTestField",
  *   value: "hello-from-sdk",
  *   target: { kind: DataExtTargetKind.List, listType: ListType.CUSTOMER, fullName: "Acme" },
- *   connectionId: "conn_...",
- * });
+ * }, { connectionId: "conn_..." });
  * ```
  */
 export class CustomFieldsResource {
   constructor(private readonly transport: NxusHttpTransport) {}
 
-  private static readonly BASE = '/api/v1/custom-fields';
+  private static readonly BASE = "/api/v1/custom-fields";
 
   /** Assign a value to a named custom field on a target. Returns `DataExtDataExt`. */
-  create(
-    params: CreateCustomFieldValueRequest & RequestOptions,
-  ): Promise<DataExtDataExt>;
   create(
     body: CreateCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DataExtDataExt>;
   async create(
-    params: CreateCustomFieldValueRequest & RequestOptions,
+    body: CreateCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DataExtDataExt> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
     return this.transport.post<DataExtDataExt>(
       CustomFieldsResource.BASE,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
   }
 
   /** Change an existing value. POSTs to the `/update` sub-path. */
   update(
-    params: UpdateCustomFieldValueRequest & RequestOptions,
-  ): Promise<DataExtDataExt>;
-  update(
     body: UpdateCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DataExtDataExt>;
   async update(
-    params: UpdateCustomFieldValueRequest & RequestOptions,
+    body: UpdateCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DataExtDataExt> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
+    assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
     return this.transport.post<DataExtDataExt>(
       `${CustomFieldsResource.BASE}/update`,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
   }
 
   /** Clear a value (DELETE with a JSON body). Returns `DeleteResponse`. */
   delete(
-    params: DeleteCustomFieldValueRequest & RequestOptions,
-  ): Promise<DeleteResponse>;
-  delete(
     body: DeleteCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DeleteResponse>;
   async delete(
-    params: DeleteCustomFieldValueRequest & RequestOptions,
+    body: DeleteCustomFieldValueRequest,
     options?: RequestOptions,
   ): Promise<DeleteResponse> {
-    const { body, options: requestOptions } = splitBodyAndOptions(
-      params as unknown as Record<string, unknown> & RequestOptions,
-      options,
-    );
     return deleteWithBody<DeleteResponse>(
       this.transport,
       CustomFieldsResource.BASE,
       body,
-      requestOptions,
+      withDefaultMaxRetries(options, 0),
     );
+  }
+
+  get withResponse() {
+    return {
+      create: async (
+        body: CreateCustomFieldValueRequest,
+        options?: RequestOptions,
+      ) => {
+        assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+        const wire = await this.transport.sendPost<DataExtDataExt>(
+          CustomFieldsResource.BASE,
+          body,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+      update: async (
+        body: UpdateCustomFieldValueRequest,
+        options?: RequestOptions,
+      ) => {
+        assertNoRequestOptionKeys(body as Record<string, unknown> | undefined);
+        const wire = await this.transport.sendPost<DataExtDataExt>(
+          `${CustomFieldsResource.BASE}/update`,
+          body,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+      delete: async (
+        body: DeleteCustomFieldValueRequest,
+        options?: RequestOptions,
+      ) => {
+        const wire = await deleteWithBodyResponse<DeleteResponse>(
+          this.transport,
+          CustomFieldsResource.BASE,
+          body as Record<string, unknown>,
+          withDefaultMaxRetries(options, 0),
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+    };
   }
 }
 
@@ -313,11 +368,9 @@ export class CustomFieldsResource {
 //
 // These two routes are the only ones in the API that take a JSON body on a
 // DELETE (the target is identified by owner+name in the body, not a path id).
-// The shared transport's `delete()` sends no body, so rather than widen that
-// hot path we go through `transport.raw()` — which already applies auth, the
-// default headers, the timeout, and retries — and parse the JSON ourselves.
-// `raw()` returns non-2xx responses instead of throwing, so we map those onto
-// the same `NxusApiError` shape the rest of the SDK surfaces.
+// They now use the same delete-with-body transport path as every other SDK
+// call, so retries, logical error handling, request ids, and wrapped metadata
+// stay aligned across plain and withResponse variants.
 // ---------------------------------------------------------------------------
 
 async function deleteWithBody<T>(
@@ -326,25 +379,15 @@ async function deleteWithBody<T>(
   body: Record<string, unknown>,
   options: RequestOptions,
 ): Promise<T> {
-  const response = await transport.raw(
-    path,
-    { method: 'DELETE', body: JSON.stringify(body) },
-    options,
-  );
+  return (await deleteWithBodyResponse<T>(transport, path, body, options)).body;
+}
 
-  if (!response.ok) {
-    let errorBody: unknown;
-    try {
-      errorBody = await response.json();
-    } catch {
-      errorBody = await response.text().catch(() => null);
-    }
-    throw NxusApiError.from(
-      errorBody ?? { status: response.status, message: response.statusText },
-    );
-  }
-
-  if (response.status === 204) return undefined as T;
-  const text = await response.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+async function deleteWithBodyResponse<T>(
+  transport: NxusHttpTransport,
+  path: string,
+  body: Record<string, unknown>,
+  options: RequestOptions,
+) {
+  assertNoRequestOptionKeys(body);
+  return transport.sendDeleteWithBody<T>(path, body, options);
 }
