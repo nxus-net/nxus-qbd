@@ -68,6 +68,33 @@ function describeValidationErrors(errors: Record<string, string[]>): string {
         .join('; ');
 }
 
+/**
+ * Append the offending fields to a primary error message.
+ *
+ * Without this, `err.message` — the string every logger, traceback and error
+ * monitor renders by default — reads only `Validation failed`, while the field
+ * names sit unread on `userMessage`/`validationErrors`. The structured
+ * properties stay authoritative for programmatic handling; this just makes the
+ * human-facing string say *where* the request was rejected.
+ *
+ * Kept identical to Python's `_with_validation_detail` and .NET's
+ * `WithValidationDetail` — the message text is public API in all three.
+ */
+function withValidationDetail(
+    message: string,
+    errors: Record<string, string[]> | undefined,
+): string {
+    if (!errors) {
+        return message;
+    }
+
+    const detail = describeValidationErrors(errors);
+    if (!detail || message.includes(detail)) {
+        return message;
+    }
+    return message ? `${message}: ${detail}` : detail;
+}
+
 
 /**
  * Error codes from the nXus API.
@@ -302,13 +329,17 @@ export class NxusApiError extends Error {
 
         // ProblemDetails shape: { title, detail, status, errors? }
         if ('status' in obj && ('title' in obj || 'detail' in obj)) {
+            const problemErrors = coerceValidationErrors(obj.errors);
             return new NxusApiError({
-                message: obj.detail || obj.title || 'Validation failed.',
+                message: withValidationDetail(
+                    obj.detail || obj.title || 'Validation failed.',
+                    problemErrors,
+                ),
                 userMessage: obj.detail || obj.title || 'Please check your input and try again.',
                 status: obj.status ?? 422,
                 type: 'VALIDATION_ERROR_TYPE',
                 code: 'VALIDATION_ERROR',
-                validationErrors: coerceValidationErrors(obj.errors),
+                validationErrors: problemErrors,
                 requestId: readString(obj, 'requestId'),
                 lifecycleState,
                 restrictionReason,
@@ -335,7 +366,7 @@ export class NxusApiError extends Error {
                 readString(obj, 'message') ?? 'Validation failed.';
             const detail = describeValidationErrors(envelopeErrors);
             return new NxusApiError({
-                message: envelopeMessage,
+                message: withValidationDetail(envelopeMessage, envelopeErrors),
                 userMessage: detail
                     ? `${envelopeMessage}: ${detail}`
                     : envelopeMessage,

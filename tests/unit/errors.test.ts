@@ -141,10 +141,38 @@ describe('NxusApiError.from — existing shapes still win', () => {
             errors: { Name: ['The Name field is required.'] },
         });
 
-        expect(err.message).toBe('One or more validation errors occurred.');
+        // `message` names the rejected field; `userMessage` stays the clean
+        // string that is safe to surface in a UI.
+        expect(err.message).toBe(
+            'One or more validation errors occurred.: Name: The Name field is required.',
+        );
         expect(err.userMessage).toBe('One or more validation errors occurred.');
         expect(err.validationErrors).toEqual({
             Name: ['The Name field is required.'],
         });
+    });
+
+    it('message names the rejected field for the nXus validation envelope', () => {
+        // `err.message` is what loggers and error monitors render by default.
+        // Before this it read a bare `Validation failed`, which told you nothing
+        // about which field the backend rejected.
+        const err = NxusApiError.from({
+            success: false,
+            message: 'Validation failed',
+            errors: { PayeeId: ['Entity is required'] },
+        });
+
+        expect(err.message).toBe('Validation failed: PayeeId: Entity is required');
+        expect(err.validationErrors).toEqual({ PayeeId: ['Entity is required'] });
+    });
+
+    it('does not append the field detail twice', () => {
+        const err = NxusApiError.from({
+            success: false,
+            message: 'Validation failed: PayeeId: Entity is required',
+            errors: { PayeeId: ['Entity is required'] },
+        });
+
+        expect(err.message).toBe('Validation failed: PayeeId: Entity is required');
     });
 });

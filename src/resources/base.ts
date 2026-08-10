@@ -37,7 +37,25 @@ const REQUEST_OPTION_KEYS = [
   "verbose",
   "fetchOptions",
   "includeRawBody",
-] as const;
+] as const satisfies ReadonlyArray<keyof RequestOptions>;
+
+/**
+ * Compile-time guard: every `RequestOptions` field must appear above.
+ *
+ * A field that is missing is not merely unvalidated — it falls through into the
+ * query string or request body and is sent to the server, while the option
+ * itself is silently ignored. `includeRawBody` shipped that way in Python and
+ * was caught here once already, so the invariant is enforced by `tsc` rather
+ * than by a test that has to remember to exist.
+ *
+ * `satisfies` above rejects a stale key; this rejects a missing one. If a new
+ * `RequestOptions` field is added, this line fails to compile until the key is
+ * listed.
+ */
+type AssertNever<T extends never> = T;
+type _EveryRequestOptionKeyIsListed = AssertNever<
+  Exclude<keyof RequestOptions, (typeof REQUEST_OPTION_KEYS)[number]>
+>;
 
 const REQUEST_OPTION_KEY_SET = new Set<string>(REQUEST_OPTION_KEYS);
 const CURSOR_CLOSE_STRIPPED_HEADERS = new Set([
