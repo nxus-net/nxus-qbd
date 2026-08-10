@@ -16581,7 +16581,7 @@ export type PurchaseOrderLine = {
   /**
    * The customer or job associated with this purchase-order line.
    */
-  payee: QbdRef;
+  payee?: QbdRef | null;
   /**
    * The ServiceDate associated with this object.
    */
@@ -17285,7 +17285,7 @@ export type SalesOrder = {
    * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
    * working with the latest data and to prevent optimistic concurrency errors.
    */
-  revisionNumber: string;
+  revisionNumber?: string | null;
   /**
    * The date the transaction occurred or was recorded.
    */
@@ -17462,7 +17462,7 @@ export type SalesOrderLine = {
   /**
    * The TxnLineId associated with this object.
    */
-  id: string;
+  id?: string | null;
   objectType: string;
   /**
    * The Other1 associated with this object.

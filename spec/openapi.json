@@ -27604,7 +27604,8 @@
                 "$ref": "#/components/schemas/QbdRef"
               }
             ],
-            "description": "The customer or job associated with this purchase-order line."
+            "description": "The customer or job associated with this purchase-order line.",
+            "nullable": true
           },
           "serviceDate": {
             "description": "The ServiceDate associated with this object.",
@@ -27680,7 +27681,6 @@
           "class",
           "amount",
           "inventorySiteLocation",
-          "payee",
           "serviceDate",
           "salesTaxCode",
           "receivedQuantity",
@@ -28656,6 +28656,7 @@
           },
           "revisionNumber": {
             "description": "The current QuickBooks-assigned revision number for this object.\n\nThis value changes every time the record is modified.\nWhen updating this object, you must provide the most recent `revisionNumber` to ensure you are\nworking with the latest data and to prevent optimistic concurrency errors.",
+            "nullable": true,
             "type": "string"
           },
           "transactionDate": {
@@ -28945,7 +28946,6 @@
           "id",
           "createdAt",
           "updatedAt",
-          "revisionNumber",
           "objectType",
           "transactionDate",
           "currency",
@@ -28992,6 +28992,7 @@
         "properties": {
           "id": {
             "description": "The TxnLineId associated with this object.",
+            "nullable": true,
             "type": "string"
           },
           "objectType": {
@@ -29158,7 +29159,6 @@
           }
         },
         "required": [
-          "id",
           "objectType",
           "otherCustomField1",
           "otherCustomField2",
