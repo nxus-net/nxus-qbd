@@ -616,7 +616,7 @@ describe("platform SDK surface", () => {
     const retrieved = await client.billPaymentsOrCredits.retrieve("bill_123");
 
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
-      "https://api.example.test/api/v1/bill-payment-or-credits",
+      "https://api.example.test/api/v1/bill-payments-or-credits",
     );
     expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
       "https://api.example.test/api/v1/bill-payment-or-credit/bill_123",

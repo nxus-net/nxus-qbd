@@ -4,7 +4,7 @@
     "AuthSession",
     "QwcAuthSetup"
   ],
-  "generatedFrom": "6301203bfa967754ff7d508c38180b6cc00fb52bb2250d6625af061da02a538c",
+  "generatedFrom": "93094379db886f3773b6f5b5f151203aca35cb2ffb84bf1e4c059a1913d075bf",
   "schemas": {
     "Account": {
       "module": "account",
@@ -50,10 +50,6 @@
       "module": "report",
       "package": "qbd"
     },
-    "ApplicableCredit": {
-      "module": "bill_payment_or_credit",
-      "package": "qbd"
-    },
     "AppliedToTransaction": {
       "module": "_shared",
       "package": ""
@@ -89,250 +85,6 @@
     "BarCodeRequest": {
       "module": "_shared",
       "package": ""
-    },
-    "BasePageResponseAccount": {
-      "module": "account",
-      "package": "qbd"
-    },
-    "BasePageResponseAccountTaxLineInfo": {
-      "module": "account_tax_line_info",
-      "package": "qbd"
-    },
-    "BasePageResponseArRefundCreditCard": {
-      "module": "ar_refund_credit_card",
-      "package": "qbd"
-    },
-    "BasePageResponseBarCode": {
-      "module": "bar_code",
-      "package": "qbd"
-    },
-    "BasePageResponseBill": {
-      "module": "bill",
-      "package": "qbd"
-    },
-    "BasePageResponseBillPaymentOrCredit": {
-      "module": "bill_payment_or_credit",
-      "package": "qbd"
-    },
-    "BasePageResponseBillingRate": {
-      "module": "billing_rate",
-      "package": "qbd"
-    },
-    "BasePageResponseBuildAssembly": {
-      "module": "build_assembly",
-      "package": "qbd"
-    },
-    "BasePageResponseCharge": {
-      "module": "charge",
-      "package": "qbd"
-    },
-    "BasePageResponseCheck": {
-      "module": "check",
-      "package": "qbd"
-    },
-    "BasePageResponseCheckBillPayment": {
-      "module": "check_bill_payment",
-      "package": "qbd"
-    },
-    "BasePageResponseClass": {
-      "module": "class_",
-      "package": "qbd"
-    },
-    "BasePageResponseCreditCardBillPayment": {
-      "module": "credit_card_bill_payment",
-      "package": "qbd"
-    },
-    "BasePageResponseCreditCardCharge": {
-      "module": "credit_card_charge",
-      "package": "qbd"
-    },
-    "BasePageResponseCreditCardCredit": {
-      "module": "credit_card_credit",
-      "package": "qbd"
-    },
-    "BasePageResponseCreditMemo": {
-      "module": "credit_memo",
-      "package": "qbd"
-    },
-    "BasePageResponseCurrency": {
-      "module": "currency",
-      "package": "qbd"
-    },
-    "BasePageResponseCustomer": {
-      "module": "customer",
-      "package": "qbd"
-    },
-    "BasePageResponseCustomerType": {
-      "module": "customer_type",
-      "package": "qbd"
-    },
-    "BasePageResponseDateDrivenTerm": {
-      "module": "date_driven_term",
-      "package": "qbd"
-    },
-    "BasePageResponseDeposit": {
-      "module": "deposit",
-      "package": "qbd"
-    },
-    "BasePageResponseEmployee": {
-      "module": "employee",
-      "package": "qbd"
-    },
-    "BasePageResponseEstimate": {
-      "module": "estimate",
-      "package": "qbd"
-    },
-    "BasePageResponseInventoryAdjustment": {
-      "module": "inventory_adjustment",
-      "package": "qbd"
-    },
-    "BasePageResponseInventoryItem": {
-      "module": "item_inventory",
-      "package": "qbd"
-    },
-    "BasePageResponseInventorySite": {
-      "module": "inventory_site",
-      "package": "qbd"
-    },
-    "BasePageResponseInvoice": {
-      "module": "invoice",
-      "package": "qbd"
-    },
-    "BasePageResponseItem": {
-      "module": "item",
-      "package": "qbd"
-    },
-    "BasePageResponseItemDiscount": {
-      "module": "item_discount",
-      "package": "qbd"
-    },
-    "BasePageResponseItemFixedAsset": {
-      "module": "item_fixed_asset",
-      "package": "qbd"
-    },
-    "BasePageResponseItemGroup": {
-      "module": "item_group",
-      "package": "qbd"
-    },
-    "BasePageResponseItemInventoryAssembly": {
-      "module": "item_inventory_assembly",
-      "package": "qbd"
-    },
-    "BasePageResponseItemNonInventory": {
-      "module": "item_non_inventory",
-      "package": "qbd"
-    },
-    "BasePageResponseItemOtherCharge": {
-      "module": "item_other_charge",
-      "package": "qbd"
-    },
-    "BasePageResponseItemPayment": {
-      "module": "item_payment",
-      "package": "qbd"
-    },
-    "BasePageResponseItemReceipt": {
-      "module": "item_receipt",
-      "package": "qbd"
-    },
-    "BasePageResponseItemSalesTax": {
-      "module": "item_sales_tax",
-      "package": "qbd"
-    },
-    "BasePageResponseItemSalesTaxGroup": {
-      "module": "item_sales_tax_group",
-      "package": "qbd"
-    },
-    "BasePageResponseItemSubtotal": {
-      "module": "item_subtotal",
-      "package": "qbd"
-    },
-    "BasePageResponseJournalEntry": {
-      "module": "journal_entry",
-      "package": "qbd"
-    },
-    "BasePageResponseOtherName": {
-      "module": "other_name",
-      "package": "qbd"
-    },
-    "BasePageResponsePaymentMethod": {
-      "module": "payment_method",
-      "package": "qbd"
-    },
-    "BasePageResponsePayrollItemNonWage": {
-      "module": "payroll_item_non_wage",
-      "package": "qbd"
-    },
-    "BasePageResponsePayrollItemWage": {
-      "module": "payroll_item_wage",
-      "package": "qbd"
-    },
-    "BasePageResponsePriceLevel": {
-      "module": "price_level",
-      "package": "qbd"
-    },
-    "BasePageResponsePurchaseOrder": {
-      "module": "purchase_order",
-      "package": "qbd"
-    },
-    "BasePageResponseReceivePayment": {
-      "module": "receive_payment",
-      "package": "qbd"
-    },
-    "BasePageResponseSalesOrder": {
-      "module": "sales_order",
-      "package": "qbd"
-    },
-    "BasePageResponseSalesReceipt": {
-      "module": "sales_receipt",
-      "package": "qbd"
-    },
-    "BasePageResponseSalesTaxCode": {
-      "module": "sales_tax_code",
-      "package": "qbd"
-    },
-    "BasePageResponseSalesTaxPaymentCheck": {
-      "module": "sales_tax_payment_check",
-      "package": "qbd"
-    },
-    "BasePageResponseServiceItem": {
-      "module": "item_service",
-      "package": "qbd"
-    },
-    "BasePageResponseShipMethod": {
-      "module": "ship_method",
-      "package": "qbd"
-    },
-    "BasePageResponseTerm": {
-      "module": "term",
-      "package": "qbd"
-    },
-    "BasePageResponseTimeTracking": {
-      "module": "time_tracking_activity",
-      "package": "qbd"
-    },
-    "BasePageResponseTransaction": {
-      "module": "transaction",
-      "package": "qbd"
-    },
-    "BasePageResponseUnitOfMeasureSet": {
-      "module": "unit_of_measure_set",
-      "package": "qbd"
-    },
-    "BasePageResponseVendor": {
-      "module": "vendor",
-      "package": "qbd"
-    },
-    "BasePageResponseVendorCredit": {
-      "module": "vendor_credit",
-      "package": "qbd"
-    },
-    "BasePageResponseVendorType": {
-      "module": "vendor_type",
-      "package": "qbd"
-    },
-    "BasePageResponseWorkersCompCode": {
-      "module": "workers_comp_code",
-      "package": "qbd"
     },
     "BaseUnit": {
       "module": "unit_of_measure_set",
@@ -406,6 +158,10 @@
       "module": "class_",
       "package": "qbd"
     },
+    "CollectionResponseDataExtDefinition": {
+      "module": "custom_field_definitions",
+      "package": "qbd"
+    },
     "ComponentItemLine": {
       "module": "build_assembly",
       "package": "qbd"
@@ -430,6 +186,10 @@
       "module": "_shared",
       "package": ""
     },
+    "CountResponse": {
+      "module": "_shared",
+      "package": ""
+    },
     "CreateAccountRequest": {
       "module": "account",
       "package": "qbd"
@@ -445,10 +205,6 @@
     "CreateAuthSessionRequest": {
       "module": "auth_session",
       "package": "core"
-    },
-    "CreateBillPaymentOrCreditRequest": {
-      "module": "bill_payment_or_credit",
-      "package": "qbd"
     },
     "CreateBillRequest": {
       "module": "bill",
@@ -486,12 +242,12 @@
       "module": "credit_card_bill_payment",
       "package": "qbd"
     },
-    "CreateCreditCardCreditRequest": {
-      "module": "credit_card_credit",
+    "CreateCreditCardChargeRequest": {
+      "module": "credit_card_charge",
       "package": "qbd"
     },
-    "CreateCreditCardRequest": {
-      "module": "credit_card_charge",
+    "CreateCreditCardCreditRequest": {
+      "module": "credit_card_credit",
       "package": "qbd"
     },
     "CreateCreditCardTransactionInfoRequest": {
@@ -584,6 +340,14 @@
     },
     "CreateInventorySiteRequest": {
       "module": "inventory_site",
+      "package": "qbd"
+    },
+    "CreateInvoiceLineGroupRequest": {
+      "module": "invoice",
+      "package": "qbd"
+    },
+    "CreateInvoiceLineRequest": {
+      "module": "invoice",
       "package": "qbd"
     },
     "CreateInvoiceRequest": {
@@ -692,6 +456,10 @@
     },
     "CreateSalesOrPurchaseRequest": {
       "module": "item_service",
+      "package": "qbd"
+    },
+    "CreateSalesOrderLineGroupRequest": {
+      "module": "sales_order",
       "package": "qbd"
     },
     "CreateSalesOrderLineRequest": {
@@ -810,7 +578,15 @@
       "module": "credit_memo",
       "package": "qbd"
     },
+    "CreditToApply": {
+      "module": "bill_payment_or_credit",
+      "package": "qbd"
+    },
     "Currency": {
+      "module": "currency",
+      "package": "qbd"
+    },
+    "CurrencyDecimalSeparator": {
       "module": "currency",
       "package": "qbd"
     },
@@ -819,6 +595,10 @@
       "package": "qbd"
     },
     "CurrencyFormatRequest": {
+      "module": "currency",
+      "package": "qbd"
+    },
+    "CurrencySeparator": {
       "module": "currency",
       "package": "qbd"
     },
@@ -987,6 +767,14 @@
       "package": "qbd"
     },
     "Invoice": {
+      "module": "invoice",
+      "package": "qbd"
+    },
+    "InvoiceLine": {
+      "module": "invoice",
+      "package": "qbd"
+    },
+    "InvoiceLineGroup": {
       "module": "invoice",
       "package": "qbd"
     },
@@ -1210,16 +998,16 @@
       "module": "account",
       "package": "qbd"
     },
-    "NullablePaidStatus": {
-      "module": "invoice",
-      "package": "qbd"
-    },
     "OtherName": {
       "module": "other_name",
       "package": "qbd"
     },
     "OvertimeExemptStatus": {
       "module": "employee",
+      "package": "qbd"
+    },
+    "PaidStatus": {
+      "module": "invoice",
       "package": "qbd"
     },
     "PayPeriod": {
@@ -1271,6 +1059,10 @@
       "package": "qbd"
     },
     "QbdDataExt": {
+      "module": "_shared",
+      "package": ""
+    },
+    "QbdDateMacro": {
       "module": "_shared",
       "package": ""
     },
@@ -1350,6 +1142,10 @@
       "module": "sales_order",
       "package": "qbd"
     },
+    "SalesOrderLineGroup": {
+      "module": "sales_order",
+      "package": "qbd"
+    },
     "SalesReceipt": {
       "module": "sales_receipt",
       "package": "qbd"
@@ -1402,6 +1198,10 @@
       "module": "customer",
       "package": "qbd"
     },
+    "ShippingDetailsLine": {
+      "module": "sales_order",
+      "package": "qbd"
+    },
     "SickHours": {
       "module": "employee",
       "package": "qbd"
@@ -1438,6 +1238,10 @@
       "module": "term",
       "package": "qbd"
     },
+    "ThousandSeparatorGrouping": {
+      "module": "currency",
+      "package": "qbd"
+    },
     "TimeTracking": {
       "module": "time_tracking_activity",
       "package": "qbd"
@@ -1470,10 +1274,6 @@
       "module": "ar_refund_credit_card",
       "package": "qbd"
     },
-    "UpdateBillPaymentOrCreditRequest": {
-      "module": "bill_payment_or_credit",
-      "package": "qbd"
-    },
     "UpdateBillRequest": {
       "module": "bill",
       "package": "qbd"
@@ -1502,16 +1302,12 @@
       "module": "connections",
       "package": "core"
     },
-    "UpdateCreditCardBillPaymentRequest": {
-      "module": "credit_card_bill_payment",
+    "UpdateCreditCardChargeRequest": {
+      "module": "credit_card_charge",
       "package": "qbd"
     },
     "UpdateCreditCardCreditRequest": {
       "module": "credit_card_credit",
-      "package": "qbd"
-    },
-    "UpdateCreditCardRequest": {
-      "module": "credit_card_charge",
       "package": "qbd"
     },
     "UpdateCreditCardTransactionInfoRequest": {
@@ -1598,6 +1394,14 @@
       "module": "inventory_site",
       "package": "qbd"
     },
+    "UpdateInvoiceLineGroupRequest": {
+      "module": "invoice",
+      "package": "qbd"
+    },
+    "UpdateInvoiceLineRequest": {
+      "module": "invoice",
+      "package": "qbd"
+    },
     "UpdateInvoiceRequest": {
       "module": "invoice",
       "package": "qbd"
@@ -1670,10 +1474,6 @@
       "module": "other_name",
       "package": "qbd"
     },
-    "UpdatePaymentMethodRequest": {
-      "module": "payment_method",
-      "package": "qbd"
-    },
     "UpdatePriceLevelRequest": {
       "module": "price_level",
       "package": "qbd"
@@ -1700,6 +1500,10 @@
     },
     "UpdateSalesOrPurchaseRequest": {
       "module": "item_service",
+      "package": "qbd"
+    },
+    "UpdateSalesOrderLineGroupRequest": {
+      "module": "sales_order",
       "package": "qbd"
     },
     "UpdateSalesOrderLineRequest": {

@@ -13,7 +13,7 @@ export type Account = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -58,7 +58,7 @@ export type Account = {
    *
    * A top-level account has a sublevel of 0; each subsequent sublevel increases this number by 1.
    */
-  sublevel: number;
+  sublevel: number | null;
   /**
    * The classification of this account, indicating its purpose within the chart of accounts.
    */
@@ -115,16 +115,15 @@ export type Account = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
    * Used for tracking user-defined data beyond standard QuickBooks properties.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -137,7 +136,7 @@ export type AccountTaxLineInfo = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -147,16 +146,7 @@ export type AccountTaxLineInfo = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -372,141 +362,11 @@ export type AddressRequest = {
  * Response wrapper for API responses
  */
 export type ApiResponseReport = {
-  success: boolean;
+  success: boolean | null;
   message: string | null;
   data: Report | null;
-  timestamp: string;
+  timestamp: string | null;
   requestId: string | null;
-};
-
-/**
- * Represents a credit that can be applied to a bill.
- */
-export type ApplicableCredit = {
-  /**
-   * The unique identifier assigned by QuickBooks to this transaction.
-   *
-   * This ID is unique across **all** transaction types in the QuickBooks company file,
-   * not just within its own type. This value is assigned by QuickBooks and never changes.
-   */
-  id: string;
-  /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
-   */
-  objectType: string;
-  /**
-   * The date and time when this entity was originally created in QuickBooks.
-   *
-   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
-   * relative to the local timezone of the host computer where the company file resides.
-   */
-  createdAt: string;
-  /**
-   * The date and time when this entity was last modified in QuickBooks.
-   *
-   * Represented in ISO 8601 format.
-   */
-  updatedAt: string;
-  /**
-   * The current QuickBooks-assigned revision number for this object.
-   *
-   * This value changes every time the record is modified.
-   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
-   * working with the latest data and to prevent optimistic concurrency errors.
-   */
-  revisionNumber: string;
-  /**
-   * The date the transaction occurred or was recorded.
-   */
-  transactionDate: string | null;
-  /**
-   * The currency used for this transaction.
-   *
-   * Only applicable if the QuickBooks company file has multi-currency enabled.
-   */
-  currency: QbdRef | null;
-  /**
-   * The market exchange rate between the transaction's currency and the home currency.
-   *
-   * Only applicable if multi-currency is enabled.
-   */
-  exchangeRate: number | null;
-  /**
-   * A user-defined reference number for this transaction (e.g., check number, invoice number).
-   *
-   * This value is case-sensitive and appears in various QuickBooks UI forms.
-   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
-   */
-  refNumber: string | null;
-  /**
-   * A memo or note for the transaction that appears in registers and reports.
-   */
-  memo: string | null;
-  /**
-   * The TxnType associated with this object.
-   */
-  transactionType: string | null;
-  /**
-   * The APAccount associated with this object.
-   */
-  payablesAccount: QbdRef | null;
-  /**
-   * The creditRemaining associated with this object.
-   */
-  creditRemaining: number | null;
-  creditRemainingInHomeCurrency: number | null;
-  /**
-   * The total monetary amount of the transaction.
-   *
-   * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
-   */
-  amount: number | null;
-  /**
-   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
-   */
-  entity: QbdRef | null;
-  /**
-   * The bank or credit card account used for this transaction.
-   */
-  account: QbdRef | null;
-  /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
-   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
-   *
-   * This field is immutable and can only be set during the initial creation of the transaction.
-   */
-  externalId: string | null;
-  /**
-   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
-   *
-   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
-   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
-   */
-  linkedTransactions: Array<LinkedTransaction>;
-  /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -518,6 +378,9 @@ export type AppliedToTransaction = {
    * The unique identifier for the transaction this one is applied to.
    */
   id: string;
+  /**
+   * The QuickBooks Desktop object type.
+   */
   objectType: string;
   /**
    * The type of transaction this one is applied to.
@@ -640,7 +503,7 @@ export type ArRefundCreditCard = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -738,10 +601,6 @@ export type ArRefundCreditCard = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -753,28 +612,13 @@ export type ArRefundCreditCard = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -797,23 +641,23 @@ export type AuthSessionResponse = {
   /**
    * The connection ID this session was created for
    */
-  connectionId: string;
+  connectionId: string | null;
   /**
    * Opaque secret for server-side session identification.
    * Do not share this with your users.
    */
-  clientSecret: string;
+  clientSecret: string | null;
   /**
    * The URL to send your user to for QWC setup.
    * Embed this in an email, button, or redirect — the user clicks it,
    * walks through the setup wizard, and the connection activates.
    */
-  authFlowUrl: string;
+  authFlowUrl: string | null;
   /**
    * UTC timestamp when this session expires.
    * Defaults to 30 minutes from creation. Extend with `linkExpiryMins`.
    */
-  expiresAt: string;
+  expiresAt: string | null;
   /**
    * The redirect URL included in the request, if any
    */
@@ -821,7 +665,7 @@ export type AuthSessionResponse = {
   /**
    * Session status: "pending", "in_progress", or "completed"
    */
-  status: string;
+  status: string | null;
 };
 
 export enum AvsStreet {
@@ -837,59 +681,25 @@ export enum AvsZip {
 }
 
 /**
- * Represents a Barcode identifier associated with a QuickBooks List Object (e.g., Item, Customer, Vendor).
+ * Represents the list-object lookup returned by a QuickBooks BarCode query.
  */
 export type BarCode = {
   /**
-   * The unique identifier assigned by QuickBooks to this object.
+   * The QuickBooks ListID of the object identified by the barcode.
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
-   * The primary, user-defined display name for the list object.
-   */
-  name: string | null;
-  /**
-   * The date and time when this entity was originally created in QuickBooks.
-   *
-   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
-   * relative to the local timezone of the host computer where the company file resides.
-   */
-  createdAt: string;
-  /**
-   * The date and time when this entity was last modified in QuickBooks.
-   *
-   * Represented in ISO 8601 format.
-   */
-  updatedAt: string;
-  /**
-   * The current QuickBooks-assigned revision number for this object.
-   *
-   * This value changes every time the record is modified.
-   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
-   * working with the latest data and to prevent optimistic concurrency errors.
-   */
-  revisionNumber?: string | null;
-  /**
-   * ListType may have one of the following values: Account, Class, Customer, CustomerMsg, CustomerType, DateDrivenTerms, Employee, ItemDiscount, ItemFixedAsset, ItemGroup, ItemInventory, ItemInventoryAssembly, ItemNonInventory, ItemOtherCharge, ItemPayment, ItemSalesTax, ItemSalesTaxGroup, ItemService, ItemSubtotal, JobType, OtherName, PaymentMethod, PriceLevel, SalesRep, SalesTaxCode, ShipMethod, StandardTerms, ToDo, Vendor, VendorType
+   * The type of list object associated with the barcode.
    */
   listType: string | null;
   /**
-   * Indicates whether the list item is currently active.
+   * The fully qualified name of the object identified by the barcode.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  name: string | null;
 };
 
 /**
@@ -912,1165 +722,6 @@ export type BarCodeRequest = {
 };
 
 /**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseAccount = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Account>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseAccountTaxLineInfo = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<AccountTaxLineInfo>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseArRefundCreditCard = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ArRefundCreditCard>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseBarCode = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<BarCode>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseBill = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Bill>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseBillPaymentOrCredit = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<BillPaymentOrCredit>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseBillingRate = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<BillingRate>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseBuildAssembly = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<BuildAssembly>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCharge = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Charge>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCheck = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Check>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCheckBillPayment = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CheckBillPayment>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseClass = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Class>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCreditCardBillPayment = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CreditCardBillPayment>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCreditCardCharge = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CreditCardCharge>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCreditCardCredit = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CreditCardCredit>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCreditMemo = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CreditMemo>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCurrency = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Currency>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCustomer = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Customer>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseCustomerType = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<CustomerType>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseDateDrivenTerm = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<DateDrivenTerm>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseDeposit = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Deposit>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseEmployee = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Employee>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseEstimate = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Estimate>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseInventoryAdjustment = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<InventoryAdjustment>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseInventoryItem = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<InventoryItem>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseInventorySite = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<InventorySite>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseInvoice = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Invoice>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItem = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Item>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemDiscount = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemDiscount>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemFixedAsset = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemFixedAsset>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemGroup = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemGroup>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemInventoryAssembly = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemInventoryAssembly>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemNonInventory = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemNonInventory>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemOtherCharge = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemOtherCharge>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemPayment = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemPayment>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemReceipt = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemReceipt>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemSalesTax = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemSalesTax>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemSalesTaxGroup = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemSalesTaxGroup>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseItemSubtotal = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ItemSubtotal>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseJournalEntry = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<JournalEntry>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseOtherName = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<OtherName>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponsePaymentMethod = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<PaymentMethod>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponsePayrollItemNonWage = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<PayrollItemNonWage>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponsePayrollItemWage = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<PayrollItemWage>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponsePriceLevel = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<PriceLevel>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponsePurchaseOrder = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<PurchaseOrder>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseReceivePayment = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ReceivePayment>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseSalesOrder = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<SalesOrder>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseSalesReceipt = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<SalesReceipt>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseSalesTaxCode = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<SalesTaxCode>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseSalesTaxPaymentCheck = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<SalesTaxPaymentCheck>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseServiceItem = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ServiceItem>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseShipMethod = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<ShipMethod>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseTerm = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Term>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseTimeTracking = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<TimeTracking>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseTransaction = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Transaction>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseUnitOfMeasureSet = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<UnitOfMeasureSet>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseVendor = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<Vendor>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseVendorCredit = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<VendorCredit>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseVendorType = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<VendorType>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
- * Simple paginated response designed for SDK consumption
- * Clean, predictable structure perfect for automated pagination handling
- */
-export type BasePageResponseWorkersCompCode = {
-  requestId: string | null;
-  success: boolean;
-  data: Array<WorkersCompCode>;
-  nextCursor: string;
-  page: number;
-  count: number;
-  limit: number;
-  totalCount: number;
-  pageCount: number;
-  hasMore: boolean;
-  timestamp: string;
-  remainingCount: number;
-};
-
-/**
  * DTO for the base unit of a UnitOfMeasureSet.
  */
 export type BaseUnit = {
@@ -2079,11 +730,11 @@ export type BaseUnit = {
    *
    * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
-  name: string;
+  name: string | null;
   /**
    * The base unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
    */
-  abbreviation: string;
+  abbreviation: string | null;
 };
 
 /**
@@ -2124,7 +775,7 @@ export type Bill = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -2177,7 +828,7 @@ export type Bill = {
   /**
    * The total monetary amount of the bill.
    */
-  amountDue: number;
+  amountDue: number | null;
   /**
    * The currency used for this transaction.
    *
@@ -2242,10 +893,6 @@ export type Bill = {
    */
   account: QbdRef | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -2257,75 +904,42 @@ export type Bill = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
    * The remaining unpaid balance (open amount) of the bill.
    */
   openAmount: number | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
- * Represents an outstanding vendor balance. This will contain either a payable bill
- * that requires payment, or an available credit that can be applied to a payment.
+ * Represents one `BillToPayRet`, containing either a bill awaiting payment or a credit that
+ * can be applied. This is a query projection, not a mutable QuickBooks entity.
  */
 export type BillPaymentOrCredit = {
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
-  /**
-   * The date and time when this entity was originally created in QuickBooks.
-   *
-   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
-   * relative to the local timezone of the host computer where the company file resides.
-   */
-  createdAt: string;
-  /**
-   * The date and time when this entity was last modified in QuickBooks.
-   *
-   * Represented in ISO 8601 format.
-   */
-  updatedAt: string;
-  /**
-   * The current QuickBooks-assigned revision number for this object.
-   *
-   * This value changes every time the record is modified.
-   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
-   * working with the latest data and to prevent optimistic concurrency errors.
-   */
-  revisionNumber: string;
   bill: PayableBill | null;
-  credit: ApplicableCredit | null;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  credit: CreditToApply | null;
 };
 
 export enum BillableStatus {
@@ -2344,7 +958,7 @@ export type BillingRate = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -2387,16 +1001,7 @@ export type BillingRate = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -2458,7 +1063,7 @@ export type BuildAssembly = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -2580,10 +1185,6 @@ export type BuildAssembly = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -2595,28 +1196,13 @@ export type BuildAssembly = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export enum CardSecurityCodeMatch {
@@ -2688,7 +1274,7 @@ export type Charge = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -2838,10 +1424,6 @@ export type Charge = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -2853,28 +1435,13 @@ export type Charge = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -2890,7 +1457,7 @@ export type Check = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -2983,10 +1550,6 @@ export type Check = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -2998,28 +1561,25 @@ export type Check = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -3034,7 +1594,7 @@ export type CheckBillPayment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -3121,17 +1681,9 @@ export type CheckBillPayment = {
    */
   entity: QbdRef | null;
   /**
-   * The bank or credit card account used for this transaction.
-   */
-  account: QbdRef | null;
-  /**
    * The transaction amount converted into the QuickBooks company file's home currency.
    */
   amountInHomeCurrency: string | null;
-  /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
   /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
@@ -3144,28 +1696,13 @@ export type CheckBillPayment = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export enum CitizenshipStatus {
@@ -3182,7 +1719,7 @@ export type Class = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -3231,16 +1768,19 @@ export type Class = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
+};
+
+/**
+ * Envelope for a complete, non-paginated collection returned by the API.
+ */
+export type CollectionResponseDataExtDefinition = {
+  objectType: string;
+  requestId: string;
+  success: boolean;
+  data: Array<DataExtDefinition>;
+  count: number;
+  timestamp: string;
 };
 
 /**
@@ -3307,17 +1847,17 @@ export type ConnectionModeRequest = number;
  * (bool ConnectionProbeResult.Responding = false).
  */
 export type ConnectionProbeResult = {
-  object: string;
+  object: string | null;
   /**
    * Prefixed connection id the probe was run against.
    */
-  connectionId: string;
+  connectionId: string | null;
   /**
    * True when QuickBooks answered the probe within the timeout — a genuine live round-trip.
    * False means the connector did not run the probe in time (QB closed, Web Connector down,
    * or the company file is not open).
    */
-  responding: boolean;
+  responding: boolean | null;
   /**
    * Company file display name reported by QuickBooks, when the probe succeeded.
    */
@@ -3329,11 +1869,11 @@ export type ConnectionProbeResult = {
   /**
    * How long the probe waited for QuickBooks to answer.
    */
-  elapsedMs: number;
+  elapsedMs: number | null;
   /**
    * When the probe completed (UTC).
    */
-  checkedAt: string;
+  checkedAt: string | null;
 };
 
 /**
@@ -3359,11 +1899,11 @@ export type ConnectionResponse = {
   /**
    * Connection mode, either `development` or `production`.
    */
-  mode: string;
+  mode: string | null;
   /**
    * Lifecycle state, e.g. `active` or `archived`.
    */
-  lifecycleState: string;
+  lifecycleState: string | null;
   /**
    * Restriction reason when access is limited by policy.
    */
@@ -3371,23 +1911,23 @@ export type ConnectionResponse = {
   /**
    * True when the tenant may currently access the connection.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
    * True when the connection has been archived.
    */
-  isArchived: boolean;
+  isArchived: boolean | null;
   /**
    * True when the connection is usable for sync and API operations.
    */
-  isOperational: boolean;
+  isOperational: boolean | null;
   /**
    * True when the connection requires billing completion before it can operate.
    */
-  requiresPayment: boolean;
+  requiresPayment: boolean | null;
   /**
    * Billing status for production connections.
    */
-  billingStatus: string;
+  billingStatus: string | null;
   /**
    * Hosted billing URL when payment is required.
    */
@@ -3423,7 +1963,7 @@ export type ConnectionResponse = {
 };
 
 export type ConnectionStatus = {
-  connectionId: string;
+  connectionId: string | null;
   isConnected: boolean | null;
   lastSyncAt: string | null;
   companyName: string | null;
@@ -3438,7 +1978,7 @@ export type Contact = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -3477,7 +2017,7 @@ export type Contact = {
   /**
    * The contact's first name.
    */
-  firstName: string;
+  firstName: string | null;
   /**
    * The contact's middle name.
    */
@@ -3497,16 +2037,33 @@ export type Contact = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
+};
+
+/**
+ * Result of a QuickBooks metadata-only count query.
+ */
+export type CountResponse = {
   /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * The unique identifier for this request.
    */
-  customFields: Array<QbdDataExt>;
+  requestId: string | null;
+  /**
+   * Indicates whether the request completed successfully.
+   */
+  success: boolean;
+  /**
+   * Approximate number of QuickBooks objects matching the supplied filters.
+   */
+  count: number;
+  /**
+   * Indicates that QuickBooks reports this metadata count as approximate.
+   */
+  isApproximate: boolean;
+  /**
+   * Time at which the response was created.
+   */
+  timestamp: string;
 };
 
 /**
@@ -3663,13 +2220,6 @@ export type CreateAuthSessionRequest = {
    * Defaults to 30 minutes if omitted. Maximum is 10,080 minutes (7 days).
    */
   linkExpiryMins?: number | null;
-};
-
-/**
- * BillToPay is a read-only query result in QuickBooks and cannot be created directly.
- */
-export type CreateBillPaymentOrCreditRequest = {
-  [key: string]: unknown;
 };
 
 /**
@@ -4158,6 +2708,65 @@ export type CreateCreditCardBillPaymentRequest = {
 };
 
 /**
+ * Main request model to create a new Credit Card Charge.
+ * Based on the CreditCardChargeAddRq QBXML.
+ */
+export type CreateCreditCardChargeRequest = {
+  /**
+   * (Required) The ListID or FullName of the Credit Card account.
+   */
+  accountId: string;
+  /**
+   * (Optional) The ListID or FullName of the Payee (Vendor, Customer, Employee).
+   */
+  payeeId?: string | null;
+  /**
+   * (Optional) The date of the transaction. Defaults to today if not provided.
+   */
+  transactionDate?: string | null;
+  /**
+   * (Optional) The reference number for the transaction.
+   */
+  refNumber?: string | null;
+  /**
+   * (Optional) A memo for the entire transaction.
+   */
+  memo?: string | null;
+  /**
+   * (Optional) If true, the amount includes sales tax.
+   */
+  isTaxIncluded?: boolean | null;
+  /**
+   * (Optional) The ListID or FullName of the sales tax code.
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * (Optional) Exchange rate, used for multi-currency.
+   */
+  exchangeRate?: number | null;
+  /**
+   * (Optional) A unique external identifier. Defaults to a new Guid if omitted.
+   */
+  externalId?: string | null;
+  /**
+   * (Optional) A list of expense lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
+   */
+  expenseLines?: Array<CreateExpenseLineRequest> | null;
+  /**
+   * (Optional) A list of item lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
+   *
+   * If a created item line does not specify an amount, `cost`, or `Quantity`, then QuickBooks will calculate `Amount` based on a `Quantity` of 1 and the suggested `Cost`.
+   */
+  itemLines?: Array<CreateItemLineRequest> | null;
+  /**
+   * (Optional) A list of item group lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
+   *
+   * Refers to items that are grouped together in QuickBooks for fast entry.
+   */
+  itemGroupLines?: Array<CreateItemGroupLineRequest> | null;
+};
+
+/**
  * Request model for creating a new CreditCardCredit transaction.
  */
 export type CreateCreditCardCreditRequest = {
@@ -4215,61 +2824,6 @@ export type CreateCreditCardCreditRequest = {
   itemLines?: Array<CreateItemLineRequest> | null;
   /**
    * Item group line items for the credit card credit.
-   */
-  itemGroupLines?: Array<CreateItemGroupLineRequest> | null;
-};
-
-/**
- * Main request model to create a new Credit Card Charge.
- * Based on the CreditCardChargeAddRq QBXML.
- */
-export type CreateCreditCardRequest = {
-  /**
-   * (Required) The ListID or FullName of the Credit Card account.
-   */
-  accountId: string;
-  /**
-   * (Optional) The ListID or FullName of the Payee (Vendor, Customer, Employee).
-   */
-  payeeId?: string | null;
-  /**
-   * (Optional) The date of the transaction. Defaults to today if not provided.
-   */
-  transactionDate?: string | null;
-  /**
-   * (Optional) The reference number for the transaction.
-   */
-  refNumber?: string | null;
-  /**
-   * (Optional) A memo for the entire transaction.
-   */
-  memo?: string | null;
-  /**
-   * (Optional) If true, the amount includes sales tax.
-   */
-  isTaxIncluded?: boolean | null;
-  /**
-   * (Optional) The ListID or FullName of the sales tax code.
-   */
-  salesTaxCodeId?: string | null;
-  /**
-   * (Optional) Exchange rate, used for multi-currency.
-   */
-  exchangeRate?: number | null;
-  /**
-   * (Optional) A unique external identifier. Defaults to a new Guid if omitted.
-   */
-  externalId?: string | null;
-  /**
-   * (Optional) A list of expense lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
-   */
-  expenseLines?: Array<CreateExpenseLineRequest> | null;
-  /**
-   * (Optional) A list of item lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
-   */
-  itemLines?: Array<CreateItemLineRequest> | null;
-  /**
-   * (Optional) A list of item group lines. You must provide ExpenseLines OR ItemLines/ItemGroupLines.
    */
   itemGroupLines?: Array<CreateItemGroupLineRequest> | null;
 };
@@ -5263,7 +3817,7 @@ export type CreateEstimateLineRequest = {
   /**
    * The type of object. This value is always `"qbd_estimate"`.
    */
-  objectType?: string | null;
+  objectType: string;
   /**
    * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
    */
@@ -5697,36 +4251,163 @@ export type CreateInventorySiteRequest = {
 };
 
 /**
- * Request model for creating a new invoice in QuickBooks.
- * Matches InvoiceAddRq in QBXML.
+ * Contains parameters for adding a group of items to an invoice (`InvoiceLineGroupAdd`).
  */
-export type CreateInvoiceRequest = {
+export type CreateInvoiceLineGroupRequest = {
   /**
-   * Customer ListID (required).
+   * The item group to add to this invoice.
    */
-  customerId: string;
+  itemGroupId: string;
   /**
-   * Transaction date (defaults to today if not specified).
+   * The quantity of the group.
    */
-  transactionDate?: string | null;
+  quantity?: number | null;
   /**
-   * Class ListID.
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The inventory site the group ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The custom fields to set on this line group.
+   */
+  customFields?: Array<DataExtRequest> | null;
+};
+
+/**
+ * Contains parameters for adding a line to an invoice (`InvoiceLineAdd`).
+ */
+export type CreateInvoiceLineRequest = {
+  /**
+   * The item sold on this line.
+   */
+  itemId?: string | null;
+  /**
+   * The description printed on this line.
+   */
+  description?: string | null;
+  /**
+   * The quantity sold.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The price per unit.
+   *
+   * Mutually exclusive with `ratePercent` and `priceLevelId`.
+   */
+  rate?: number | null;
+  /**
+   * The price as a percentage of the item's base price.
+   *
+   * Mutually exclusive with `rate` and `priceLevelId`.
+   */
+  ratePercent?: number | null;
+  /**
+   * The price level to apply to this line.
+   *
+   * Mutually exclusive with `rate` and `ratePercent`.
+   */
+  priceLevelId?: string | null;
+  /**
+   * The class assigned to this line.
    */
   classId?: string | null;
   /**
-   * AR Account ListID.
+   * The total for this line.
+   */
+  amount?: number | null;
+  /**
+   * How QuickBooks resolves a conflict between overlapping price rules.
+   *
+   * One of `Zero` or `BasePrice`.
+   */
+  optionForPriceRuleConflict?: string | null;
+  /**
+   * The inventory site this line ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The serial number of the item sold.
+   *
+   * Mutually exclusive with `lotNumber`.
+   */
+  serialNumber?: string | null;
+  /**
+   * The lot number of the item sold.
+   *
+   * Mutually exclusive with `serialNumber`.
+   */
+  lotNumber?: string | null;
+  /**
+   * The date the service on this line was performed.
+   */
+  serviceDate?: string | null;
+  /**
+   * The sales tax code applied to this line.
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * The account to post this line to, overriding the item's default.
+   */
+  overrideItemAccountId?: string | null;
+  /**
+   * The primary native custom field on this line.
+   */
+  otherCustomField1?: string | null;
+  /**
+   * The secondary native custom field on this line.
+   */
+  otherCustomField2?: string | null;
+  /**
+   * The custom fields to set on this line.
+   */
+  customFields?: Array<DataExtRequest> | null;
+};
+
+/**
+ * Request for creating a new invoice in QuickBooks.
+ */
+export type CreateInvoiceRequest = {
+  /**
+   * Customer id of the Customer or Customer:Job being invoiced (required).
+   */
+  customerId: string;
+  /**
+   * Transaction date for the invoice. Defaults to the current date in QuickBooks if omitted.
+   */
+  transactionDate?: string | null;
+  /**
+   * The id of the Class assigned to the entire invoice header.
+   */
+  classId?: string | null;
+  /**
+   * The id of the Accounts Receivable (AR) account to post this transaction against.
    */
   receivablesAccountId?: string | null;
   /**
-   * Template ListID.
+   * the id of the form template used for printing/displaying this invoice in QuickBooks.
    */
   templateId?: string | null;
   /**
-   * Reference number for the invoice.
+   * Reference number (invoice number) assigned to this transaction.
    */
   refNumber?: string | null;
   /**
-   * Billing Address.
+   * Billing address details for the customer.
    */
   billingAddress?: AddressRequest | null;
   /**
@@ -5823,12 +4504,17 @@ export type CreateInvoiceRequest = {
   applyCredits?: Array<SetCreditRequest> | null;
   /**
    * Item line items for the invoice.
+   *
+   * Invoice-shaped, not the generic item line: `InvoiceLineAdd` shares only 6 of 28
+   * elements with `ItemLineAdd`. Mutually exclusive with `lineGroups`.
    */
-  lines?: Array<CreateItemLineRequest> | null;
+  lines?: Array<CreateInvoiceLineRequest> | null;
   /**
    * Item group line items for the invoice.
+   *
+   * Mutually exclusive with `lines`.
    */
-  lineGroups?: Array<CreateItemGroupLineRequest> | null;
+  lineGroups?: Array<CreateInvoiceLineGroupRequest> | null;
 };
 
 /**
@@ -6499,12 +5185,33 @@ export type CreateItemReceiptRequest = {
  * Request model for creating an ItemSalesTaxGroup.
  */
 export type CreateItemSalesTaxGroupRequest = {
+  /**
+   * (Required) The name of the item sales tax group.
+   */
   name: string;
+  /**
+   * The barcode associated with the item sales tax group.
+   */
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether the item sales tax group is active.
+   */
   isActive?: boolean | null;
+  /**
+   * A description of the item sales tax group.
+   */
   description?: string | null;
+  /**
+   * An external ID for the item sales tax group.
+   */
   externalId?: string | null;
+  /**
+   * A list of item sales tax IDs associated with the item sales tax group.
+   */
   itemSalesTaxIds?: Array<string> | null;
+  /**
+   * A list of custom fields associated with the item sales tax group.
+   */
   customFields?: Array<DataExtRequest> | null;
 };
 
@@ -6552,19 +5259,9 @@ export type CreateItemSalesTaxRequest = {
 };
 
 /**
- * Request model for creating a new ItemSubtotal.
+ * Request for creating a new ItemSubtotal.
  */
 export type CreateItemSubtotalRequest = {
-  /**
-   * Description of the item.
-   * Max Length: 4095 characters.
-   */
-  description?: string | null;
-  /**
-   * Special Item Type.
-   * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
-   */
-  specialItemType?: string | null;
   /**
    * The name of the item.
    * Max Length: 31 characters.
@@ -6597,6 +5294,16 @@ export type CreateItemSubtotalRequest = {
    * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
    */
   externalId?: string | null;
+  /**
+   * Description of the item.
+   * Max Length: 4095 characters.
+   */
+  description?: string | null;
+  /**
+   * Special Item Type.
+   * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
+   */
+  specialItemType?: string | null;
 };
 
 /**
@@ -7166,7 +5873,37 @@ export type CreateSalesOrPurchaseRequest = {
 };
 
 /**
- * Contains parameters for creating a new sales order line item.
+ * Contains parameters for adding a group of items to a sales order (`SalesOrderLineGroupAdd`).
+ */
+export type CreateSalesOrderLineGroupRequest = {
+  /**
+   * The item group to add to this sales order.
+   */
+  itemGroupId: string;
+  /**
+   * The quantity of the group requested.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure used for the quantity.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The inventory site the group ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The custom fields to set on this line group.
+   */
+  customFields?: Array<DataExtRequest> | null;
+};
+
+/**
+ * Contains parameters for creating a new sales order line item (`SalesOrderLineAdd`).
  */
 export type CreateSalesOrderLineRequest = {
   /**
@@ -7187,12 +5924,79 @@ export type CreateSalesOrderLineRequest = {
   unitOfMeasure?: string | null;
   /**
    * The rate or price per unit of the item.
+   *
+   * Mutually exclusive with `ratePercent` and `priceLevelId`.
    */
   rate?: number | null;
+  /**
+   * The rate expressed as a percentage of the item's base price.
+   *
+   * Mutually exclusive with `rate` and `priceLevelId`.
+   */
+  ratePercent?: number | null;
+  /**
+   * The price level to apply to this line.
+   *
+   * Mutually exclusive with `rate` and `ratePercent`.
+   */
+  priceLevelId?: string | null;
   /**
    * The category associated with this line item.
    */
   classId?: string | null;
+  /**
+   * The total amount for this line.
+   *
+   * Supply either `quantity` and a rate, or `amount`. Supplying all three lets
+   * QuickBooks recalculate and the stored value may not be the one you sent.
+   */
+  amount?: number | null;
+  /**
+   * How QuickBooks resolves a conflict between overlapping price rules.
+   *
+   * One of `Zero` or `BasePrice`.
+   */
+  optionForPriceRuleConflict?: string | null;
+  /**
+   * The inventory site the item ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The serial number of the item being sold.
+   *
+   * Mutually exclusive with `lotNumber`.
+   */
+  serialNumber?: string | null;
+  /**
+   * The lot number of the item being sold.
+   *
+   * Mutually exclusive with `serialNumber`.
+   */
+  lotNumber?: string | null;
+  /**
+   * The sales tax code applied to this line.
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * Indicates whether this line has been manually closed without being fully invoiced.
+   */
+  isManuallyClosed?: boolean | null;
+  /**
+   * The primary native custom field used to store supplemental line item information.
+   */
+  otherCustomField1?: string | null;
+  /**
+   * The secondary native custom field used to store supplemental line item information.
+   */
+  otherCustomField2?: string | null;
+  /**
+   * The custom fields to set on this line.
+   */
+  customFields?: Array<DataExtRequest> | null;
 };
 
 /**
@@ -7228,6 +6032,10 @@ export type CreateSalesOrderRequest = {
    */
   shippingAddress?: AddressRequest | null;
   /**
+   * The customer's purchase order number for this sales order.
+   */
+  poNumber?: string | null;
+  /**
    * The payment terms applied to this sales order.
    */
   termsId?: string | null;
@@ -7256,6 +6064,10 @@ export type CreateSalesOrderRequest = {
    */
   itemSalesTaxId?: string | null;
   /**
+   * Indicates whether this sales order is closed on creation without being invoiced.
+   */
+  isManuallyClosed?: boolean | null;
+  /**
    * A memo or note regarding the sales order.
    */
   memo?: string | null;
@@ -7266,19 +6078,59 @@ export type CreateSalesOrderRequest = {
   /**
    * Indicates whether the sales order is queued to be printed.
    */
-  isToBePrinted?: boolean | null;
+  isQueuedForPrint?: boolean | null;
   /**
    * Indicates whether the sales order is queued to be emailed.
    */
-  isToBeEmailed?: boolean | null;
+  isQueuedForEmail?: boolean | null;
   /**
-   * The individual line items requested on this sales order.
+   * The sales tax code applied to the customer on this sales order.
    */
-  lines?: Array<CreateSalesOrderLineRequest> | null;
+  customerSalesTaxCodeId?: string | null;
+  /**
+   * The native custom field used to store supplemental sales order information.
+   *
+   * A standard QuickBooks field built into all sales orders, separate from the dynamic custom
+   * field collection. Hidden by default in the QuickBooks UI.
+   */
+  otherCustomField?: string | null;
+  /**
+   * The market exchange rate between this sales order's currency and the home currency.
+   *
+   * Sent as a number rather than a decimal string, unlike the monetary amounts on this request.
+   * Requires the multicurrency feature to be enabled in the company file.
+   */
+  exchangeRate?: number | null;
   /**
    * The ExternalGuid associated with this object.
    */
   externalId?: string | null;
+  /**
+   * The individual line items requested on this sales order.
+   *
+   * Mutually exclusive with `lineGroups`.
+   */
+  lines?: Array<CreateSalesOrderLineRequest> | null;
+  /**
+   * The item groups requested on this sales order.
+   *
+   * Mutually exclusive with `lines`.
+   */
+  lineGroups?: Array<CreateSalesOrderLineGroupRequest> | null;
+  /**
+   * The channel this sales order originated from.
+   *
+   * One of `Blank` or `Ecommerce`.
+   */
+  salesChannel?: string | null;
+  /**
+   * The name of the store this sales order originated from.
+   */
+  storeName?: string | null;
+  /**
+   * The type of store this sales order originated from.
+   */
+  storeType?: string | null;
 };
 
 /**
@@ -7845,9 +6697,10 @@ export type CreateUnitOfMeasureSetRequest = {
  */
 export type CreateVendorCreditRequest = {
   /**
-   * (Optional) The ListID or FullName of the vendor.
+   * The QuickBooks ListID of the vendor receiving the credit.
+   * Required because VendorCreditAdd requires VendorRef.
    */
-  vendorId?: string | null;
+  vendorId: string;
   /**
    * (Optional) The ListID or FullName of the A/P account.
    * Defaults to the standard Accounts Payable account if not specified.
@@ -8094,7 +6947,7 @@ export type CreditCardBillPayment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -8175,10 +7028,6 @@ export type CreditCardBillPayment = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -8190,19 +7039,7 @@ export type CreditCardBillPayment = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
-  /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The credit card account used to make this payment.
    *
@@ -8210,14 +7047,11 @@ export type CreditCardBillPayment = {
    */
   creditCardAccount: QbdRef | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -8232,7 +7066,7 @@ export type CreditCardCharge = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -8311,10 +7145,6 @@ export type CreditCardCharge = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -8326,28 +7156,25 @@ export type CreditCardCharge = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -8363,7 +7190,7 @@ export type CreditCardCredit = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -8442,10 +7269,6 @@ export type CreditCardCredit = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -8457,28 +7280,25 @@ export type CreditCardCredit = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -8519,11 +7339,11 @@ export type CreditCardTransactionInfo = {
   /**
    * The CreditCardTxnInputInfo associated with this object.
    */
-  creditCardTransactionInputInfo: CreditCardTransactionInputInfo;
+  creditCardTransactionInputInfo: CreditCardTransactionInputInfo | null;
   /**
    * The CreditCardTxnResultInfo associated with this object.
    */
-  creditCardTransactionResultInfo: CreditCardTransactionResultInfo;
+  creditCardTransactionResultInfo: CreditCardTransactionResultInfo | null;
 };
 
 /**
@@ -8533,7 +7353,7 @@ export type CreditCardTransactionInputInfo = {
   /**
    * The CreditCardNumber associated with this object.
    */
-  number: string;
+  number: string | null;
   /**
    * The expirationMonth associated with this object.
    */
@@ -8545,7 +7365,7 @@ export type CreditCardTransactionInputInfo = {
   /**
    * The NameOnCard associated with this object.
    */
-  name: string;
+  name: string | null;
   /**
    * The CreditCardAddress associated with this object.
    */
@@ -8579,15 +7399,15 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The resultMessage associated with this object.
    */
-  resultMessage: string;
+  resultMessage: string | null;
   /**
    * The creditCardTransID associated with this object.
    */
-  creditCardTransactionId: string;
+  creditCardTransactionId: string | null;
   /**
    * The merchantAccountNumber associated with this object.
    */
-  merchantAccountNumber: string;
+  merchantAccountNumber: string | null;
   /**
    * The authorizationCode associated with this object.
    */
@@ -8615,7 +7435,7 @@ export type CreditCardTransactionResultInfo = {
   /**
    * The paymentStatus associated with this object.
    */
-  paymentStatus: PaymentStatus;
+  paymentStatus: PaymentStatus | null;
   /**
    * The TxnAuthorizationTime associated with this object.
    */
@@ -8650,7 +7470,7 @@ export type CreditMemo = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -8841,10 +7661,6 @@ export type CreditMemo = {
    */
   account: QbdRef | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -8856,28 +7672,13 @@ export type CreditMemo = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -9020,6 +7821,22 @@ export type CreditMemoLineGroup = {
   customFields: Array<QbdDataExt> | null;
 };
 
+export type CreditToApply = {
+  id: string;
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
+   */
+  objectType: string;
+  creditRemaining: number | null;
+  creditRemainingInHomeCurrency: number | null;
+  transactionType: string | null;
+  payablesAccount: QbdRef | null;
+  transactionDate: string | null;
+  refNumber: string | null;
+  currency: QbdRef | null;
+  exchangeRate: number | null;
+};
+
 /**
  * Represents a Currency DTO (CurrencyRet).
  * Used for multi-currency support in QuickBooks.
@@ -9030,7 +7847,7 @@ export type Currency = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -9066,17 +7883,13 @@ export type Currency = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
+
+export enum CurrencyDecimalSeparator {
+  PERIOD = "Period",
+  COMMA = "Comma",
+}
 
 /**
  * Represents the formatting rules for a currency.
@@ -9085,19 +7898,19 @@ export type CurrencyFormat = {
   /**
    * Controls the thousands separator when displaying currency values (for example, "1,000,000"). Defaults to comma.
    */
-  thousandSeparator: string | null;
+  thousandSeparator: CurrencySeparator | null;
   /**
    * Controls how digits are grouped for thousands when displaying currency values (for example, "10,000,000").
    */
-  thousandSeparatorGrouping: string | null;
+  thousandSeparatorGrouping: ThousandSeparatorGrouping | null;
   /**
    * Controls the number of decimal places displayed for currency values. Use `0` to hide decimals or `2` to display cents.
    */
-  decimalPlaces: string | null;
+  decimalPlaces: number | null;
   /**
    * Controls the decimal separator when displaying currency values (for example, "1.00" vs "1,00"). Defaults to period.
    */
-  decimalSeparator: string | null;
+  decimalSeparator: CurrencyDecimalSeparator | null;
 };
 
 /**
@@ -9106,26 +7919,30 @@ export type CurrencyFormat = {
  */
 export type CurrencyFormatRequest = {
   /**
-   * (Optional) Defines the separator for thousands place.
-   * Values: 0 for Comma [DEFAULT], 1 for Period, 2 for Space, 3 for Apostrophe.
+   * (Optional) The separator used for the thousands place. Defaults to `Comma`.
    */
-  thousandSeparator?: number | null;
+  thousandSeparator?: CurrencySeparator | null;
   /**
-   * (Optional) Defines the grouping pattern for thousands separator.
-   * Values: 0 for XX_XXX_XXX [DEFAULT], 1 for X_XX_XX_XXX.
+   * (Optional) The digit-grouping pattern for thousands. Defaults to `XX_XXX_XXX`.
    */
-  thousandSeparatorGrouping?: number | null;
+  thousandSeparatorGrouping?: ThousandSeparatorGrouping | null;
   /**
-   * (Optional) Defines the number of decimal places.
-   * Values: 0 for 0 decimal places, 2 for 2 decimal places [DEFAULT].
+   * (Optional) The number of decimal places to display. QuickBooks accepts only 0 or 2;
+   * defaults to 2.
    */
   decimalPlaces?: number | null;
   /**
-   * (Optional) Defines the separator for the decimal place.
-   * Values: 0 for Period [DEFAULT], 1 for Comma.
+   * (Optional) The separator used for the decimal place. Defaults to `Period`.
    */
-  decimalSeparator?: number | null;
+  decimalSeparator?: CurrencyDecimalSeparator | null;
 };
+
+export enum CurrencySeparator {
+  COMMA = "Comma",
+  PERIOD = "Period",
+  SPACE = "Space",
+  APOSTROPHE = "Apostrophe",
+}
 
 /**
  * DTO for Custom Contact Field (name/value pair).
@@ -9135,11 +7952,11 @@ export type CustomContactField = {
   /**
    * The contact's full name.
    */
-  name: string;
+  name: string | null;
   /**
    * The Value associated with this object.
    */
-  value: string;
+  value: string | null;
 };
 
 /**
@@ -9151,7 +7968,7 @@ export type Customer = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -9384,16 +8201,15 @@ export type Customer = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
    * Used for tracking user-defined data beyond standard QuickBooks properties.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -9406,7 +8222,7 @@ export type CustomerType = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -9451,16 +8267,7 @@ export type CustomerType = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -9468,27 +8275,35 @@ export type CustomerType = {
  */
 export type DataExtDataExt = {
   /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
+   */
+  objectType: string;
+  /**
    * The Application identifier or GUID that owns this specific custom field deployment slot. Returns "0" if standard UI built-in type.
    */
   id: string;
   /**
    * The registered layout name of the target field extension.
    */
-  name: string;
+  name: string | null;
   /**
    * The baseline underlying primitive value data type restriction assigned inside QuickBooks.
    */
-  type: DataExtensionType;
+  type: DataExtensionType | null;
   /**
    * The exact text or payload parsed value out of the company file database layer.
    */
-  value: string;
+  value: string | null;
 };
 
 /**
  * Data Transfer Object exposing the structure, typing limits, and layout targeting rules of a custom field defined inside the company file.
  */
 export type DataExtDefinition = {
+  /**
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
+   */
+  objectType: string;
   /**
    * The optional system-assigned database integer code generated by QuickBooks for
    * tracking the custom definition record. QuickBooks can omit this value for
@@ -9502,27 +8317,27 @@ export type DataExtDefinition = {
   /**
    * The user-facing identifier label displayed on transaction headers or tabs inside QuickBooks Desktop UI screens.
    */
-  name: string;
+  name: string | null;
   /**
    * The data type the field accepts. Mirrors the QBXML `DataExtTypeWithValue`
    * enumeration (AMTTYPE, DATETIMETYPE, INTTYPE, PERCENTTYPE, PRICETYPE, QUANTYPE,
    * STR1024TYPE, STR255TYPE).
    */
-  type: DataExtensionType;
+  type: DataExtensionType | null;
   /**
    * The QuickBooks object types this definition can be assigned to. A single definition
    * may apply to multiple object types (list entities and/or transactions) and the QBXML
    * response repeats `AssignToObject` once per type.
    */
-  assignToObjects: Array<string>;
+  assignToObjects: Array<string> | null;
   /**
    * Returns true if this data extension layout has been set as a rigid validation block across Master list entities.
    */
-  listRequire: boolean;
+  listRequire: boolean | null;
   /**
    * Returns true if this data extension column requires validation forcing data entry inputs before transactions commit.
    */
-  transactionRequire: boolean;
+  transactionRequire: boolean | null;
   /**
    * Optional format structure pattern constraints injected by QuickBooks data masks layout masks engine rules.
    */
@@ -9553,7 +8368,11 @@ export type DataExtRequest = {
  * QBXML supports three mutually-exclusive target families: a list entity, a transaction
  * (optionally a single transaction line), or the company file itself.
  */
-export type DataExtTargetKind = number;
+export enum DataExtTargetKind {
+  LIST = "List",
+  TRANSACTION = "Transaction",
+  COMPANY = "Company",
+}
 
 /**
  * The composite target for a custom field value. Exactly one target family is selected via
@@ -9566,30 +8385,34 @@ export type DataExtTargetRequest = {
    */
   kind: DataExtTargetKind;
   /**
-   * The list entity type when `kind` is `list`
-   * (e.g. Customer, Vendor, Employee, OtherName, Item, Account).
+   * The list entity type. Required when `kind` is `List`; otherwise it
+   * must be omitted (e.g. Customer, Vendor, Employee, OtherName, Item, Account).
    */
   listType?: ListType | null;
   /**
-   * The ListID of the target list entity. Mutually exclusive with `fullName`.
+   * The ListID of the target list entity. When `kind` is `List`, supply
+   * exactly one of `listId` or `fullName`; otherwise omit this property.
    */
   listId?: string | null;
   /**
-   * The FullName of the target list entity. Mutually exclusive with `listId`.
+   * The FullName of the target list entity. When `kind` is `List`, supply
+   * exactly one of `fullName` or `listId`; otherwise omit this property.
    */
   fullName?: string | null;
   /**
-   * The transaction type when `kind` is `transaction`
-   * (e.g. Invoice, Bill, Estimate, SalesOrder, Check).
+   * The transaction type. Required when `kind` is `Transaction`;
+   * otherwise it must be omitted (e.g. Invoice, Bill, Estimate, SalesOrder, Check).
    */
   transactionType?: TransactionType | null;
   /**
-   * The TxnID of the target transaction.
+   * The QuickBooks TxnID of the target transaction. Required when `kind` is
+   * `Transaction`; otherwise it must be omitted.
    */
   transactionId?: string | null;
   /**
-   * The TxnLineID of a specific line within the transaction. Omit to attach the value
-   * at the transaction header level instead of a single line.
+   * The TxnLineID of a specific line within the transaction. It may be supplied only
+   * when `kind` is `Transaction`. Omit it to attach the value at the
+   * transaction header level instead of a single line.
    */
   transactionLineId?: string | null;
 };
@@ -9621,7 +8444,7 @@ export type DateDrivenTerm = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -9668,16 +8491,7 @@ export type DateDrivenTerm = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -9687,11 +8501,11 @@ export type DefaultUnit = {
   /**
    * Where this default unit is used as the default: purchase line items, sales line items, or shipping lines.
    */
-  unitUsedFor: string;
+  unitUsedFor: string | null;
   /**
    * The unit name for this default unit, as displayed in the U/M field. If the company file is enabled for multiple units per item, this appears as an available unit for the item. Must correspond to the base unit or a related unit defined in this set. Maximum length: 31 characters.
    */
-  unit: string;
+  unit: string | null;
 };
 
 /**
@@ -9754,11 +8568,11 @@ export type DeleteCustomFieldValueRequest = {
  * Specialized response for Delete operations.
  */
 export type DeleteResponse = {
-  deleted: boolean;
+  deleted: boolean | null;
   id: string;
   objectType: string;
   refNumber: string | null;
-  status: string;
+  status: string | null;
   /**
    * The unique identifier for this request. Include this ID when contacting
    * support so the request can be located in server-side logs.
@@ -9767,7 +8581,7 @@ export type DeleteResponse = {
   errorMessage: string | null;
   errorCode: string | null;
   suggestedAction: string | null;
-  timestamp: string;
+  timestamp: string | null;
 };
 
 /**
@@ -9783,7 +8597,7 @@ export type Deposit = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -9877,10 +8691,6 @@ export type Deposit = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -9892,28 +8702,13 @@ export type Deposit = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -10080,7 +8875,7 @@ export type Employee = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -10315,16 +9110,15 @@ export type Employee = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
    * Used for tracking user-defined data beyond standard QuickBooks properties.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -10422,11 +9216,11 @@ export type ErrorDetail = {
   /**
    * Developer-facing error message including the QBD-provided error code and message. Example: "QBD Connection Error (0x80040420): The QuickBooks user has denied access."
    */
-  message: string;
+  message: string | null;
   /**
    * User-facing error message with instructions for the end-user to resolve the issue.
    */
-  userFacingMessage: string;
+  userFacingMessage: string | null;
   /**
    * Error type/category. Identifies the broad class of error.
    */
@@ -10481,7 +9275,7 @@ export type ErrorDetail = {
   /**
    * HTTP status code for the response (e.g. 400, 404, 502, 500).
    */
-  httpStatusCode: number;
+  httpStatusCode: number | null;
   /**
    * QuickBooks Desktop integration-specific error code. Can be a COM HRESULT (e.g. "0x80040420") or QB XML status code (e.g. "3120"). Null for non-QBD errors.
    */
@@ -10489,7 +9283,7 @@ export type ErrorDetail = {
   /**
    * Request ID for tracking and diagnostics (e.g. "req_abc123").
    */
-  requestId: string;
+  requestId: string | null;
 };
 
 /**
@@ -10505,7 +9299,7 @@ export type Estimate = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -10644,13 +9438,7 @@ export type Estimate = {
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
   linkedTransactions: Array<LinkedTransaction> | null;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
   itemLines: Array<EstimateItemLine> | null;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
   itemGroupLines: Array<EstimateItemGroupLine> | null;
   /**
    * (Optional) The Other field for the transaction. (STRTYPE)
@@ -10671,28 +9459,17 @@ export type Estimate = {
    */
   account: QbdRef | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
    */
   externalId: string | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -10946,7 +9723,7 @@ export type InventoryAdjustment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -11036,10 +9813,6 @@ export type InventoryAdjustment = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -11051,28 +9824,13 @@ export type InventoryAdjustment = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -11135,7 +9893,7 @@ export type InventoryItem = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -11324,16 +10082,16 @@ export type InventoryItem = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -11346,7 +10104,7 @@ export type InventorySite = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -11398,16 +10156,7 @@ export type InventorySite = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -11422,7 +10171,7 @@ export type Invoice = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -11483,6 +10232,10 @@ export type Invoice = {
   class: QbdRef | null;
   /**
    * The Accounts Receivable (A/R) account associated with this invoice.
+   *
+   * The attribute lives on the override rather than on `BaseTransactionDto.Account`: the
+   * element name is resource-specific (`ARAccountRef` here, `APAccountRef` on a bill),
+   * so the base has no single correct name to declare.
    */
   receivablesAccount: QbdRef | null;
   /**
@@ -11583,27 +10336,60 @@ export type Invoice = {
    */
   isPaid: boolean | null;
   /**
+   * QuickBooks' own sequential transaction number, distinct from `refNumber`.
+   */
+  transactionNumber: number | null;
+  /**
+   * The billing address as QuickBooks would print it, one line per field.
+   */
+  billingAddressBlock: AddressBlock | null;
+  /**
+   * The shipping address as QuickBooks would print it, one line per field.
+   */
+  shippingAddressBlock: AddressBlock | null;
+  /**
+   * The sales tax rate applied to this invoice, as a percentage.
+   *
+   * A string rather than a number because QuickBooks returns it that way, formatted with a
+   * trailing percent sign.
+   */
+  salesTaxPercentage: string | null;
+  /**
+   * The total already applied to this invoice by payments and credits.
+   *
+   * Returned as a negative amount. `totalAmount` plus this equals
+   * `balanceRemaining`.
+   */
+  appliedAmount: number | null;
+  /**
+   * The remaining balance converted into the company file's home currency.
+   *
+   * Only populated when the company file has multicurrency enabled.
+   */
+  balanceRemainingInHomeCurrency: number | null;
+  /**
+   * The early-payment discount QuickBooks suggests, derived from the invoice's terms.
+   */
+  suggestedDiscountAmount: number | null;
+  suggestedDiscountDate: string | null;
+  /**
    * The total monetary amount of the transaction.
    *
    * Typically calculated automatically by QuickBooks based on the sum of the transaction's line items.
    */
   amount: number | null;
   /**
-   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
-   */
-  entity: QbdRef | null;
-  /**
    * The Accounts Receivable (A/R) account associated with this invoice.
+   *
+   * The attribute lives on the override rather than on `BaseTransactionDto.Account`: the
+   * element name is resource-specific (`ARAccountRef` here, `APAccountRef` on a bill),
+   * so the base has no single correct name to declare.
    */
   account: QbdRef | null;
   /**
    * The transaction amount converted into the QuickBooks company file's home currency.
    */
   amountInHomeCurrency: string | null;
-  /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
   /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
@@ -11616,28 +10402,173 @@ export type Invoice = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * The individual lines on this invoice.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * Invoice-specific rather than the inherited `itemLines`: `InvoiceLineRet` shares
+   * only 6 of 26 elements with the generic `ItemLineRet`. See <see cref="T:QbdWebService.Application.Resources.Qbd.Transactions.Invoices.Models.InvoiceLineDto" />.
    */
-  customFields: Array<QbdDataExt>;
+  lines: Array<InvoiceLine> | null;
+  /**
+   * The item groups on this invoice, each expanded into its own child lines.
+   */
+  lineGroups: Array<InvoiceLineGroup> | null;
+  /**
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
+   *
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
+   */
+  customFields: Array<QbdDataExt> | null;
+};
+
+/**
+ * An individual line on a QuickBooks Desktop invoice (`InvoiceLineRet`).
+ */
+export type InvoiceLine = {
+  /**
+   * The unique identifier of this line within the transaction.
+   */
+  id: string | null;
+  objectType: string;
+  /**
+   * The item sold on this line.
+   */
+  item: QbdRef | null;
+  /**
+   * The description printed on this line.
+   */
+  description: string | null;
+  /**
+   * The quantity sold.
+   */
+  quantity: number | null;
+  /**
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The unit of measure set used in place of the item's default.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * The price per unit.
+   *
+   * Returned as an alternative to `ratePercent`; QuickBooks resolves any price level
+   * applied on the request into a concrete rate before returning it.
+   */
+  rate: number | null;
+  /**
+   * The price expressed as a percentage of the item's base price.
+   *
+   * Returned as an alternative to `rate`.
+   */
+  ratePercent: number | null;
+  /**
+   * The class assigned to this line.
+   */
+  class: QbdRef | null;
+  /**
+   * The total for this line.
+   */
+  amount: number | null;
+  /**
+   * The inventory site this line ships from.
+   */
+  inventorySite: QbdRef | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocation: QbdRef | null;
+  /**
+   * The serial number of the item sold.
+   *
+   * Returned as an alternative to `lotNumber`.
+   */
+  serialNumber: string | null;
+  /**
+   * The lot number of the item sold.
+   *
+   * Returned as an alternative to `serialNumber`.
+   */
+  lotNumber: string | null;
+  /**
+   * The expiry date of the serial or lot number.
+   *
+   * A string rather than a date: QuickBooks does not commit to a single format here, so the
+   * value is surfaced as returned rather than reinterpreted.
+   */
+  expirationDateForSerialLotNumber: string | null;
+  /**
+   * The date the service on this line was performed.
+   */
+  serviceDate: string | null;
+  /**
+   * The sales tax code applied to this line.
+   */
+  salesTaxCode: QbdRef | null;
+  /**
+   * The primary native custom field on this line.
+   *
+   * A standard QuickBooks field built into every invoice line, separate from the dynamic
+   * `customFields` collection, and hidden by default in the QuickBooks UI.
+   */
+  otherCustomField1: string | null;
+  /**
+   * The secondary native custom field on this line.
+   */
+  otherCustomField2: string | null;
+  /**
+   * The custom fields defined on this line.
+   */
+  customFields: Array<QbdDataExt> | null;
+};
+
+/**
+ * A group of items on a QuickBooks Desktop invoice (`InvoiceLineGroupRet`).
+ */
+export type InvoiceLineGroup = {
+  /**
+   * The unique identifier of this line group within the transaction.
+   */
+  id: string | null;
+  objectType: string;
+  /**
+   * The item group this line expands.
+   */
+  itemGroup: QbdRef | null;
+  /**
+   * The description printed for the group.
+   */
+  description: string | null;
+  /**
+   * The quantity of the group.
+   */
+  quantity: number | null;
+  /**
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure: string | null;
+  /**
+   * The unit of measure set used in place of the item group's default.
+   */
+  overrideUnitOfMeasureSet: QbdRef | null;
+  /**
+   * Whether the group's individual lines are printed, or only the group total.
+   */
+  isPrintItemsInGroup: boolean | null;
+  /**
+   * The total for the group, rolled up from its lines.
+   */
+  totalAmount: number | null;
+  /**
+   * The individual lines this group expands into.
+   */
+  lines: Array<InvoiceLine> | null;
+  /**
+   * The custom fields defined on this line group.
+   */
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -11693,7 +10624,7 @@ export type ItemDiscount = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -11798,16 +10729,16 @@ export type ItemDiscount = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -11820,7 +10751,7 @@ export type ItemFixedAsset = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -12009,16 +10940,16 @@ export type ItemFixedAsset = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -12030,7 +10961,7 @@ export type ItemGroup = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -12133,16 +11064,16 @@ export type ItemGroup = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -12167,11 +11098,11 @@ export type ItemGroupLine = {
    *
    * **NOTE**: Do not use this field if the associated item group is a discount item group.
    */
-  quantity: number;
+  quantity: number | null;
   /**
    * The TotalAmount associated with this object.
    */
-  totalAmount: number;
+  totalAmount: number | null;
   /**
    * The unit-of-measure used for the `quantity` in this item group line. Must be a valid unit within the item's available units of measure.
    */
@@ -12248,7 +11179,7 @@ export type ItemInventoryAssembly = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -12427,16 +11358,16 @@ export type ItemInventoryAssembly = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -12467,7 +11398,7 @@ export type ItemInventoryItem = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -12656,16 +11587,16 @@ export type ItemInventoryItem = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -12686,7 +11617,7 @@ export type ItemItemDiscount = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -12791,16 +11722,16 @@ export type ItemItemDiscount = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -12822,7 +11753,7 @@ export type ItemItemFixedAsset = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13011,16 +11942,16 @@ export type ItemItemFixedAsset = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13041,7 +11972,7 @@ export type ItemItemGroup = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13144,16 +12075,16 @@ export type ItemItemGroup = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13175,7 +12106,7 @@ export type ItemItemInventoryAssembly = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13354,16 +12285,16 @@ export type ItemItemInventoryAssembly = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13384,7 +12315,7 @@ export type ItemItemNonInventory = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13521,16 +12452,16 @@ export type ItemItemNonInventory = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13551,7 +12482,7 @@ export type ItemItemOtherCharge = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13693,16 +12624,16 @@ export type ItemItemOtherCharge = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13723,7 +12654,7 @@ export type ItemItemPayment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13818,16 +12749,16 @@ export type ItemItemPayment = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13848,7 +12779,7 @@ export type ItemItemSalesTax = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -13947,16 +12878,16 @@ export type ItemItemSalesTax = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -13979,7 +12910,7 @@ export type ItemItemSalesTaxGroup = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14070,16 +13001,16 @@ export type ItemItemSalesTaxGroup = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -14108,7 +13039,7 @@ export type ItemItemSubtotal = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14199,16 +13130,16 @@ export type ItemItemSubtotal = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -14327,7 +13258,7 @@ export type ItemNonInventory = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14464,16 +13395,16 @@ export type ItemNonInventory = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export type ItemNonInventorySalesAndPurchaseDetailsRequest = {
@@ -14512,7 +13443,7 @@ export type ItemOtherCharge = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14654,16 +13585,16 @@ export type ItemOtherCharge = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export type ItemOtherChargeSalesAndPurchaseDetailsRequest = {
@@ -14702,7 +13633,7 @@ export type ItemPayment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14797,16 +13728,16 @@ export type ItemPayment = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -14829,7 +13760,7 @@ export type ItemReceipt = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -14883,7 +13814,7 @@ export type ItemReceipt = {
   /**
    * The vendor who sent this item receipt for goods or services purchased.
    */
-  vendor: QbdRef;
+  vendor: QbdRef | null;
   /**
    * The transaction number associated with this object.
    */
@@ -14913,10 +13844,6 @@ export type ItemReceipt = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -14928,28 +13855,25 @@ export type ItemReceipt = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -14961,7 +13885,7 @@ export type ItemSalesTax = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15060,16 +13984,16 @@ export type ItemSalesTax = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -15091,7 +14015,7 @@ export type ItemSalesTaxGroup = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15182,16 +14106,16 @@ export type ItemSalesTaxGroup = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -15204,7 +14128,7 @@ export type ItemServiceItem = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15336,16 +14260,16 @@ export type ItemServiceItem = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -15365,7 +14289,7 @@ export type ItemSubtotal = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15456,16 +14380,16 @@ export type ItemSubtotal = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export enum JobStatus {
@@ -15489,7 +14413,7 @@ export type JournalEntry = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15583,10 +14507,6 @@ export type JournalEntry = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -15598,28 +14518,13 @@ export type JournalEntry = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -15686,27 +14591,29 @@ export type LinkedTransaction = {
   /**
    * The unique identifier of the linked transaction
    */
-  transactionId: string;
+  transactionId: string | null;
   /**
    * The type of transaction (e.g., "Bill", "Invoice", "ReceivePayment", "Check", etc.)
    */
-  transactionType: string;
+  transactionType: string | null;
   /**
    * The date of the linked transaction
    */
-  transactionDate: string;
+  transactionDate: string | null;
   /**
    * Optional reference number of the linked transaction
    */
   refNumber: string | null;
   /**
    * The type of link - indicates whether the link represents an amount or quantity
+   *
+   * LinkType may have one of the following values: AMTTYPE, QUANTYPE.
    */
   linkType: string | null;
   /**
    * The amount associated with this link
    */
-  amount: number;
+  amount: number | null;
 };
 
 export enum ListType {
@@ -15752,8 +14659,6 @@ export enum NullableAccountType {
   OTHER_INCOME = "OtherIncome",
 }
 
-export type NullablePaidStatus = number;
-
 /**
  * DTO for an OtherName list item.
  */
@@ -15763,7 +14668,7 @@ export type OtherName = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -15853,21 +14758,26 @@ export type OtherName = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
    * Used for tracking user-defined data beyond standard QuickBooks properties.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 export enum OvertimeExemptStatus {
   EXEMPT = "exempt",
   NON_EXEMPT = "non_exempt",
+}
+
+export enum PaidStatus {
+  ALL = "All",
+  PAID_ONLY = "PaidOnly",
+  NOT_PAID_ONLY = "NotPaidOnly",
 }
 
 export enum PayPeriod {
@@ -15884,120 +14794,20 @@ export enum PayPeriod {
  * Represents an open bill that needs to be paid.
  */
 export type PayableBill = {
-  /**
-   * The unique identifier assigned by QuickBooks to this transaction.
-   *
-   * This ID is unique across **all** transaction types in the QuickBooks company file,
-   * not just within its own type. This value is assigned by QuickBooks and never changes.
-   */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
-  /**
-   * The date and time when this entity was originally created in QuickBooks.
-   *
-   * Represented in ISO 8601 format. Note that QuickBooks Desktop typically interprets these timestamps
-   * relative to the local timezone of the host computer where the company file resides.
-   */
-  createdAt: string;
-  /**
-   * The date and time when this entity was last modified in QuickBooks.
-   *
-   * Represented in ISO 8601 format.
-   */
-  updatedAt: string;
-  /**
-   * The current QuickBooks-assigned revision number for this object.
-   *
-   * This value changes every time the record is modified.
-   * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
-   * working with the latest data and to prevent optimistic concurrency errors.
-   */
-  revisionNumber: string;
-  /**
-   * The date the transaction occurred or was recorded.
-   */
-  transactionDate: string | null;
-  /**
-   * The currency used for this transaction.
-   *
-   * Only applicable if the QuickBooks company file has multi-currency enabled.
-   */
-  currency: QbdRef | null;
+  dueDate: string | null;
   amountDue: number | null;
-  /**
-   * The market exchange rate between the transaction's currency and the home currency.
-   *
-   * Only applicable if multi-currency is enabled.
-   */
-  exchangeRate: number | null;
-  amountDueInHomeCurrency: string | null;
-  /**
-   * A user-defined reference number for this transaction (e.g., check number, invoice number).
-   *
-   * This value is case-sensitive and appears in various QuickBooks UI forms.
-   * **Note:** This string is not guaranteed to be unique, even within the same transaction type.
-   */
-  refNumber: string | null;
-  /**
-   * A memo or note for the transaction that appears in registers and reports.
-   */
-  memo: string | null;
+  amountDueInHomeCurrency: number | null;
   transactionType: string | null;
   payablesAccount: QbdRef | null;
-  dueDate: string | null;
-  /**
-   * The primary entity (Customer, Vendor, or Employee) associated with this transaction.
-   */
-  entity: QbdRef | null;
-  /**
-   * The bank or credit card account used for this transaction.
-   */
-  account: QbdRef | null;
-  /**
-   * The transaction amount converted into the QuickBooks company file's home currency.
-   */
-  amountInHomeCurrency: string | null;
-  /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
-   * A globally unique identifier (GUID) provided by your application to track this record in an external system.
-   *
-   * This field is immutable and can only be set during the initial creation of the transaction.
-   */
-  externalId: string | null;
-  /**
-   * Other transactions linked to this transaction (e.g., payments applied to an invoice, or purchase orders linked to a bill).
-   *
-   * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
-   * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
-   */
-  linkedTransactions: Array<LinkedTransaction>;
-  /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  transactionDate: string | null;
+  refNumber: string | null;
+  currency: QbdRef | null;
+  exchangeRate: number | null;
 };
 
 /**
@@ -16009,7 +14819,7 @@ export type PaymentMethod = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16044,16 +14854,7 @@ export type PaymentMethod = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 export enum PaymentStatus {
@@ -16071,7 +14872,7 @@ export type PayrollItemNonWage = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16099,22 +14900,13 @@ export type PayrollItemNonWage = {
    * working with the latest data and to prevent optimistic concurrency errors.
    */
   revisionNumber: string;
-  nonWageType: string;
+  nonWageType: string | null;
   expenseAccount: QbdRef | null;
   liabilityAccount: QbdRef | null;
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -16126,7 +14918,7 @@ export type PayrollItemWage = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16157,24 +14949,15 @@ export type PayrollItemWage = {
   /**
    * Categorizes how this payroll wage item calculates pay - can be hourly (regular, overtime, sick, or vacation), salary (regular, sick, or vacation), bonus, or commission based.
    */
-  wageType: string;
+  wageType: string | null;
   /**
    * The expense account used to track wage expenses paid through this payroll wage item.
    */
-  expenseAccount: QbdRef;
+  expenseAccount: QbdRef | null;
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -16187,7 +14970,7 @@ export type PriceLevel = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16236,16 +15019,7 @@ export type PriceLevel = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -16307,7 +15081,7 @@ export type PurchaseOrder = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16491,10 +15265,6 @@ export type PurchaseOrder = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -16506,28 +15276,13 @@ export type PurchaseOrder = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -16624,6 +15379,9 @@ export type PurchaseOrderLine = {
    * extra storage for non-standard order tracking and is hidden by default in the QuickBooks UI.
    */
   otherCustomField2: string | null;
+  /**
+   * Line-level custom fields. Serialized as `customFields`, unchanged.
+   */
   customFields: Array<QbdDataExt> | null;
 };
 
@@ -16669,7 +15427,7 @@ export type PurchaseOrderLineGroup = {
    */
   lines: Array<PurchaseOrderLine> | null;
   /**
-   * The DataExt associated with this object.
+   * Group-level custom fields. Serialized as `customFields`, unchanged.
    */
   customFields: Array<QbdDataExt> | null;
 };
@@ -16704,6 +15462,43 @@ export type QbdDataExt = {
    */
   value: string | null;
 };
+
+export enum QbdDateMacro {
+  ALL = "All",
+  TODAY = "Today",
+  THIS_WEEK = "ThisWeek",
+  THIS_WEEK_TO_DATE = "ThisWeekToDate",
+  THIS_MONTH = "ThisMonth",
+  THIS_MONTH_TO_DATE = "ThisMonthToDate",
+  THIS_CALENDAR_QUARTER = "ThisCalendarQuarter",
+  THIS_CALENDAR_QUARTER_TO_DATE = "ThisCalendarQuarterToDate",
+  THIS_FISCAL_QUARTER = "ThisFiscalQuarter",
+  THIS_FISCAL_QUARTER_TO_DATE = "ThisFiscalQuarterToDate",
+  THIS_CALENDAR_YEAR = "ThisCalendarYear",
+  THIS_CALENDAR_YEAR_TO_DATE = "ThisCalendarYearToDate",
+  THIS_FISCAL_YEAR = "ThisFiscalYear",
+  THIS_FISCAL_YEAR_TO_DATE = "ThisFiscalYearToDate",
+  YESTERDAY = "Yesterday",
+  LAST_WEEK = "LastWeek",
+  LAST_WEEK_TO_DATE = "LastWeekToDate",
+  LAST_MONTH = "LastMonth",
+  LAST_MONTH_TO_DATE = "LastMonthToDate",
+  LAST_CALENDAR_QUARTER = "LastCalendarQuarter",
+  LAST_CALENDAR_QUARTER_TO_DATE = "LastCalendarQuarterToDate",
+  LAST_FISCAL_QUARTER = "LastFiscalQuarter",
+  LAST_FISCAL_QUARTER_TO_DATE = "LastFiscalQuarterToDate",
+  LAST_CALENDAR_YEAR = "LastCalendarYear",
+  LAST_CALENDAR_YEAR_TO_DATE = "LastCalendarYearToDate",
+  LAST_FISCAL_YEAR = "LastFiscalYear",
+  LAST_FISCAL_YEAR_TO_DATE = "LastFiscalYearToDate",
+  NEXT_WEEK = "NextWeek",
+  NEXT_FOUR_WEEKS = "NextFourWeeks",
+  NEXT_MONTH = "NextMonth",
+  NEXT_CALENDAR_QUARTER = "NextCalendarQuarter",
+  NEXT_CALENDAR_YEAR = "NextCalendarYear",
+  NEXT_FISCAL_QUARTER = "NextFiscalQuarter",
+  NEXT_FISCAL_YEAR = "NextFiscalYear",
+}
 
 /**
  * A reference to another QuickBooks Desktop object.
@@ -16778,7 +15573,7 @@ export type ReceivePayment = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -16884,10 +15679,6 @@ export type ReceivePayment = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -16899,28 +15690,13 @@ export type ReceivePayment = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -16985,15 +15761,15 @@ export type RelatedUnit = {
    *
    * **NOTE**: Unit-of-measure sets do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
    */
-  name: string;
+  name: string | null;
   /**
    * The related unit's short identifier shown in the QuickBooks U/M field on transaction line items. Maximum length: 31 characters.
    */
-  abbreviation: string;
+  abbreviation: string | null;
   /**
    * The number of base units in this related unit, represented as a decimal string. For example, if the base unit is "box" and this related unit is "case" with `conversionRatio` = "10", that means there are 10 boxes in one case.
    */
-  conversionRatio: number;
+  conversionRatio: number | null;
 };
 
 /**
@@ -17039,7 +15815,7 @@ export type Report = {
    */
   id: string | null;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -17106,15 +15882,6 @@ export type Report = {
    * returned by QuickBooks Desktop.
    */
   data: ReportData | null;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
 };
 
 /**
@@ -17197,7 +15964,7 @@ export type ReportRow = {
   /**
    * The type of the row.
    */
-  type: string;
+  type: string | null;
   /**
    * The row number of the row.
    */
@@ -17245,9 +16012,9 @@ export type RotatePublishableKeyResponse = {
   /**
    * The new publishable key — update all auth flow URLs with this.
    */
-  publishableKey: string;
-  message: string;
-  rotatedAt: string;
+  publishableKey: string | null;
+  message: string | null;
+  rotatedAt: string | null;
 };
 
 /**
@@ -17262,7 +16029,7 @@ export type SalesOrder = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -17394,9 +16161,70 @@ export type SalesOrder = {
    */
   isManuallyClosed: boolean | null;
   /**
+   * QuickBooks' own sequential transaction number, distinct from `referenceNumber`.
+   */
+  transactionNumber: number | null;
+  /**
+   * The customer's purchase-order number for this sales order.
+   */
+  poNumber: string | null;
+  /**
+   * The billing address as QuickBooks would print it, one line per field.
+   */
+  billingAddressBlock: AddressBlock | null;
+  /**
+   * The shipping address as QuickBooks would print it, one line per field.
+   */
+  shippingAddressBlock: AddressBlock | null;
+  /**
+   * The customer's sales-tax code, overriding any code set on the customer record.
+   */
+  customerSalesTaxCode: QbdRef | null;
+  /**
+   * Indicates whether this sales order is queued to be printed.
+   */
+  isQueuedForPrint: boolean | null;
+  /**
+   * Indicates whether this sales order is queued to be emailed.
+   */
+  isQueuedForEmail: boolean | null;
+  /**
+   * When true, line rates and amounts already include sales tax.
+   */
+  isTaxIncluded: boolean | null;
+  /**
+   * The native single-value custom field built into the sales order, separate from the dynamic
+   * `customFields` collection.
+   */
+  otherCustomField: string | null;
+  /**
+   * The fulfillment state of this order.
+   */
+  fulfillmentStatus: string | null;
+  /**
+   * The sales channel this order originated from.
+   */
+  salesChannel: string | null;
+  /**
+   * The name of the store this order originated from.
+   */
+  storeName: string | null;
+  /**
+   * The type of store this order originated from.
+   */
+  storeType: string | null;
+  /**
+   * Per-shipment tracking rows for this sales order.
+   */
+  shippingDetails: Array<ShippingDetailsLine> | null;
+  /**
    * The individual line items requested on this sales order.
    */
   lines: Array<SalesOrderLine> | null;
+  /**
+   * The individual sales order group line items requested on this sales order.
+   */
+  lineGroups: Array<SalesOrderLineGroup> | null;
   /**
    * The total monetary amount of the transaction.
    *
@@ -17416,10 +16244,6 @@ export type SalesOrder = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -17431,125 +16255,87 @@ export type SalesOrder = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
- * Represents an individual line item on a sales order.
+ * Represents an individual child line item within a sales order group (SalesOrderLineRet).
  */
 export type SalesOrderLine = {
-  /**
-   * The TxnLineId associated with this object.
-   */
   id?: string | null;
   objectType: string;
-  /**
-   * The Other1 associated with this object.
-   */
-  otherCustomField1: string | null;
-  /**
-   * The Other2 associated with this object.
-   */
-  otherCustomField2: string | null;
-  /**
-   * The item associated with this line.
-   */
   item: QbdRef | null;
-  /**
-   * A description of the item on this line.
-   */
   description: string | null;
-  /**
-   * The quantity of the item associated with this item line. This field cannot be cleared.
-   *
-   * **NOTE**: Do not use this field if the associated item is a discount item.
-   */
   quantity: number | null;
-  /**
-   * The cost of this item line, represented as a decimal string. If both `quantity` and `amount` are specified but not `cost`, QuickBooks will use them to calculate `cost`.
-   */
-  cost: number | null;
-  /**
-   * The monetary amount of this item line, represented as a decimal string. If both `quantity` and `cost` are specified but not `amount`, QuickBooks will use them to calculate `amount`. If `amount`, `cost`, and `quantity` are all unspecified, then QuickBooks will calculate `amount` based on a `quantity` of `1` and the suggested `cost`. This field cannot be cleared.
-   */
-  amount: number | null;
-  /**
-   * The customer or customer-job associated with this item line.
-   */
-  customer: QbdRef | null;
-  /**
-   * The item line's class. Classes can be used to categorize objects into meaningful segments, such as department, location, or type of work. In QuickBooks, class tracking is off by default. If a class is specified for the entire parent transaction, it is automatically applied to all item lines unless overridden here, at the transaction line level.
-   */
+  unitOfMeasure: string | null;
+  overrideUnitOfMeasureSet: QbdRef | null;
+  rate: number | null;
+  ratePercent: number | null;
   class: QbdRef | null;
+  amount: number | null;
+  taxAmount: number | null;
+  inventorySite: QbdRef | null;
+  inventorySiteLocation: QbdRef | null;
+  serialNumber: string | null;
+  lotNumber: string | null;
+  expirationDateForSerialLotNumber: string | null;
+  salesTaxCode: QbdRef | null;
+  invoiced: number | null;
+  isManuallyClosed: boolean | null;
+  otherCustomField1: string | null;
+  otherCustomField2: string | null;
+  customFields: Array<QbdDataExt> | null;
+};
+
+/**
+ * Represents a line item group on a QuickBooks Desktop sales order (SalesOrderLineGroupRet).
+ */
+export type SalesOrderLineGroup = {
   /**
-   * The OverrideItemAccount associated with this object.
+   * The unique line group identifier.
    */
-  overrideItemAccount: QbdRef | null;
+  id: string | null;
+  objectType: string;
   /**
-   * The BillableStatus associated with this object.
-   */
-  billableStatus: BillableStatus | null;
-  /**
-   * The ItemGroup associated with this object.
+   * The Item Group reference.
    */
   itemGroup: QbdRef | null;
   /**
-   * The unit-of-measure used for the `quantity` in this item line. Must be a valid unit within the item's available units of measure.
+   * A description of the line group.
+   */
+  description: string | null;
+  /**
+   * Total quantity of the group.
+   */
+  quantity: number | null;
+  /**
+   * Unit of measure string.
    */
   unitOfMeasure: string | null;
   /**
-   * The Rate associated with this object.
+   * Override unit of measure set reference.
    */
-  rate: number | null;
+  overrideUnitOfMeasureSet: QbdRef | null;
   /**
-   * The sales-tax code for this item line, determining whether it is taxable or non-taxable. If set, this overrides any sales-tax codes defined on the parent transaction or the associated item.
-   *
-   * Default codes include "Non" (non-taxable) and "Tax" (taxable), but custom codes can also be created in QuickBooks. If QuickBooks is not set up to charge sales tax (via the "Do You Charge Sales Tax?" preference), it will assign the default non-taxable code to all sales.
+   * Indicates if individual group items print on sales forms.
    */
-  salesTaxCode: QbdRef | null;
+  isPrintItemsInGroup: boolean | null;
   /**
-   * The site location where inventory for the item associated with this item line is stored.
+   * Total calculated amount for the group.
    */
-  inventorySite: QbdRef | null;
+  totalAmount: number | null;
   /**
-   * The specific location (e.g., bin or shelf) within the inventory site where the item associated with this item line is stored.
+   * The child line items contained within this group.
    */
-  inventorySiteLocation: QbdRef | null;
+  lines: Array<SalesOrderLine> | null;
   /**
-   * The serial number of the item associated with this item line. This is used for tracking individual units of serialized inventory items.
-   */
-  serialNumber: string | null;
-  /**
-   * The lot number of the item associated with this item line. Used for tracking groups of inventory items that are purchased or manufactured together.
-   */
-  lotNumber: string | null;
-  /**
-   * The ServiceDate associated with this object.
-   */
-  serviceDate: string | null;
-  /**
-   * The DataExts associated with this object.
+   * Custom data extensions attached to the group.
    */
   customFields: Array<QbdDataExt> | null;
 };
@@ -17567,7 +16353,7 @@ export type SalesReceipt = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -17767,10 +16553,6 @@ export type SalesReceipt = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -17782,28 +16564,13 @@ export type SalesReceipt = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -17817,7 +16584,7 @@ export type SalesReceiptLine = {
   /**
    * The type of object. This value is always `"qbd_sales_receipt"`.
    */
-  objectType: string | null;
+  objectType: string;
   /**
    * The Item associated with this object.
    */
@@ -17913,7 +16680,7 @@ export type SalesReceiptLineGroup = {
   /**
    * The type of object. This value is always `"qbd_sales_receipt"`.
    */
-  objectType: string | null;
+  objectType: string;
   /**
    * The ItemGroup associated with this object.
    */
@@ -17962,7 +16729,7 @@ export type SalesTaxCode = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -17993,23 +16760,14 @@ export type SalesTaxCode = {
   /**
    * Indicates whether this sales-tax code is tracking taxable sales. This field cannot be modified once the sales-tax code has been used in a transaction.
    */
-  isTaxable: boolean;
+  isTaxable: boolean | null;
   description: string | null;
   itemPurchaseTax: QbdRef | null;
   itemSalesTax: QbdRef | null;
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -18025,7 +16783,7 @@ export type SalesTaxPaymentCheck = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18115,10 +16873,6 @@ export type SalesTaxPaymentCheck = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -18130,28 +16884,13 @@ export type SalesTaxPaymentCheck = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -18192,7 +16931,7 @@ export type ServiceItem = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18324,16 +17063,16 @@ export type ServiceItem = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
+   * Declared on the item base because all 12 item types carry `DataExtRet` in qbXML, which
+   * mirrors the domain's `Item` base.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -18348,7 +17087,7 @@ export type SetCredit = {
   /**
    * The AppliedAmount associated with this object.
    */
-  amount: number;
+  amount: number | null;
   /**
    * Override application.
    */
@@ -18387,7 +17126,7 @@ export type ShipMethod = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18418,16 +17157,7 @@ export type ShipMethod = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -18479,7 +17209,7 @@ export type ShipToAddress = {
    *
    * This name must be unique across all alternate shipping addresses for this specific customer.
    */
-  name: string;
+  name: string | null;
   /**
    * Indicates whether QuickBooks considers this the primary shipping destination for the customer.
    */
@@ -18543,6 +17273,28 @@ export type ShipToAddressRequest = {
    * (Optional) A note associated with the address.
    */
   note?: string | null;
+};
+
+/**
+ * One shipment tracking row under `SalesOrderRet/ShippingDetails`.
+ */
+export type ShippingDetailsLine = {
+  /**
+   * The carrier's tracking identifier for this shipment.
+   */
+  trackingId: string | null;
+  /**
+   * The shipping carrier.
+   */
+  carrierName: string | null;
+  /**
+   * The service level used for this shipment.
+   */
+  shippingMethod: string | null;
+  /**
+   * The amount charged for this shipment.
+   */
+  shippingCharges: number | null;
 };
 
 /**
@@ -18657,7 +17409,7 @@ export type SpecialItem = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18692,16 +17444,7 @@ export type SpecialItem = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 export enum SpecialItemType {
@@ -18717,7 +17460,7 @@ export type StandardErrorResponse = {
   /**
    * The error details object.
    */
-  error: ErrorDetail;
+  error: ErrorDetail | null;
 };
 
 /**
@@ -18739,15 +17482,15 @@ export type TaxLineInfo = {
  */
 export type TenantMeResponse = {
   id: string;
-  name: string;
-  slug: string;
-  status: string;
+  name: string | null;
+  slug: string | null;
+  status: string | null;
   /**
    * The tenant-level publishable key (pk_nxus_live_... or pk_nxus_test_...).
    * Use as the ?pk= query parameter in your hosted QWC setup page URLs.
    * Safe to share with clients and embed in frontend code.
    */
-  publishableKey: string;
+  publishableKey: string | null;
   createdAt: string;
   updatedAt: string | null;
 };
@@ -18764,7 +17507,7 @@ export type Term = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18819,17 +17562,13 @@ export type Term = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
+
+export enum ThousandSeparatorGrouping {
+  XX_XXX_XXX = "XX_XXX_XXX",
+  X_XX_XX_XXX = "X_XX_XX_XXX",
+}
 
 /**
  * Represents a Time Tracking transaction (TimeTrackingRet).
@@ -18844,7 +17583,7 @@ export type TimeTracking = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -18954,10 +17693,6 @@ export type TimeTracking = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -18969,28 +17704,7 @@ export type TimeTracking = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
-  /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  linkedTransactions: Array<LinkedTransaction> | null;
 };
 
 /**
@@ -19006,7 +17720,7 @@ export type Transaction = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -19084,10 +17798,6 @@ export type Transaction = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -19099,28 +17809,7 @@ export type Transaction = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
-  /**
-   * The General Ledger expense lines associated with this transaction.
-   */
-  expenseLines: Array<ExpenseLine>;
-  /**
-   * The inventory, service, or non-inventory item lines associated with this transaction.
-   */
-  itemLines: Array<ItemLine>;
-  /**
-   * Predefined sets of items (Item Groups) bundled together on this transaction.
-   */
-  itemGroupLines: Array<ItemGroupLine>;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  linkedTransactions: Array<LinkedTransaction> | null;
 };
 
 export enum TransactionMode {
@@ -19163,7 +17852,7 @@ export type UnitOfMeasureSet = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -19210,16 +17899,7 @@ export type UnitOfMeasureSet = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
@@ -19357,13 +18037,6 @@ export type UpdateArRefundCreditCardRequest = {
    * (Optional) List of credit transactions (e.g., Credit Memos) to apply this refund to.
    */
   refundApplyToTransactions?: Array<RefundAppliedToTransactionRequest> | null;
-};
-
-/**
- * BillToPay is a read-only query result in QuickBooks and cannot be modified directly.
- */
-export type UpdateBillPaymentOrCreditRequest = {
-  [key: string]: unknown;
 };
 
 /**
@@ -19791,115 +18464,10 @@ export type UpdateConnectionRequest = {
 };
 
 /**
- * Request model for updating an existing credit card bill payment
- * Note: QuickBooks typically doesn't support modifying bill payments directly
- */
-export type UpdateCreditCardBillPaymentRequest = {
-  /**
-   * Edit sequence value for optimistic locking (required)
-   */
-  revisionNumber: string;
-  /**
-   * Reference number for the payment
-   */
-  refNumber?: string | null;
-  /**
-   * Transaction date
-   */
-  transactionDate?: string | null;
-  /**
-   * Vendor/payee being paid
-   */
-  payeeId?: string | null;
-  /**
-   * Accounts Payable account reference
-   */
-  payablesAccountId?: string | null;
-  /**
-   * Credit card account being charged
-   */
-  creditCardAccountId?: string | null;
-  /**
-   * Total amount of the payment
-   */
-  amount?: number | null;
-  /**
-   * Memo/description for the payment
-   */
-  memo?: string | null;
-  /**
-   * Bills being paid by this credit card payment
-   * <remarks>If provided, will replace existing applied bills.</remarks>
-   */
-  applyToTransactions?: Array<ApplyToTransactionRequest> | null;
-};
-
-/**
- * Request model for updating an existing CreditCardCredit transaction.
- * All fields are optional - only provided fields will be updated.
- */
-export type UpdateCreditCardCreditRequest = {
-  revisionNumber: string;
-  /**
-   * Credit Card Account ListID (Optional for updates).
-   */
-  accountId?: string | null;
-  /**
-   * Payee Entity ListID (Optional for updates).
-   */
-  payeeId?: string | null;
-  /**
-   * Transaction date (Optional).
-   */
-  transactionDate?: string | null;
-  /**
-   * Reference number for the transaction (Optional).
-   */
-  refNumber?: string | null;
-  /**
-   * Memo for the transaction (Optional).
-   */
-  memo?: string | null;
-  /**
-   * Indicates if tax is included in line items (Optional).
-   * Only Qbd versions for UK and CA support this.
-   */
-  isTaxIncluded?: boolean | null;
-  /**
-   * Sales Tax Code ListID (Optional).
-   */
-  salesTaxCodeId?: string | null;
-  /**
-   * Exchange rate for multi-currency transactions (Optional).
-   */
-  exchangeRate?: number | null;
-  /**
-   * Clear existing expense lines (Optional).
-   */
-  clearExpenseLines?: boolean | null;
-  /**
-   * Clear existing item lines (Optional).
-   */
-  clearItemLines?: boolean | null;
-  /**
-   * Expense line items to update/replace (Optional for updates).
-   */
-  expenseLines?: Array<UpdateExpenseLineRequest> | null;
-  /**
-   * Item line items to update/replace (Optional for updates).
-   */
-  itemLines?: Array<UpdateItemLineRequest> | null;
-  /**
-   * Item group line items to update/replace (Optional for updates).
-   */
-  itemGroupLines?: Array<UpdateItemGroupLineRequest> | null;
-};
-
-/**
  * Main request model to update an existing Credit Card Charge.
  * Based on the CreditCardChargeModRq QBXML.
  */
-export type UpdateCreditCardRequest = {
+export type UpdateCreditCardChargeRequest = {
   /**
    * (Required) The optimistic concurrency token. Must match the current EditSequence in QuickBooks.
    */
@@ -19959,6 +18527,67 @@ export type UpdateCreditCardRequest = {
   /**
    * (Optional) A list of item group lines to modify.
    * Note: To add new lines, use a line id of "-1". To modify existing lines, provide the current line id from QuickBooks.
+   */
+  itemGroupLines?: Array<UpdateItemGroupLineRequest> | null;
+};
+
+/**
+ * Request model for updating an existing CreditCardCredit transaction.
+ * All fields are optional - only provided fields will be updated.
+ */
+export type UpdateCreditCardCreditRequest = {
+  revisionNumber: string;
+  /**
+   * Credit Card Account ListID (Optional for updates).
+   */
+  accountId?: string | null;
+  /**
+   * Payee Entity ListID (Optional for updates).
+   */
+  payeeId?: string | null;
+  /**
+   * Transaction date (Optional).
+   */
+  transactionDate?: string | null;
+  /**
+   * Reference number for the transaction (Optional).
+   */
+  refNumber?: string | null;
+  /**
+   * Memo for the transaction (Optional).
+   */
+  memo?: string | null;
+  /**
+   * Indicates if tax is included in line items (Optional).
+   * Only Qbd versions for UK and CA support this.
+   */
+  isTaxIncluded?: boolean | null;
+  /**
+   * Sales Tax Code ListID (Optional).
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * Exchange rate for multi-currency transactions (Optional).
+   */
+  exchangeRate?: number | null;
+  /**
+   * Clear existing expense lines (Optional).
+   */
+  clearExpenseLines?: boolean | null;
+  /**
+   * Clear existing item lines (Optional).
+   */
+  clearItemLines?: boolean | null;
+  /**
+   * Expense line items to update/replace (Optional for updates).
+   */
+  expenseLines?: Array<UpdateExpenseLineRequest> | null;
+  /**
+   * Item line items to update/replace (Optional for updates).
+   */
+  itemLines?: Array<UpdateItemLineRequest> | null;
+  /**
+   * Item group line items to update/replace (Optional for updates).
    */
   itemGroupLines?: Array<UpdateItemGroupLineRequest> | null;
 };
@@ -20913,7 +19542,7 @@ export type UpdateEstimateLineRequest = {
   /**
    * The type of object. This value is always `"qbd_estimate"`.
    */
-  objectType?: string | null;
+  objectType: string;
   /**
    * (Optional) The ListID or FullName of the item for this line. (ItemRef, Flattened-ID Pattern)
    */
@@ -21219,7 +19848,7 @@ export type UpdateInventoryItemRequest = {
   /**
    * The case-insensitive name of this inventory item. Not guaranteed to be unique because it does not include the names of its hierarchical parent objects like `fullName` does. For example, two inventory items could both have the `name` "Cabinet", but they could have unique `fullName` values, such as "Kitchen:Cabinet" and "Inventory:Cabinet".
    */
-  name: string;
+  name?: string | null;
   /**
    * The barcode associated with this inventory item.
    */
@@ -21358,6 +19987,140 @@ export type UpdateInventorySiteRequest = {
 };
 
 /**
+ * Contains parameters to modify a group of items on an invoice (`InvoiceLineGroupMod`).
+ */
+export type UpdateInvoiceLineGroupRequest = {
+  /**
+   * The unique identifier of the line group to update.
+   */
+  id: string;
+  /**
+   * The item group associated with this line group.
+   */
+  itemGroupId?: string | null;
+  /**
+   * The quantity of the group.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The unit of measure set to use in place of the item group's default.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
+   * The individual lines belonging to this group.
+   */
+  lines?: Array<UpdateInvoiceLineRequest> | null;
+};
+
+/**
+ * Contains parameters to modify a line on an existing invoice (`InvoiceLineMod`).
+ */
+export type UpdateInvoiceLineRequest = {
+  /**
+   * The unique identifier of the line to update.
+   *
+   * Send `-1` to append a new line. Omitting an existing line deletes it.
+   */
+  id?: string | null;
+  /**
+   * The item sold on this line.
+   */
+  itemId?: string | null;
+  /**
+   * The description printed on this line.
+   */
+  description?: string | null;
+  /**
+   * The quantity sold.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure the quantity is expressed in.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The unit of measure set to use in place of the item's default.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
+   * The price per unit.
+   *
+   * Mutually exclusive with `ratePercent` and `priceLevelId`.
+   */
+  rate?: number | null;
+  /**
+   * The price as a percentage of the item's base price.
+   *
+   * Mutually exclusive with `rate` and `priceLevelId`.
+   */
+  ratePercent?: number | null;
+  /**
+   * The price level to apply to this line.
+   *
+   * Mutually exclusive with `rate` and `ratePercent`.
+   */
+  priceLevelId?: string | null;
+  /**
+   * The class assigned to this line.
+   */
+  classId?: string | null;
+  /**
+   * The total for this line.
+   */
+  amount?: number | null;
+  /**
+   * How QuickBooks resolves a conflict between overlapping price rules.
+   *
+   * One of `Zero` or `BasePrice`.
+   */
+  optionForPriceRuleConflict?: string | null;
+  /**
+   * The inventory site this line ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The serial number of the item sold.
+   *
+   * Mutually exclusive with `lotNumber`.
+   */
+  serialNumber?: string | null;
+  /**
+   * The lot number of the item sold.
+   *
+   * Mutually exclusive with `serialNumber`.
+   */
+  lotNumber?: string | null;
+  /**
+   * The date the service on this line was performed.
+   */
+  serviceDate?: string | null;
+  /**
+   * The sales tax code applied to this line.
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * The account to post this line to, overriding the item's default.
+   */
+  overrideItemAccountId?: string | null;
+  /**
+   * The primary native custom field on this line.
+   */
+  otherCustomField1?: string | null;
+  /**
+   * The secondary native custom field on this line.
+   */
+  otherCustomField2?: string | null;
+};
+
+/**
  * Request model for updating an existing invoice.
  * Matches InvoiceModRq in QBXML.
  */
@@ -21476,12 +20239,17 @@ export type UpdateInvoiceRequest = {
   applyCredits?: Array<SetCreditRequest> | null;
   /**
    * Item line items (replaces existing lines).
+   *
+   * A line you omit is deleted, and a line sent with an `id` of `-1` is appended.
+   * Mutually exclusive with `lineGroups`.
    */
-  lines?: Array<UpdateItemLineRequest> | null;
+  lines?: Array<UpdateInvoiceLineRequest> | null;
   /**
    * Item group line items for the invoice.
+   *
+   * Mutually exclusive with `lines`.
    */
-  lineGroups?: Array<UpdateItemGroupLineRequest> | null;
+  lineGroups?: Array<UpdateInvoiceLineGroupRequest> | null;
 };
 
 /**
@@ -22137,11 +20905,29 @@ export type UpdateItemReceiptRequest = {
  * Request model for updating an ItemSalesTaxGroup.
  */
 export type UpdateItemSalesTaxGroupRequest = {
+  /**
+   * Required for ensuring optimistic concurrency.
+   */
   revisionNumber: string;
+  /**
+   * The name of the item sales tax group.
+   */
   name?: string | null;
+  /**
+   * The barcode request object linking barcode properties.
+   */
   barcode?: BarCodeRequest | null;
+  /**
+   * Indicates whether the item sales tax group is active.
+   */
   isActive?: boolean | null;
+  /**
+   * The description of the item sales tax group.
+   */
   description?: string | null;
+  /**
+   * The list of item sales tax IDs associated with the item sales tax group.
+   */
   itemSalesTaxIds?: Array<string> | null;
 };
 
@@ -22189,7 +20975,7 @@ export type UpdateItemSalesTaxRequest = {
 };
 
 /**
- * Request model for updating an existing ItemSubtotal.
+ * Request for updating an existing ItemSubtotal.
  */
 export type UpdateItemSubtotalRequest = {
   /**
@@ -22197,6 +20983,24 @@ export type UpdateItemSubtotalRequest = {
    * This corresponds to the EditSequence in QuickBooks.
    */
   revisionNumber: string;
+  /**
+   * The name of the item.
+   * Max Length: 31 characters.
+   */
+  name?: string | null;
+  /**
+   * Whether the item is active.
+   */
+  isActive?: boolean | null;
+  /**
+   * The barcode value of the item.
+   * Max Length: 50 characters.
+   */
+  barcodeValue?: string | null;
+  /**
+   * The barcode request object linking barcode properties.
+   */
+  barcode?: BarCodeRequest | null;
   /**
    * Description of the item.
    * Max Length: 4095 characters.
@@ -22207,38 +21011,6 @@ export type UpdateItemSubtotalRequest = {
    * Values: FinanceCharge, ReimbursableExpenseGroup, ReimbursableExpenseSubtotal.
    */
   specialItemType?: string | null;
-  /**
-   * The name of the item.
-   * Max Length: 31 characters.
-   *
-   * Must be unique among sibling items within the same hierarchy level. Case-insensitive.
-   */
-  name: string;
-  /**
-   * Whether the item is active.
-   *
-   * Inactive items are hidden in QuickBooks lists but preserved in historic data.
-   */
-  isActive?: boolean | null;
-  /**
-   * The barcode value of the item.
-   * Max Length: 50 characters.
-   *
-   * Raw barcode text value.
-   */
-  barcodeValue?: string | null;
-  /**
-   * The barcode request object linking barcode properties.
-   *
-   * Optional barcode configuration.
-   */
-  barcode?: BarCodeRequest | null;
-  /**
-   * External GUID for the item.
-   *
-   * A custom external reference identifier applied to map this record with a secondary software workflow or tracking engine. Must be GUID format to ensure uniqueness and prevent collisions.
-   */
-  externalId?: string | null;
 };
 
 /**
@@ -22394,30 +21166,6 @@ export type UpdateOtherNameRequest = {
   notes?: string | null;
   /**
    * The other-name's revision number, which is used to track changes to the other-name.
-   */
-  revisionNumber: string;
-};
-
-/**
- * Request for updating an existing payment method.
- */
-export type UpdatePaymentMethodRequest = {
-  /**
-   * The case-insensitive unique name of this payment method, unique across all payment methods.
-   *
-   * **NOTE**: Payment methods do not have a `fullName` field because they are not hierarchical objects, which is why `name` is unique for them but not for objects that have parents.
-   */
-  name: string;
-  /**
-   * Indicates whether this payment method is active. Inactive objects are typically hidden from views and reports in QuickBooks. Defaults to `true`.
-   */
-  isActive?: boolean | null;
-  /**
-   * This payment method's type.
-   */
-  paymentMethodType?: string | null;
-  /**
-   * Required for QuickBooks "Mod" operations for optimistic concurrency.
    */
   revisionNumber: string;
 };
@@ -22831,11 +21579,43 @@ export type UpdateSalesOrPurchaseRequest = {
 };
 
 /**
- * Contains parameters to modify an existing sales order line item.
+ * Contains parameters to modify a group of items on a sales order (`SalesOrderLineGroupMod`).
+ */
+export type UpdateSalesOrderLineGroupRequest = {
+  /**
+   * The unique identifier of the line group to update.
+   */
+  id: string;
+  /**
+   * The item group associated with this line group.
+   */
+  itemGroupId?: string | null;
+  /**
+   * The quantity of the group requested.
+   */
+  quantity?: number | null;
+  /**
+   * The unit of measure used for the quantity.
+   */
+  unitOfMeasure?: string | null;
+  /**
+   * The unit of measure set to use in place of the item group's default.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
+   * The individual lines belonging to this group.
+   */
+  lines?: Array<UpdateSalesOrderLineRequest> | null;
+};
+
+/**
+ * Contains parameters to modify an existing sales order line item (`SalesOrderLineMod`).
  */
 export type UpdateSalesOrderLineRequest = {
   /**
    * The unique identifier of the line item to update.
+   *
+   * Send `-1` to append a brand-new line. Omitting a line that currently exists deletes it.
    */
   id?: string | null;
   /**
@@ -22855,13 +21635,77 @@ export type UpdateSalesOrderLineRequest = {
    */
   unitOfMeasure?: string | null;
   /**
+   * The unit of measure set to use in place of the item's default.
+   */
+  overrideUnitOfMeasureSetId?: string | null;
+  /**
    * The rate or price per unit of the item.
+   *
+   * Mutually exclusive with `ratePercent` and `priceLevelId`.
    */
   rate?: number | null;
+  /**
+   * The rate expressed as a percentage of the item's base price.
+   *
+   * Mutually exclusive with `rate` and `priceLevelId`.
+   */
+  ratePercent?: number | null;
+  /**
+   * The price level to apply to this line.
+   *
+   * Mutually exclusive with `rate` and `ratePercent`.
+   */
+  priceLevelId?: string | null;
   /**
    * The category associated with this line item.
    */
   classId?: string | null;
+  /**
+   * The total amount for this line.
+   */
+  amount?: number | null;
+  /**
+   * How QuickBooks resolves a conflict between overlapping price rules.
+   *
+   * One of `Zero` or `BasePrice`.
+   */
+  optionForPriceRuleConflict?: string | null;
+  /**
+   * The inventory site the item ships from.
+   */
+  inventorySiteId?: string | null;
+  /**
+   * The specific location within the inventory site.
+   */
+  inventorySiteLocationId?: string | null;
+  /**
+   * The serial number of the item being sold.
+   *
+   * Mutually exclusive with `lotNumber`.
+   */
+  serialNumber?: string | null;
+  /**
+   * The lot number of the item being sold.
+   *
+   * Mutually exclusive with `serialNumber`.
+   */
+  lotNumber?: string | null;
+  /**
+   * The sales tax code applied to this line.
+   */
+  salesTaxCodeId?: string | null;
+  /**
+   * Indicates whether this line has been manually closed without being fully invoiced.
+   */
+  isManuallyClosed?: boolean | null;
+  /**
+   * The primary native custom field used to store supplemental line item information.
+   */
+  otherCustomField1?: string | null;
+  /**
+   * The secondary native custom field used to store supplemental line item information.
+   */
+  otherCustomField2?: string | null;
 };
 
 /**
@@ -22901,6 +21745,10 @@ export type UpdateSalesOrderRequest = {
    */
   shippingAddress?: AddressRequest | null;
   /**
+   * The customer's purchase order number for this sales order.
+   */
+  poNumber?: string | null;
+  /**
    * The payment terms applied to this sales order.
    */
   termsId?: string | null;
@@ -22915,7 +21763,7 @@ export type UpdateSalesOrderRequest = {
   /**
    * The Free On Board (FOB) shipping terms.
    */
-  fob?: string | null;
+  shipmentOrigin?: string | null;
   /**
    * The date the goods are expected to be shipped.
    */
@@ -22929,6 +21777,10 @@ export type UpdateSalesOrderRequest = {
    */
   itemSalesTaxId?: string | null;
   /**
+   * Indicates whether this sales order has been manually closed without being fully invoiced.
+   */
+  isManuallyClosed?: boolean | null;
+  /**
    * A memo or note regarding the sales order.
    */
   memo?: string | null;
@@ -22939,19 +21791,56 @@ export type UpdateSalesOrderRequest = {
   /**
    * Indicates whether the sales order is queued to be printed.
    */
-  isToBePrinted?: boolean | null;
+  isQueuedForPrint?: boolean | null;
   /**
    * Indicates whether the sales order is queued to be emailed.
    */
-  isToBeEmailed?: boolean | null;
+  isQueuedForEmail?: boolean | null;
   /**
-   * Indicates whether this sales order has been manually closed without being fully invoiced.
+   * The sales tax code applied to the customer on this sales order.
    */
-  isManuallyClosed?: boolean | null;
+  customerSalesTaxCodeId?: string | null;
+  /**
+   * The native custom field used to store supplemental sales order information.
+   *
+   * A standard QuickBooks field built into all sales orders, separate from the dynamic custom
+   * field collection. Hidden by default in the QuickBooks UI.
+   */
+  otherCustomField?: string | null;
+  /**
+   * The market exchange rate between this sales order's currency and the home currency.
+   *
+   * Sent as a number rather than a decimal string, unlike the monetary amounts on this request.
+   * Requires the multicurrency feature to be enabled in the company file.
+   */
+  exchangeRate?: number | null;
   /**
    * The individual line items requested on this sales order.
+   *
+   * Replaces the existing lines: a line you omit is deleted, and a line sent with an
+   * `id` of `-1` is appended. Mutually exclusive with `lineGroups`.
    */
   lines?: Array<UpdateSalesOrderLineRequest> | null;
+  /**
+   * The item groups on this sales order.
+   *
+   * Mutually exclusive with `lines`.
+   */
+  lineGroups?: Array<UpdateSalesOrderLineGroupRequest> | null;
+  /**
+   * The channel this sales order originated from.
+   *
+   * One of `Blank` or `Ecommerce`.
+   */
+  salesChannel?: string | null;
+  /**
+   * The name of the store this sales order originated from.
+   */
+  storeName?: string | null;
+  /**
+   * The type of store this sales order originated from.
+   */
+  storeType?: string | null;
 };
 
 /**
@@ -23729,7 +22618,7 @@ export type Vendor = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -23940,16 +22829,15 @@ export type Vendor = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
+  isActive: boolean | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
    * Used for tracking user-defined data beyond standard QuickBooks properties.
    * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
    * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -23964,7 +22852,7 @@ export type VendorCredit = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -24051,10 +22939,6 @@ export type VendorCredit = {
    */
   amountInHomeCurrency: string | null;
   /**
-   * Internal validation helper to check if the transaction contains at least one valid line item.
-   */
-  hasValidLineItems: boolean;
-  /**
    * A globally unique identifier (GUID) provided by your application to track this record in an external system.
    *
    * This field is immutable and can only be set during the initial creation of the transaction.
@@ -24066,28 +22950,25 @@ export type VendorCredit = {
    * **Important:** QuickBooks does not always return linked transactions by default to optimize performance.
    * When querying lists of transactions, you may need to explicitly include a parameter (e.g., `includeLinkedTransactions=true`) to populate this array.
    */
-  linkedTransactions: Array<LinkedTransaction>;
+  linkedTransactions: Array<LinkedTransaction> | null;
   /**
    * The General Ledger expense lines associated with this transaction.
    */
-  expenseLines: Array<ExpenseLine>;
+  expenseLines: Array<ExpenseLine> | null;
   /**
    * The inventory, service, or non-inventory item lines associated with this transaction.
    */
-  itemLines: Array<ItemLine>;
+  itemLines: Array<ItemLine> | null;
   /**
    * Predefined sets of items (Item Groups) bundled together on this transaction.
    */
-  itemGroupLines: Array<ItemGroupLine>;
+  itemGroupLines: Array<ItemGroupLine> | null;
   /**
-   * Custom fields and data extensions associated with this entity.
+   * Custom fields and data extensions associated with this entity. User-defined data fields attached to an entity.
    *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
+   * These fields allow you to store extra text or attributes on this transaction (like a custom order ID, region, or compliance status) beyond the standard fields.
    */
-  customFields: Array<QbdDataExt>;
+  customFields: Array<QbdDataExt> | null;
 };
 
 /**
@@ -24100,7 +22981,7 @@ export type VendorType = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -24145,27 +23026,18 @@ export type VendorType = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 /**
  * Specialized response for Void operations.
  */
 export type VoidResponse = {
-  voided: boolean;
+  voided: boolean | null;
   id: string;
   objectType: string;
   refNumber: string | null;
-  status: string;
+  status: string | null;
   /**
    * The unique identifier for this request. Include this ID when contacting
    * support so the request can be located in server-side logs.
@@ -24174,7 +23046,7 @@ export type VoidResponse = {
   errorMessage: string | null;
   errorCode: string | null;
   suggestedAction: string | null;
-  timestamp: string;
+  timestamp: string | null;
 };
 
 /**
@@ -24187,7 +23059,7 @@ export type WorkersCompCode = {
    */
   id: string;
   /**
-   * The type of object. This value is dynamically generated to represent the specific QuickBooks entity.
+   * The type of object. This value is dynamically generated to represent the specific QuickBooks result.
    */
   objectType: string;
   /**
@@ -24242,16 +23114,7 @@ export type WorkersCompCode = {
   /**
    * Indicates whether the list item is currently active.
    */
-  isActive: boolean;
-  /**
-   * Custom fields and data extensions associated with this entity.
-   *
-   * Used for tracking user-defined data beyond standard QuickBooks properties.
-   * <br />- **Public Fields:** Viewable and printable in the QuickBooks UI (OwnerID of "0"). Strictly limited to 255-character strings.
-   * <br />- **Private Fields:** Visible only to the application that created them via a specific GUID. Total private data is limited to 4096 bytes per object across all applications.
-   * <br />- **Inheritance:** Transaction objects automatically inherit custom fields from their associated Customer and Item records.
-   */
-  customFields: Array<QbdDataExt>;
+  isActive: boolean | null;
 };
 
 export type CreateAccountData = {
@@ -24760,20 +23623,6 @@ export type ListAccountsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -24856,7 +23705,7 @@ export type ListAccountsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * Filter by a specific account type.
      */
@@ -24930,13 +23779,21 @@ export type ListAccountsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseAccount;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Account>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListAccountsResponse =
   ListAccountsResponses[keyof ListAccountsResponses];
 
-export type ListAccountTaxLineInfosData = {
+export type ListAccountsTaxLineInfoData = {
   body?: never;
   headers?: {
     /**
@@ -24966,30 +23823,11 @@ export type ListAccountTaxLineInfosData = {
     "X-Nxus-Timeout-Seconds"?: number;
   };
   path?: never;
-  query?: {
-    /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
-     * The maximum number of items to return for this request.
-     */
-    limit?: number;
-  };
+  query?: never;
   url: "/api/v1/accounts-tax-line-info";
 };
 
-export type ListAccountTaxLineInfosErrors = {
+export type ListAccountsTaxLineInfoErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -25040,18 +23878,216 @@ export type ListAccountTaxLineInfosErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListAccountTaxLineInfosError =
-  ListAccountTaxLineInfosErrors[keyof ListAccountTaxLineInfosErrors];
+export type ListAccountsTaxLineInfoError =
+  ListAccountsTaxLineInfoErrors[keyof ListAccountsTaxLineInfoErrors];
 
-export type ListAccountTaxLineInfosResponses = {
+export type ListAccountsTaxLineInfoResponses = {
   /**
    * OK
    */
-  200: BasePageResponseAccountTaxLineInfo;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<AccountTaxLineInfo>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
-export type ListAccountTaxLineInfosResponse =
-  ListAccountTaxLineInfosResponses[keyof ListAccountTaxLineInfosResponses];
+export type ListAccountsTaxLineInfoResponse =
+  ListAccountsTaxLineInfoResponses[keyof ListAccountsTaxLineInfoResponses];
+
+export type CountAccountsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by a specific account type.
+     */
+    accountType?: NullableAccountType;
+    /**
+     * Filter accounts by multiple account type values.
+     */
+    accountTypes?: Array<AccountType>;
+    /**
+     * Filter by one or more external owner identifiers.
+     */
+    ownerIds?: Array<string>;
+  };
+  url: "/api/v1/accounts/count";
+};
+
+export type CountAccountsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountAccountsError = CountAccountsErrors[keyof CountAccountsErrors];
+
+export type CountAccountsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountAccountsResponse =
+  CountAccountsResponses[keyof CountAccountsResponses];
 
 export type CreateArRefundCreditCardData = {
   body: CreateArRefundCreditCardRequest;
@@ -25683,7 +24719,7 @@ export type ListArRefundCreditCardsData = {
      * This is a QuickBooks-specific filter for multi-user environments.
      * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
      */
-    OwnerIDs?: Array<string>;
+    ownerIDs?: Array<string>;
   };
   url: "/api/v1/ar-refund-credit-cards";
 };
@@ -25746,11 +24782,235 @@ export type ListArRefundCreditCardsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseArRefundCreditCard;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ArRefundCreditCard>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListArRefundCreditCardsResponse =
   ListArRefundCreditCardsResponses[keyof ListArRefundCreditCardsResponses];
+
+export type CountArRefundCreditCardsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by owner GUIDs.
+     * This is a QuickBooks-specific filter for multi-user environments.
+     * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
+     */
+    ownerIDs?: Array<string>;
+  };
+  url: "/api/v1/ar-refund-credit-cards/count";
+};
+
+export type CountArRefundCreditCardsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountArRefundCreditCardsError =
+  CountArRefundCreditCardsErrors[keyof CountArRefundCreditCardsErrors];
+
+export type CountArRefundCreditCardsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountArRefundCreditCardsResponse =
+  CountArRefundCreditCardsResponses[keyof CountArRefundCreditCardsResponses];
 
 export type CreateAuthSessionData = {
   body: CreateAuthSessionRequest;
@@ -25896,99 +25156,6 @@ export type RetrieveAuthSessionResponses = {
 export type RetrieveAuthSessionResponse =
   RetrieveAuthSessionResponses[keyof RetrieveAuthSessionResponses];
 
-export type DeleteBarCodeData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/bar-code/{id}";
-};
-
-export type DeleteBarCodeErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type DeleteBarCodeError = DeleteBarCodeErrors[keyof DeleteBarCodeErrors];
-
-export type DeleteBarCodeResponses = {
-  /**
-   * OK
-   */
-  200: DeleteResponse;
-};
-
-export type DeleteBarCodeResponse =
-  DeleteBarCodeResponses[keyof DeleteBarCodeResponses];
-
 export type ListBarCodesData = {
   body?: never;
   headers?: {
@@ -26035,7 +25202,7 @@ export type ListBarCodesData = {
      */
     cursor?: string;
     /**
-     * The maximum number of items to return for this request.
+     * The maximum number of items to return per page.
      */
     limit?: number;
     /**
@@ -26043,7 +25210,7 @@ export type ListBarCodesData = {
      * Only barcodes whose value matches one of the provided strings will be returned.
      * Omit to return all barcodes.
      */
-    BarCodeValues?: Array<string>;
+    barCodeValues?: Array<string>;
   };
   url: "/api/v1/bar-codes";
 };
@@ -26105,11 +25272,126 @@ export type ListBarCodesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBarCode;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<BarCode>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListBarCodesResponse =
   ListBarCodesResponses[keyof ListBarCodesResponses];
+
+export type CountBarCodesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * (Optional, repeatable) Filter by one or more specific barcode values.
+     * Only barcodes whose value matches one of the provided strings will be returned.
+     * Omit to return all barcodes.
+     */
+    barCodeValues?: Array<string>;
+  };
+  url: "/api/v1/bar-codes/count";
+};
+
+export type CountBarCodesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountBarCodesError = CountBarCodesErrors[keyof CountBarCodesErrors];
+
+export type CountBarCodesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountBarCodesResponse =
+  CountBarCodesResponses[keyof CountBarCodesResponses];
 
 export type CreateBillData = {
   body: CreateBillRequest;
@@ -26200,192 +25482,6 @@ export type CreateBillResponses = {
 };
 
 export type CreateBillResponse = CreateBillResponses[keyof CreateBillResponses];
-
-export type CreateBillPaymentOrCreditData = {
-  body: CreateBillPaymentOrCreditRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path?: never;
-  query?: never;
-  url: "/api/v1/bill-payment-or-credit";
-};
-
-export type CreateBillPaymentOrCreditErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type CreateBillPaymentOrCreditError =
-  CreateBillPaymentOrCreditErrors[keyof CreateBillPaymentOrCreditErrors];
-
-export type CreateBillPaymentOrCreditResponses = {
-  /**
-   * Created
-   */
-  201: BillPaymentOrCredit;
-};
-
-export type CreateBillPaymentOrCreditResponse =
-  CreateBillPaymentOrCreditResponses[keyof CreateBillPaymentOrCreditResponses];
-
-export type DeleteBillPaymentOrCreditData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/bill-payment-or-credit/{id}";
-};
-
-export type DeleteBillPaymentOrCreditErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type DeleteBillPaymentOrCreditError =
-  DeleteBillPaymentOrCreditErrors[keyof DeleteBillPaymentOrCreditErrors];
-
-export type DeleteBillPaymentOrCreditResponses = {
-  /**
-   * OK
-   */
-  200: DeleteResponse;
-};
-
-export type DeleteBillPaymentOrCreditResponse =
-  DeleteBillPaymentOrCreditResponses[keyof DeleteBillPaymentOrCreditResponses];
 
 export type RetrieveBillPaymentOrCreditData = {
   body?: never;
@@ -26481,195 +25577,7 @@ export type RetrieveBillPaymentOrCreditResponses = {
 export type RetrieveBillPaymentOrCreditResponse =
   RetrieveBillPaymentOrCreditResponses[keyof RetrieveBillPaymentOrCreditResponses];
 
-export type UpdateBillPaymentOrCreditData = {
-  body: UpdateBillPaymentOrCreditRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/bill-payment-or-credit/{id}";
-};
-
-export type UpdateBillPaymentOrCreditErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdateBillPaymentOrCreditError =
-  UpdateBillPaymentOrCreditErrors[keyof UpdateBillPaymentOrCreditErrors];
-
-export type UpdateBillPaymentOrCreditResponses = {
-  /**
-   * OK
-   */
-  200: BillPaymentOrCredit;
-};
-
-export type UpdateBillPaymentOrCreditResponse =
-  UpdateBillPaymentOrCreditResponses[keyof UpdateBillPaymentOrCreditResponses];
-
-export type VoidBillPaymentOrCreditData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/bill-payment-or-credit/{id}/void";
-};
-
-export type VoidBillPaymentOrCreditErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidBillPaymentOrCreditError =
-  VoidBillPaymentOrCreditErrors[keyof VoidBillPaymentOrCreditErrors];
-
-export type VoidBillPaymentOrCreditResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidBillPaymentOrCreditResponse =
-  VoidBillPaymentOrCreditResponses[keyof VoidBillPaymentOrCreditResponses];
-
-export type ListBillPaymentOrCreditsData = {
+export type ListBillPaymentsOrCreditsData = {
   body?: never;
   headers?: {
     /**
@@ -26701,27 +25609,13 @@ export type ListBillPaymentOrCreditsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * Filter by one or more unique identifiers (TxnIDs).
      *
      * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
      */
     ids?: Array<string>;
     /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -26829,25 +25723,25 @@ export type ListBillPaymentOrCreditsData = {
     /**
      * (Optional) Filter by a specific Accounts Payable (A/P) Account ListID or FullName.
      */
-    APAccountId?: string;
+    apAccountId?: string;
     /**
      * (Optional) Filter results by a specific Currency ListID or FullName.
      * Note: QuickBoooks Desktop must have the "Multi-Currency" feature enabled to use this filter or nXus will return an error.
      */
-    CurrencyId?: string;
+    currencyId?: string;
     /**
      * (Optional) Filter for bills coming due by this date.
      */
-    DueDate?: string | null;
+    dueDate?: string | null;
     /**
-     * (Required) The ListID or FullName of the Payee (Vendor, Employee, etc.) to find open bills/credits for.
+     * The payee ID (Vendor, Employee, etc.) used to find open bills and credits.
      */
-    id?: string;
+    payeeId?: string;
   };
-  url: "/api/v1/bill-payment-or-credits";
+  url: "/api/v1/bill-payments-or-credits";
 };
 
-export type ListBillPaymentOrCreditsErrors = {
+export type ListBillPaymentsOrCreditsErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -26898,18 +25792,250 @@ export type ListBillPaymentOrCreditsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListBillPaymentOrCreditsError =
-  ListBillPaymentOrCreditsErrors[keyof ListBillPaymentOrCreditsErrors];
+export type ListBillPaymentsOrCreditsError =
+  ListBillPaymentsOrCreditsErrors[keyof ListBillPaymentsOrCreditsErrors];
 
-export type ListBillPaymentOrCreditsResponses = {
+export type ListBillPaymentsOrCreditsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBillPaymentOrCredit;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<BillPaymentOrCredit>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
-export type ListBillPaymentOrCreditsResponse =
-  ListBillPaymentOrCreditsResponses[keyof ListBillPaymentOrCreditsResponses];
+export type ListBillPaymentsOrCreditsResponse =
+  ListBillPaymentsOrCreditsResponses[keyof ListBillPaymentsOrCreditsResponses];
+
+export type CountBillPaymentsOrCreditsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by a specific Accounts Payable (A/P) Account ListID or FullName.
+     */
+    apAccountId?: string;
+    /**
+     * (Optional) Filter results by a specific Currency ListID or FullName.
+     * Note: QuickBoooks Desktop must have the "Multi-Currency" feature enabled to use this filter or nXus will return an error.
+     */
+    currencyId?: string;
+    /**
+     * (Optional) Filter for bills coming due by this date.
+     */
+    dueDate?: string | null;
+    /**
+     * The payee ID (Vendor, Employee, etc.) used to find open bills and credits.
+     */
+    payeeId?: string;
+  };
+  url: "/api/v1/bill-payments-or-credits/count";
+};
+
+export type CountBillPaymentsOrCreditsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountBillPaymentsOrCreditsError =
+  CountBillPaymentsOrCreditsErrors[keyof CountBillPaymentsOrCreditsErrors];
+
+export type CountBillPaymentsOrCreditsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountBillPaymentsOrCreditsResponse =
+  CountBillPaymentsOrCreditsResponses[keyof CountBillPaymentsOrCreditsResponses];
 
 export type DeleteBillData = {
   body?: never;
@@ -27616,20 +26742,6 @@ export type ListBillingRatesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -27712,11 +26824,11 @@ export type ListBillingRatesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * (Optional) Filter by the service item referenced in the billing rate (ListID or FullName).
      */
-    ItemFilter?: string;
+    itemFilter?: string;
   };
   url: "/api/v1/billing-rates";
 };
@@ -27779,11 +26891,202 @@ export type ListBillingRatesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBillingRate;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<BillingRate>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListBillingRatesResponse =
   ListBillingRatesResponses[keyof ListBillingRatesResponses];
+
+export type CountBillingRatesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by the service item referenced in the billing rate (ListID or FullName).
+     */
+    itemFilter?: string;
+  };
+  url: "/api/v1/billing-rates/count";
+};
+
+export type CountBillingRatesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountBillingRatesError =
+  CountBillingRatesErrors[keyof CountBillingRatesErrors];
+
+export type CountBillingRatesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountBillingRatesResponse =
+  CountBillingRatesResponses[keyof CountBillingRatesResponses];
 
 export type ListBillsData = {
   body?: never;
@@ -28012,12 +27315,237 @@ export type ListBillsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBill;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Bill>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListBillsResponse = ListBillsResponses[keyof ListBillsResponses];
 
-export type ListBuildAssemblysData = {
+export type CountBillsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filters bills by their payment state.
+     * Supported values: `All`, `PaidOnly`, `NotPaidOnly`.
+     */
+    paymentStatus?: string;
+    /**
+     * Filter records by one or more Currency IDs.
+     */
+    currencyIds?: Array<string>;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/bills/count";
+};
+
+export type CountBillsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountBillsError = CountBillsErrors[keyof CountBillsErrors];
+
+export type CountBillsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountBillsResponse = CountBillsResponses[keyof CountBillsResponses];
+
+export type ListBuildAssembliesData = {
   body?: never;
   headers?: {
     /**
@@ -28177,16 +27705,16 @@ export type ListBuildAssemblysData = {
     /**
      * (Optional) If true, includes the constituent component line items in the response.
      */
-    IncludeComponentLineItems?: boolean | null;
+    includeComponentLineItems?: boolean | null;
     /**
      * (Optional) Filter by Pending Status (All, PendingOnly, NotPendingOnly).
      */
-    PendingStatus?: string;
+    pendingStatus?: string;
   };
   url: "/api/v1/build-assemblies";
 };
 
-export type ListBuildAssemblysErrors = {
+export type ListBuildAssembliesErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -28237,18 +27765,244 @@ export type ListBuildAssemblysErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListBuildAssemblysError =
-  ListBuildAssemblysErrors[keyof ListBuildAssemblysErrors];
+export type ListBuildAssembliesError =
+  ListBuildAssembliesErrors[keyof ListBuildAssembliesErrors];
 
-export type ListBuildAssemblysResponses = {
+export type ListBuildAssembliesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseBuildAssembly;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<BuildAssembly>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListBuildAssemblysResponse =
-  ListBuildAssemblysResponses[keyof ListBuildAssemblysResponses];
+export type ListBuildAssembliesResponse =
+  ListBuildAssembliesResponses[keyof ListBuildAssembliesResponses];
+
+export type CountBuildAssembliesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) If true, includes the constituent component line items in the response.
+     */
+    includeComponentLineItems?: boolean | null;
+    /**
+     * (Optional) Filter by Pending Status (All, PendingOnly, NotPendingOnly).
+     */
+    pendingStatus?: string;
+  };
+  url: "/api/v1/build-assemblies/count";
+};
+
+export type CountBuildAssembliesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountBuildAssembliesError =
+  CountBuildAssembliesErrors[keyof CountBuildAssembliesErrors];
+
+export type CountBuildAssembliesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountBuildAssembliesResponse =
+  CountBuildAssembliesResponses[keyof CountBuildAssembliesResponses];
 
 export type CreateBuildAssemblyData = {
   body: CreateBuildAssemblyRequest;
@@ -29271,7 +29025,7 @@ export type ListChargesData = {
     /**
      * (Optional) Filter by Paid Status (All, PaidOnly, NotPaidOnly).
      */
-    PaidStatus?: string;
+    paidStatus?: string;
   };
   url: "/api/v1/charges";
 };
@@ -29333,11 +29087,232 @@ export type ListChargesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCharge;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Charge>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListChargesResponse =
   ListChargesResponses[keyof ListChargesResponses];
+
+export type CountChargesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by Paid Status (All, PaidOnly, NotPaidOnly).
+     */
+    paidStatus?: string;
+  };
+  url: "/api/v1/charges/count";
+};
+
+export type CountChargesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountChargesError = CountChargesErrors[keyof CountChargesErrors];
+
+export type CountChargesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountChargesResponse =
+  CountChargesResponses[keyof CountChargesResponses];
 
 export type CreateCheckData = {
   body: CreateCheckRequest;
@@ -30060,12 +30035,12 @@ export type ListCheckBillPaymentsData = {
      * Valid values: "NotSet", "ToBePrinted", "ToBeEmailed"
      * This is specific to Check transactions.
      */
-    IsPrintedStatus?: string;
+    isPrintedStatus?: string;
     /**
      * (Optional) Filter by owner GUIDs.
      * This is a QuickBooks-specific filter for multi-user environments.
      */
-    OwnerIDs?: Array<string>;
+    ownerIDs?: Array<string>;
   };
   url: "/api/v1/check-bill-payments";
 };
@@ -30128,11 +30103,240 @@ export type ListCheckBillPaymentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCheckBillPayment;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CheckBillPayment>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCheckBillPaymentsResponse =
   ListCheckBillPaymentsResponses[keyof ListCheckBillPaymentsResponses];
+
+export type CountCheckBillPaymentsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by check printed status.
+     * Valid values: "NotSet", "ToBePrinted", "ToBeEmailed"
+     * This is specific to Check transactions.
+     */
+    isPrintedStatus?: string;
+    /**
+     * (Optional) Filter by owner GUIDs.
+     * This is a QuickBooks-specific filter for multi-user environments.
+     */
+    ownerIDs?: Array<string>;
+  };
+  url: "/api/v1/check-bill-payments/count";
+};
+
+export type CountCheckBillPaymentsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCheckBillPaymentsError =
+  CountCheckBillPaymentsErrors[keyof CountCheckBillPaymentsErrors];
+
+export type CountCheckBillPaymentsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCheckBillPaymentsResponse =
+  CountCheckBillPaymentsResponses[keyof CountCheckBillPaymentsResponses];
 
 export type DeleteCheckData = {
   body?: never;
@@ -30747,12 +30951,229 @@ export type ListChecksResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCheck;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Check>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListChecksResponse = ListChecksResponses[keyof ListChecksResponses];
 
-export type CreateQbdClassData = {
+export type CountChecksData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/checks/count";
+};
+
+export type CountChecksErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountChecksError = CountChecksErrors[keyof CountChecksErrors];
+
+export type CountChecksResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountChecksResponse =
+  CountChecksResponses[keyof CountChecksResponses];
+
+export type CreateClassData = {
   body: CreateClassRequest;
   headers?: {
     /**
@@ -30780,7 +31201,7 @@ export type CreateQbdClassData = {
   url: "/api/v1/class";
 };
 
-export type CreateQbdClassErrors = {
+export type CreateClassErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -30831,20 +31252,19 @@ export type CreateQbdClassErrors = {
   502: StandardErrorResponse;
 };
 
-export type CreateQbdClassError =
-  CreateQbdClassErrors[keyof CreateQbdClassErrors];
+export type CreateClassError = CreateClassErrors[keyof CreateClassErrors];
 
-export type CreateQbdClassResponses = {
+export type CreateClassResponses = {
   /**
    * Created
    */
   201: Class;
 };
 
-export type CreateQbdClassResponse =
-  CreateQbdClassResponses[keyof CreateQbdClassResponses];
+export type CreateClassResponse =
+  CreateClassResponses[keyof CreateClassResponses];
 
-export type DeleteQbdClassData = {
+export type DeleteClassData = {
   body?: never;
   headers?: {
     /**
@@ -30877,7 +31297,7 @@ export type DeleteQbdClassData = {
   url: "/api/v1/class/{id}";
 };
 
-export type DeleteQbdClassErrors = {
+export type DeleteClassErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -30928,20 +31348,19 @@ export type DeleteQbdClassErrors = {
   502: StandardErrorResponse;
 };
 
-export type DeleteQbdClassError =
-  DeleteQbdClassErrors[keyof DeleteQbdClassErrors];
+export type DeleteClassError = DeleteClassErrors[keyof DeleteClassErrors];
 
-export type DeleteQbdClassResponses = {
+export type DeleteClassResponses = {
   /**
    * OK
    */
   200: DeleteResponse;
 };
 
-export type DeleteQbdClassResponse =
-  DeleteQbdClassResponses[keyof DeleteQbdClassResponses];
+export type DeleteClassResponse =
+  DeleteClassResponses[keyof DeleteClassResponses];
 
-export type RetrieveQbdClassData = {
+export type RetrieveClassData = {
   body?: never;
   headers?: {
     /**
@@ -30974,7 +31393,7 @@ export type RetrieveQbdClassData = {
   url: "/api/v1/class/{id}";
 };
 
-export type RetrieveQbdClassErrors = {
+export type RetrieveClassErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -31025,20 +31444,19 @@ export type RetrieveQbdClassErrors = {
   502: StandardErrorResponse;
 };
 
-export type RetrieveQbdClassError =
-  RetrieveQbdClassErrors[keyof RetrieveQbdClassErrors];
+export type RetrieveClassError = RetrieveClassErrors[keyof RetrieveClassErrors];
 
-export type RetrieveQbdClassResponses = {
+export type RetrieveClassResponses = {
   /**
    * OK
    */
   200: Class;
 };
 
-export type RetrieveQbdClassResponse =
-  RetrieveQbdClassResponses[keyof RetrieveQbdClassResponses];
+export type RetrieveClassResponse =
+  RetrieveClassResponses[keyof RetrieveClassResponses];
 
-export type UpdateQbdClassData = {
+export type UpdateClassData = {
   body: UpdateClassRequest;
   headers?: {
     /**
@@ -31071,7 +31489,7 @@ export type UpdateQbdClassData = {
   url: "/api/v1/class/{id}";
 };
 
-export type UpdateQbdClassErrors = {
+export type UpdateClassErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -31122,20 +31540,19 @@ export type UpdateQbdClassErrors = {
   502: StandardErrorResponse;
 };
 
-export type UpdateQbdClassError =
-  UpdateQbdClassErrors[keyof UpdateQbdClassErrors];
+export type UpdateClassError = UpdateClassErrors[keyof UpdateClassErrors];
 
-export type UpdateQbdClassResponses = {
+export type UpdateClassResponses = {
   /**
    * OK
    */
   200: Class;
 };
 
-export type UpdateQbdClassResponse =
-  UpdateQbdClassResponses[keyof UpdateQbdClassResponses];
+export type UpdateClassResponse =
+  UpdateClassResponses[keyof UpdateClassResponses];
 
-export type ListQbdClasssData = {
+export type ListClassesData = {
   body?: never;
   headers?: {
     /**
@@ -31167,21 +31584,7 @@ export type ListQbdClasssData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -31263,12 +31666,12 @@ export type ListQbdClasssData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/classes";
 };
 
-export type ListQbdClasssErrors = {
+export type ListClassesErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -31319,17 +31722,203 @@ export type ListQbdClasssErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListQbdClasssError = ListQbdClasssErrors[keyof ListQbdClasssErrors];
+export type ListClassesError = ListClassesErrors[keyof ListClassesErrors];
 
-export type ListQbdClasssResponses = {
+export type ListClassesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseClass;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Class>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
-export type ListQbdClasssResponse =
-  ListQbdClasssResponses[keyof ListQbdClasssResponses];
+export type ListClassesResponse =
+  ListClassesResponses[keyof ListClassesResponses];
+
+export type CountClassesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/classes/count";
+};
+
+export type CountClassesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountClassesError = CountClassesErrors[keyof CountClassesErrors];
+
+export type CountClassesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountClassesResponse =
+  CountClassesResponses[keyof CountClassesResponses];
 
 export type ListConnectionsData = {
   body?: never;
@@ -32185,100 +32774,6 @@ export type RetrieveCreditCardBillPaymentResponses = {
 export type RetrieveCreditCardBillPaymentResponse =
   RetrieveCreditCardBillPaymentResponses[keyof RetrieveCreditCardBillPaymentResponses];
 
-export type UpdateCreditCardBillPaymentData = {
-  body: UpdateCreditCardBillPaymentRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/credit-card-bill-payment/{id}";
-};
-
-export type UpdateCreditCardBillPaymentErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdateCreditCardBillPaymentError =
-  UpdateCreditCardBillPaymentErrors[keyof UpdateCreditCardBillPaymentErrors];
-
-export type UpdateCreditCardBillPaymentResponses = {
-  /**
-   * OK
-   */
-  200: CreditCardBillPayment;
-};
-
-export type UpdateCreditCardBillPaymentResponse =
-  UpdateCreditCardBillPaymentResponses[keyof UpdateCreditCardBillPaymentResponses];
-
 export type VoidCreditCardBillPaymentData = {
   body?: never;
   headers?: {
@@ -32535,13 +33030,13 @@ export type ListCreditCardBillPaymentsData = {
      * This is specific to bill payment transactions.
      * Example: "80000002-5678"
      */
-    APAccountId?: string;
+    apAccountId?: string;
     /**
      * (Optional) Filter by owner GUIDs.
      * This is a QuickBooks-specific filter for multi-user environments.
      * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
      */
-    OwnerIDs?: Array<string>;
+    ownerIDs?: Array<string>;
   };
   url: "/api/v1/credit-card-bill-payments";
 };
@@ -32604,14 +33099,244 @@ export type ListCreditCardBillPaymentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCreditCardBillPayment;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CreditCardBillPayment>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCreditCardBillPaymentsResponse =
   ListCreditCardBillPaymentsResponses[keyof ListCreditCardBillPaymentsResponses];
 
+export type CountCreditCardBillPaymentsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Override to disable linked transactions filter for this resource
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by Accounts Payable account ListID.
+     * This is specific to bill payment transactions.
+     * Example: "80000002-5678"
+     */
+    apAccountId?: string;
+    /**
+     * (Optional) Filter by owner GUIDs.
+     * This is a QuickBooks-specific filter for multi-user environments.
+     * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
+     */
+    ownerIDs?: Array<string>;
+  };
+  url: "/api/v1/credit-card-bill-payments/count";
+};
+
+export type CountCreditCardBillPaymentsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCreditCardBillPaymentsError =
+  CountCreditCardBillPaymentsErrors[keyof CountCreditCardBillPaymentsErrors];
+
+export type CountCreditCardBillPaymentsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCreditCardBillPaymentsResponse =
+  CountCreditCardBillPaymentsResponses[keyof CountCreditCardBillPaymentsResponses];
+
 export type CreateCreditCardData = {
-  body: CreateCreditCardRequest;
+  body: CreateCreditCardChargeRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -32891,7 +33616,7 @@ export type RetrieveCreditCardResponse =
   RetrieveCreditCardResponses[keyof RetrieveCreditCardResponses];
 
 export type UpdateCreditCardData = {
-  body: UpdateCreditCardRequest;
+  body: UpdateCreditCardChargeRequest;
   headers?: {
     /**
      * Identifies which QuickBooks Desktop company file to target.
@@ -33297,11 +34022,229 @@ export type ListCreditCardsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCreditCardCharge;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CreditCardCharge>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCreditCardsResponse =
   ListCreditCardsResponses[keyof ListCreditCardsResponses];
+
+export type CountCreditCardsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Hidden: Linked transactions are not supported for Credit Card Charges.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/credit-card-charges/count";
+};
+
+export type CountCreditCardsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCreditCardsError =
+  CountCreditCardsErrors[keyof CountCreditCardsErrors];
+
+export type CountCreditCardsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCreditCardsResponse =
+  CountCreditCardsResponses[keyof CountCreditCardsResponses];
 
 export type CreateCreditCardCreditData = {
   body: CreateCreditCardCreditRequest;
@@ -33933,7 +34876,7 @@ export type ListCreditCardCreditsData = {
      * This is a QuickBooks-specific filter for multi-user environments.
      * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
      */
-    OwnerIDs?: Array<string>;
+    ownerIDs?: Array<string>;
   };
   url: "/api/v1/credit-card-credits";
 };
@@ -33996,11 +34939,235 @@ export type ListCreditCardCreditsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCreditCardCredit;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CreditCardCredit>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCreditCardCreditsResponse =
   ListCreditCardCreditsResponses[keyof ListCreditCardCreditsResponses];
+
+export type CountCreditCardCreditsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by owner GUIDs.
+     * This is a QuickBooks-specific filter for multi-user environments.
+     * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
+     */
+    ownerIDs?: Array<string>;
+  };
+  url: "/api/v1/credit-card-credits/count";
+};
+
+export type CountCreditCardCreditsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCreditCardCreditsError =
+  CountCreditCardCreditsErrors[keyof CountCreditCardCreditsErrors];
+
+export type CountCreditCardCreditsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCreditCardCreditsResponse =
+  CountCreditCardCreditsResponses[keyof CountCreditCardCreditsResponses];
 
 export type CreateCreditMemoData = {
   body: CreateCreditMemoRequest;
@@ -34619,12 +35786,12 @@ export type ListCreditMemosData = {
     /**
      * (Optional) Filter by Currency ListID.
      */
-    CurrencyIds?: Array<string>;
+    currencyIds?: Array<string>;
     /**
      * Specific elements to include in the response (for targeted queries)
      * Maps to IncludeRetElementList in base.
      */
-    IncludeRetElementList?: Array<string>;
+    includeRetElementList?: Array<string>;
   };
   url: "/api/v1/credit-memos";
 };
@@ -34687,13 +35854,24 @@ export type ListCreditMemosResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCreditMemo;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CreditMemo>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCreditMemosResponse =
   ListCreditMemosResponses[keyof ListCreditMemosResponses];
 
-export type ListCurrencysData = {
+export type CountCreditMemosData = {
   body?: never;
   headers?: {
     /**
@@ -34725,21 +35903,212 @@ export type ListCurrencysData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
+     * Filter by one or more unique identifiers (TxnIDs).
      *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
      */
-    cursor?: string;
+    ids?: Array<string>;
     /**
-     * The maximum number of items to return per page.
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * (Optional) Filter by Currency ListID.
+     */
+    currencyIds?: Array<string>;
+    /**
+     * Specific elements to include in the response (for targeted queries)
+     * Maps to IncludeRetElementList in base.
+     */
+    includeRetElementList?: Array<string>;
+  };
+  url: "/api/v1/credit-memos/count";
+};
+
+export type CountCreditMemosErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCreditMemosError =
+  CountCreditMemosErrors[keyof CountCreditMemosErrors];
+
+export type CountCreditMemosResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCreditMemosResponse =
+  CountCreditMemosResponses[keyof CountCreditMemosResponses];
+
+export type ListCurrenciesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -34821,12 +36190,12 @@ export type ListCurrencysData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/currencies";
 };
 
-export type ListCurrencysErrors = {
+export type ListCurrenciesErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -34877,17 +36246,205 @@ export type ListCurrencysErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListCurrencysError = ListCurrencysErrors[keyof ListCurrencysErrors];
+export type ListCurrenciesError =
+  ListCurrenciesErrors[keyof ListCurrenciesErrors];
 
-export type ListCurrencysResponses = {
+export type ListCurrenciesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCurrency;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Currency>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
-export type ListCurrencysResponse =
-  ListCurrencysResponses[keyof ListCurrencysResponses];
+export type ListCurrenciesResponse =
+  ListCurrenciesResponses[keyof ListCurrenciesResponses];
+
+export type CountCurrenciesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/currencies/count";
+};
+
+export type CountCurrenciesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCurrenciesError =
+  CountCurrenciesErrors[keyof CountCurrenciesErrors];
+
+export type CountCurrenciesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCurrenciesResponse =
+  CountCurrenciesResponses[keyof CountCurrenciesResponses];
 
 export type CreateCurrencyData = {
   body: CreateCurrencyRequest;
@@ -35438,7 +36995,7 @@ export type ListCustomFieldDefinitionsResponses = {
   /**
    * OK
    */
-  200: Array<DataExtDefinition>;
+  200: CollectionResponseDataExtDefinition;
 };
 
 export type ListCustomFieldDefinitionsResponse =
@@ -36308,20 +37865,6 @@ export type ListCustomerTypesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -36404,7 +37947,7 @@ export type ListCustomerTypesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/customer-types";
 };
@@ -36467,11 +38010,198 @@ export type ListCustomerTypesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCustomerType;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<CustomerType>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListCustomerTypesResponse =
   ListCustomerTypesResponses[keyof ListCustomerTypesResponses];
+
+export type CountCustomerTypesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/customer-types/count";
+};
+
+export type CountCustomerTypesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCustomerTypesError =
+  CountCustomerTypesErrors[keyof CountCustomerTypesErrors];
+
+export type CountCustomerTypesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCustomerTypesResponse =
+  CountCustomerTypesResponses[keyof CountCustomerTypesResponses];
 
 export type DeleteCustomerData = {
   body?: never;
@@ -36892,7 +38622,7 @@ export type ListCustomersData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * Filter by specific Class IDs.
      */
@@ -36909,7 +38639,7 @@ export type ListCustomersData = {
     /**
      * Optional: Filter by job status (customer-specific filter)
      */
-    JobStatus?: JobStatus;
+    jobStatus?: JobStatus;
     /**
      * Filter for customers whose totalBalance equals this amount.
      * Mutually exclusive with other totalBalance filters.
@@ -36996,11 +38726,243 @@ export type ListCustomersResponses = {
   /**
    * OK
    */
-  200: BasePageResponseCustomer;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Customer>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListCustomersResponse =
   ListCustomersResponses[keyof ListCustomersResponses];
+
+export type CountCustomersData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by specific Class IDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * PERFORMANCE OPTIMIZATION: Exclude ShipToAddress data from the response.
+     * QuickBooks SDK strongly recommends excluding ship addresses unless specifically needed,
+     * as it significantly improves query performance.
+     * Default: true (ship addresses excluded for better performance)
+     * init to false if you need shipping address data.
+     * Example: ?excludeShipToAddress=false
+     */
+    excludeShipToAddress?: boolean;
+    /**
+     * Optional: Filter by job status (customer-specific filter)
+     */
+    jobStatus?: JobStatus;
+    /**
+     * Filter for customers whose totalBalance equals this amount.
+     * Mutually exclusive with other totalBalance filters.
+     */
+    totalBalance?: number | null;
+    /**
+     * Filter for customers whose totalBalance is greater than this amount.
+     * Mutually exclusive with other totalBalance filters.
+     */
+    totalBalanceGreaterThan?: number | null;
+    /**
+     * Filter for customers whose totalBalance is greater than or equal to this amount.
+     * Mutually exclusive with other totalBalance filters.
+     */
+    totalBalanceGreaterThanOrEqualTo?: number | null;
+    /**
+     * Filter for customers whose totalBalance is less than this amount.
+     * Mutually exclusive with other totalBalance filters.
+     */
+    totalBalanceLessThan?: number | null;
+    /**
+     * Filter for customers whose totalBalance is less than or equal to this amount.
+     * Mutually exclusive with other totalBalance filters.
+     */
+    totalBalanceLessThanOrEqualTo?: number | null;
+  };
+  url: "/api/v1/customers/count";
+};
+
+export type CountCustomersErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountCustomersError =
+  CountCustomersErrors[keyof CountCustomersErrors];
+
+export type CountCustomersResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountCustomersResponse =
+  CountCustomersResponses[keyof CountCustomersResponses];
 
 export type CreateDateDrivenTermData = {
   body: CreateDateDrivenTermRequest;
@@ -37314,21 +39276,7 @@ export type ListDateDrivenTermsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -37410,7 +39358,7 @@ export type ListDateDrivenTermsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/date-driven-terms";
 };
@@ -37473,11 +39421,198 @@ export type ListDateDrivenTermsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseDateDrivenTerm;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<DateDrivenTerm>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListDateDrivenTermsResponse =
   ListDateDrivenTermsResponses[keyof ListDateDrivenTermsResponses];
+
+export type CountDateDrivenTermsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/date-driven-terms/count";
+};
+
+export type CountDateDrivenTermsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountDateDrivenTermsError =
+  CountDateDrivenTermsErrors[keyof CountDateDrivenTermsErrors];
+
+export type CountDateDrivenTermsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountDateDrivenTermsResponse =
+  CountDateDrivenTermsResponses[keyof CountDateDrivenTermsResponses];
 
 export type CreateDepositData = {
   body: CreateDepositRequest;
@@ -38129,7 +40264,7 @@ export type ListDepositsData = {
      * This is a QuickBooks-specific filter for multi-user environments.
      * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
      */
-    OwnerIDs?: Array<string>;
+    ownerIDs?: Array<string>;
   };
   url: "/api/v1/deposits";
 };
@@ -38191,11 +40326,234 @@ export type ListDepositsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseDeposit;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Deposit>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListDepositsResponse =
   ListDepositsResponses[keyof ListDepositsResponses];
+
+export type CountDepositsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by owner GUIDs.
+     * This is a QuickBooks-specific filter for multi-user environments.
+     * Example: ["{12345678-1234-1234-1234-123456789012}", "{87654321-4321-4321-4321-210987654321}"]
+     */
+    ownerIDs?: Array<string>;
+  };
+  url: "/api/v1/deposits/count";
+};
+
+export type CountDepositsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountDepositsError = CountDepositsErrors[keyof CountDepositsErrors];
+
+export type CountDepositsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountDepositsResponse =
+  CountDepositsResponses[keyof CountDepositsResponses];
 
 export type CreateEmployeeData = {
   body: CreateEmployeeRequest;
@@ -38612,20 +40970,6 @@ export type ListEmployeesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -38708,7 +41052,7 @@ export type ListEmployeesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/employees";
 };
@@ -38770,11 +41114,198 @@ export type ListEmployeesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseEmployee;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Employee>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListEmployeesResponse =
   ListEmployeesResponses[keyof ListEmployeesResponses];
+
+export type CountEmployeesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/employees/count";
+};
+
+export type CountEmployeesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountEmployeesError =
+  CountEmployeesErrors[keyof CountEmployeesErrors];
+
+export type CountEmployeesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountEmployeesResponse =
+  CountEmployeesResponses[keyof CountEmployeesResponses];
 
 export type CreateEstimateData = {
   body: CreateEstimateRequest;
@@ -39386,11 +41917,229 @@ export type ListEstimatesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseEstimate;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Estimate>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListEstimatesResponse =
   ListEstimatesResponses[keyof ListEstimatesResponses];
+
+export type CountEstimatesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/estimates/count";
+};
+
+export type CountEstimatesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountEstimatesError =
+  CountEstimatesErrors[keyof CountEstimatesErrors];
+
+export type CountEstimatesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountEstimatesResponse =
+  CountEstimatesResponses[keyof CountEstimatesResponses];
 
 export type CreateInventoryAdjustmentData = {
   body: CreateInventoryAdjustmentRequest;
@@ -39912,7 +42661,7 @@ export type ListInventoryAdjustmentsData = {
      */
     ids?: Array<string>;
     /**
-     * The maximum number of items to return for this request.
+     * The maximum number of items to return per page.
      */
     limit?: number;
     /**
@@ -40020,7 +42769,7 @@ export type ListInventoryAdjustmentsData = {
     /**
      * (Optional) A single transaction ID (TxnID) or document number (RefNumber) to retrieve a specific Inventory Adjustment.
      */
-    Id?: string;
+    id?: string;
   };
   url: "/api/v1/inventory-adjustments";
 };
@@ -40083,11 +42832,233 @@ export type ListInventoryAdjustmentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseInventoryAdjustment;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<InventoryAdjustment>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListInventoryAdjustmentsResponse =
   ListInventoryAdjustmentsResponses[keyof ListInventoryAdjustmentsResponses];
+
+export type CountInventoryAdjustmentsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) A single transaction ID (TxnID) or document number (RefNumber) to retrieve a specific Inventory Adjustment.
+     */
+    id?: string;
+  };
+  url: "/api/v1/inventory-adjustments/count";
+};
+
+export type CountInventoryAdjustmentsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountInventoryAdjustmentsError =
+  CountInventoryAdjustmentsErrors[keyof CountInventoryAdjustmentsErrors];
+
+export type CountInventoryAdjustmentsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountInventoryAdjustmentsResponse =
+  CountInventoryAdjustmentsResponses[keyof CountInventoryAdjustmentsResponses];
 
 export type CreateInventorySiteData = {
   body: CreateInventorySiteRequest;
@@ -40495,20 +43466,6 @@ export type ListInventorySitesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -40591,7 +43548,7 @@ export type ListInventorySitesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/inventory-sites";
 };
@@ -40654,11 +43611,198 @@ export type ListInventorySitesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseInventorySite;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<InventorySite>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListInventorySitesResponse =
   ListInventorySitesResponses[keyof ListInventorySitesResponses];
+
+export type CountInventorySitesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/inventory-sites/count";
+};
+
+export type CountInventorySitesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountInventorySitesError =
+  CountInventorySitesErrors[keyof CountInventorySitesErrors];
+
+export type CountInventorySitesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountInventorySitesResponse =
+  CountInventorySitesResponses[keyof CountInventorySitesResponses];
 
 export type CreateInvoiceData = {
   body: CreateInvoiceRequest;
@@ -41310,9 +44454,30 @@ export type ListInvoicesData = {
      */
     currencyIds?: Array<string>;
     /**
+     * The owners whose custom fields should be returned with each invoice.
+     *
+     * Pass `0` for the user-defined custom fields visible in the QuickBooks UI. Without this,
+     * QuickBooks omits the `customFields` collection entirely.
+     */
+    ownerIds?: Array<string>;
+    /**
      * Filter by paid status (All, PaidOnly, NotPaidOnly) - invoice-specific filter
      */
-    PaidStatus?: NullablePaidStatus;
+    paidStatus?: PaidStatus;
+    /**
+     * Filter by one or more reference numbers, matched case-sensitively.
+     *
+     * The case-sensitive counterpart of `refNumbers`. Supplying both uses `refNumbers`.
+     */
+    refNumbersCaseSensitive?: Array<string>;
+    /**
+     * Filter by a predefined transaction date range.
+     *
+     * An alternative to `fromTransactionDate`/`toTransactionDate`; the schema allows one
+     * or the other, and explicit dates win. Resolved by QuickBooks against the company file's
+     * fiscal calendar, not by this service.
+     */
+    transactionDateMacro?: QbdDateMacro;
   };
   url: "/api/v1/invoices";
 };
@@ -41374,11 +44539,257 @@ export type ListInvoicesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseInvoice;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Invoice>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListInvoicesResponse =
   ListInvoicesResponses[keyof ListInvoicesResponses];
+
+export type CountInvoicesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by Currency ListIDs (v8.0+).
+     */
+    currencyIds?: Array<string>;
+    /**
+     * The owners whose custom fields should be returned with each invoice.
+     *
+     * Pass `0` for the user-defined custom fields visible in the QuickBooks UI. Without this,
+     * QuickBooks omits the `customFields` collection entirely.
+     */
+    ownerIds?: Array<string>;
+    /**
+     * Filter by paid status (All, PaidOnly, NotPaidOnly) - invoice-specific filter
+     */
+    paidStatus?: PaidStatus;
+    /**
+     * Filter by one or more reference numbers, matched case-sensitively.
+     *
+     * The case-sensitive counterpart of `refNumbers`. Supplying both uses `refNumbers`.
+     */
+    refNumbersCaseSensitive?: Array<string>;
+    /**
+     * Filter by a predefined transaction date range.
+     *
+     * An alternative to `fromTransactionDate`/`toTransactionDate`; the schema allows one
+     * or the other, and explicit dates win. Resolved by QuickBooks against the company file's
+     * fiscal calendar, not by this service.
+     */
+    transactionDateMacro?: QbdDateMacro;
+  };
+  url: "/api/v1/invoices/count";
+};
+
+export type CountInvoicesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountInvoicesError = CountInvoicesErrors[keyof CountInvoicesErrors];
+
+export type CountInvoicesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountInvoicesResponse =
+  CountInvoicesResponses[keyof CountInvoicesResponses];
 
 export type CreateItemDiscountData = {
   body: CreateItemDiscountRequest;
@@ -43250,100 +46661,6 @@ export type UpdateInventoryItemResponses = {
 export type UpdateInventoryItemResponse =
   UpdateInventoryItemResponses[keyof UpdateInventoryItemResponses];
 
-export type VoidInventoryItemData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/item-inventory/{id}/void";
-};
-
-export type VoidInventoryItemErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidInventoryItemError =
-  VoidInventoryItemErrors[keyof VoidInventoryItemErrors];
-
-export type VoidInventoryItemResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidInventoryItemResponse =
-  VoidInventoryItemResponses[keyof VoidInventoryItemResponses];
-
 export type CreateItemNonInventoryData = {
   body: CreateItemNonInventoryRequest;
   headers?: {
@@ -45094,15 +48411,15 @@ export type ListItemReceiptsData = {
     /**
      * Filter by transaction date range - end date.
      */
-    EndDate?: string | null;
+    endDate?: string | null;
     /**
      * Filter by RefNumber (transaction reference).
      */
-    RefNumber?: string;
+    refNumber?: string;
     /**
      * Filter by Vendor ListID.
      */
-    StartDate?: string | null;
+    startDate?: string | null;
   };
   url: "/api/v1/item-receipts";
 };
@@ -45165,11 +48482,241 @@ export type ListItemReceiptsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemReceipt;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemReceipt>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListItemReceiptsResponse =
   ListItemReceiptsResponses[keyof ListItemReceiptsResponses];
+
+export type CountItemReceiptsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by transaction date range - end date.
+     */
+    endDate?: string | null;
+    /**
+     * Filter by RefNumber (transaction reference).
+     */
+    refNumber?: string;
+    /**
+     * Filter by Vendor ListID.
+     */
+    startDate?: string | null;
+  };
+  url: "/api/v1/item-receipts/count";
+};
+
+export type CountItemReceiptsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemReceiptsError =
+  CountItemReceiptsErrors[keyof CountItemReceiptsErrors];
+
+export type CountItemReceiptsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemReceiptsResponse =
+  CountItemReceiptsResponses[keyof CountItemReceiptsResponses];
 
 export type CreateItemSalesTaxData = {
   body: CreateItemSalesTaxRequest;
@@ -46891,7 +50438,7 @@ export type ListItemsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items";
 };
@@ -46953,12 +50500,23 @@ export type ListItemsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItem;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Item>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListItemsResponse = ListItemsResponses[keyof ListItemsResponses];
 
-export type ListItemDiscountsData = {
+export type ListItemsDiscountData = {
   body?: never;
   headers?: {
     /**
@@ -47086,12 +50644,12 @@ export type ListItemDiscountsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-discount";
 };
 
-export type ListItemDiscountsErrors = {
+export type ListItemsDiscountErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -47142,20 +50700,210 @@ export type ListItemDiscountsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemDiscountsError =
-  ListItemDiscountsErrors[keyof ListItemDiscountsErrors];
+export type ListItemsDiscountError =
+  ListItemsDiscountErrors[keyof ListItemsDiscountErrors];
 
-export type ListItemDiscountsResponses = {
+export type ListItemsDiscountResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemDiscount;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemDiscount>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemDiscountsResponse =
-  ListItemDiscountsResponses[keyof ListItemDiscountsResponses];
+export type ListItemsDiscountResponse =
+  ListItemsDiscountResponses[keyof ListItemsDiscountResponses];
 
-export type ListItemFixedAssetsData = {
+export type CountItemsDiscountData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-discount/count";
+};
+
+export type CountItemsDiscountErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsDiscountError =
+  CountItemsDiscountErrors[keyof CountItemsDiscountErrors];
+
+export type CountItemsDiscountResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsDiscountResponse =
+  CountItemsDiscountResponses[keyof CountItemsDiscountResponses];
+
+export type ListItemsFixedAssetData = {
   body?: never;
   headers?: {
     /**
@@ -47283,12 +51031,12 @@ export type ListItemFixedAssetsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-fixed-asset";
 };
 
-export type ListItemFixedAssetsErrors = {
+export type ListItemsFixedAssetErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -47339,20 +51087,210 @@ export type ListItemFixedAssetsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemFixedAssetsError =
-  ListItemFixedAssetsErrors[keyof ListItemFixedAssetsErrors];
+export type ListItemsFixedAssetError =
+  ListItemsFixedAssetErrors[keyof ListItemsFixedAssetErrors];
 
-export type ListItemFixedAssetsResponses = {
+export type ListItemsFixedAssetResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemFixedAsset;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemFixedAsset>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemFixedAssetsResponse =
-  ListItemFixedAssetsResponses[keyof ListItemFixedAssetsResponses];
+export type ListItemsFixedAssetResponse =
+  ListItemsFixedAssetResponses[keyof ListItemsFixedAssetResponses];
 
-export type ListItemGroupsData = {
+export type CountItemsFixedAssetData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-fixed-asset/count";
+};
+
+export type CountItemsFixedAssetErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsFixedAssetError =
+  CountItemsFixedAssetErrors[keyof CountItemsFixedAssetErrors];
+
+export type CountItemsFixedAssetResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsFixedAssetResponse =
+  CountItemsFixedAssetResponses[keyof CountItemsFixedAssetResponses];
+
+export type ListItemsGroupData = {
   body?: never;
   headers?: {
     /**
@@ -47480,7 +51418,7 @@ export type ListItemGroupsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * Optional: Filter by OwnerID (GUIDs).
      */
@@ -47489,7 +51427,7 @@ export type ListItemGroupsData = {
   url: "/api/v1/items-group";
 };
 
-export type ListItemGroupsErrors = {
+export type ListItemsGroupErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -47540,18 +51478,212 @@ export type ListItemGroupsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemGroupsError =
-  ListItemGroupsErrors[keyof ListItemGroupsErrors];
+export type ListItemsGroupError =
+  ListItemsGroupErrors[keyof ListItemsGroupErrors];
 
-export type ListItemGroupsResponses = {
+export type ListItemsGroupResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemGroup;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemGroup>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemGroupsResponse =
-  ListItemGroupsResponses[keyof ListItemGroupsResponses];
+export type ListItemsGroupResponse =
+  ListItemsGroupResponses[keyof ListItemsGroupResponses];
+
+export type CountItemsGroupData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Optional: Filter by OwnerID (GUIDs).
+     */
+    ownerIds?: Array<string>;
+  };
+  url: "/api/v1/items-group/count";
+};
+
+export type CountItemsGroupErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsGroupError =
+  CountItemsGroupErrors[keyof CountItemsGroupErrors];
+
+export type CountItemsGroupResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsGroupResponse =
+  CountItemsGroupResponses[keyof CountItemsGroupResponses];
 
 export type ListInventoryItemsData = {
   body?: never;
@@ -47681,7 +51813,7 @@ export type ListInventoryItemsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-inventory";
 };
@@ -47744,13 +51876,24 @@ export type ListInventoryItemsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseInventoryItem;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<InventoryItem>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListInventoryItemsResponse =
   ListInventoryItemsResponses[keyof ListInventoryItemsResponses];
 
-export type ListItemInventoryAssemblysData = {
+export type ListItemsInventoryAssemblyData = {
   body?: never;
   headers?: {
     /**
@@ -47799,13 +51942,13 @@ export type ListItemInventoryAssemblysData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    ActiveStatus?: string;
-    NameFilter?: string;
+    activeStatus?: string;
+    nameFilter?: string;
   };
   url: "/api/v1/items-inventory-assembly";
 };
 
-export type ListItemInventoryAssemblysErrors = {
+export type ListItemsInventoryAssemblyErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -47856,20 +51999,311 @@ export type ListItemInventoryAssemblysErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemInventoryAssemblysError =
-  ListItemInventoryAssemblysErrors[keyof ListItemInventoryAssemblysErrors];
+export type ListItemsInventoryAssemblyError =
+  ListItemsInventoryAssemblyErrors[keyof ListItemsInventoryAssemblyErrors];
 
-export type ListItemInventoryAssemblysResponses = {
+export type ListItemsInventoryAssemblyResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemInventoryAssembly;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemInventoryAssembly>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemInventoryAssemblysResponse =
-  ListItemInventoryAssemblysResponses[keyof ListItemInventoryAssemblysResponses];
+export type ListItemsInventoryAssemblyResponse =
+  ListItemsInventoryAssemblyResponses[keyof ListItemsInventoryAssemblyResponses];
 
-export type ListItemNonInventorysData = {
+export type CountItemsInventoryAssemblyData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    activeStatus?: string;
+    nameFilter?: string;
+  };
+  url: "/api/v1/items-inventory-assembly/count";
+};
+
+export type CountItemsInventoryAssemblyErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsInventoryAssemblyError =
+  CountItemsInventoryAssemblyErrors[keyof CountItemsInventoryAssemblyErrors];
+
+export type CountItemsInventoryAssemblyResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsInventoryAssemblyResponse =
+  CountItemsInventoryAssemblyResponses[keyof CountItemsInventoryAssemblyResponses];
+
+export type CountInventoryItemsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-inventory/count";
+};
+
+export type CountInventoryItemsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountInventoryItemsError =
+  CountInventoryItemsErrors[keyof CountInventoryItemsErrors];
+
+export type CountInventoryItemsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountInventoryItemsResponse =
+  CountInventoryItemsResponses[keyof CountInventoryItemsResponses];
+
+export type ListItemsNonInventoryData = {
   body?: never;
   headers?: {
     /**
@@ -47997,7 +52431,7 @@ export type ListItemNonInventorysData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * Filter by specific Class ListIDs.
      */
@@ -48006,7 +52440,7 @@ export type ListItemNonInventorysData = {
   url: "/api/v1/items-non-inventory";
 };
 
-export type ListItemNonInventorysErrors = {
+export type ListItemsNonInventoryErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -48057,20 +52491,214 @@ export type ListItemNonInventorysErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemNonInventorysError =
-  ListItemNonInventorysErrors[keyof ListItemNonInventorysErrors];
+export type ListItemsNonInventoryError =
+  ListItemsNonInventoryErrors[keyof ListItemsNonInventoryErrors];
 
-export type ListItemNonInventorysResponses = {
+export type ListItemsNonInventoryResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemNonInventory;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemNonInventory>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemNonInventorysResponse =
-  ListItemNonInventorysResponses[keyof ListItemNonInventorysResponses];
+export type ListItemsNonInventoryResponse =
+  ListItemsNonInventoryResponses[keyof ListItemsNonInventoryResponses];
 
-export type ListItemOtherChargesData = {
+export type CountItemsNonInventoryData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by specific Class ListIDs.
+     */
+    classIds?: Array<string>;
+  };
+  url: "/api/v1/items-non-inventory/count";
+};
+
+export type CountItemsNonInventoryErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsNonInventoryError =
+  CountItemsNonInventoryErrors[keyof CountItemsNonInventoryErrors];
+
+export type CountItemsNonInventoryResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsNonInventoryResponse =
+  CountItemsNonInventoryResponses[keyof CountItemsNonInventoryResponses];
+
+export type ListItemsOtherChargeData = {
   body?: never;
   headers?: {
     /**
@@ -48194,17 +52822,17 @@ export type ListItemOtherChargesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
      */
-    ActiveStatus?: string;
-    NameFilter?: string;
+    activeStatus?: string;
+    nameFilter?: string;
   };
   url: "/api/v1/items-other-charge";
 };
 
-export type ListItemOtherChargesErrors = {
+export type ListItemsOtherChargeErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -48255,20 +52883,211 @@ export type ListItemOtherChargesErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemOtherChargesError =
-  ListItemOtherChargesErrors[keyof ListItemOtherChargesErrors];
+export type ListItemsOtherChargeError =
+  ListItemsOtherChargeErrors[keyof ListItemsOtherChargeErrors];
 
-export type ListItemOtherChargesResponses = {
+export type ListItemsOtherChargeResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemOtherCharge;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemOtherCharge>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemOtherChargesResponse =
-  ListItemOtherChargesResponses[keyof ListItemOtherChargesResponses];
+export type ListItemsOtherChargeResponse =
+  ListItemsOtherChargeResponses[keyof ListItemsOtherChargeResponses];
 
-export type ListItemPaymentsData = {
+export type CountItemsOtherChargeData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    nameFilter?: string;
+  };
+  url: "/api/v1/items-other-charge/count";
+};
+
+export type CountItemsOtherChargeErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsOtherChargeError =
+  CountItemsOtherChargeErrors[keyof CountItemsOtherChargeErrors];
+
+export type CountItemsOtherChargeResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsOtherChargeResponse =
+  CountItemsOtherChargeResponses[keyof CountItemsOtherChargeResponses];
+
+export type ListItemsPaymentData = {
   body?: never;
   headers?: {
     /**
@@ -48396,12 +53215,12 @@ export type ListItemPaymentsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-payment";
 };
 
-export type ListItemPaymentsErrors = {
+export type ListItemsPaymentErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -48452,20 +53271,210 @@ export type ListItemPaymentsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemPaymentsError =
-  ListItemPaymentsErrors[keyof ListItemPaymentsErrors];
+export type ListItemsPaymentError =
+  ListItemsPaymentErrors[keyof ListItemsPaymentErrors];
 
-export type ListItemPaymentsResponses = {
+export type ListItemsPaymentResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemPayment;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemPayment>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemPaymentsResponse =
-  ListItemPaymentsResponses[keyof ListItemPaymentsResponses];
+export type ListItemsPaymentResponse =
+  ListItemsPaymentResponses[keyof ListItemsPaymentResponses];
 
-export type ListItemSalesTaxsData = {
+export type CountItemsPaymentData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-payment/count";
+};
+
+export type CountItemsPaymentErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsPaymentError =
+  CountItemsPaymentErrors[keyof CountItemsPaymentErrors];
+
+export type CountItemsPaymentResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsPaymentResponse =
+  CountItemsPaymentResponses[keyof CountItemsPaymentResponses];
+
+export type ListItemsSalesTaxData = {
   body?: never;
   headers?: {
     /**
@@ -48593,12 +53602,12 @@ export type ListItemSalesTaxsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-sales-tax";
 };
 
-export type ListItemSalesTaxsErrors = {
+export type ListItemsSalesTaxErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -48649,20 +53658,31 @@ export type ListItemSalesTaxsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemSalesTaxsError =
-  ListItemSalesTaxsErrors[keyof ListItemSalesTaxsErrors];
+export type ListItemsSalesTaxError =
+  ListItemsSalesTaxErrors[keyof ListItemsSalesTaxErrors];
 
-export type ListItemSalesTaxsResponses = {
+export type ListItemsSalesTaxResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemSalesTax;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemSalesTax>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemSalesTaxsResponse =
-  ListItemSalesTaxsResponses[keyof ListItemSalesTaxsResponses];
+export type ListItemsSalesTaxResponse =
+  ListItemsSalesTaxResponses[keyof ListItemsSalesTaxResponses];
 
-export type ListItemSalesTaxGroupsData = {
+export type ListItemsSalesTaxGroupData = {
   body?: never;
   headers?: {
     /**
@@ -48790,12 +53810,12 @@ export type ListItemSalesTaxGroupsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-sales-tax-group";
 };
 
-export type ListItemSalesTaxGroupsErrors = {
+export type ListItemsSalesTaxGroupErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -48846,18 +53866,387 @@ export type ListItemSalesTaxGroupsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemSalesTaxGroupsError =
-  ListItemSalesTaxGroupsErrors[keyof ListItemSalesTaxGroupsErrors];
+export type ListItemsSalesTaxGroupError =
+  ListItemsSalesTaxGroupErrors[keyof ListItemsSalesTaxGroupErrors];
 
-export type ListItemSalesTaxGroupsResponses = {
+export type ListItemsSalesTaxGroupResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemSalesTaxGroup;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemSalesTaxGroup>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemSalesTaxGroupsResponse =
-  ListItemSalesTaxGroupsResponses[keyof ListItemSalesTaxGroupsResponses];
+export type ListItemsSalesTaxGroupResponse =
+  ListItemsSalesTaxGroupResponses[keyof ListItemsSalesTaxGroupResponses];
+
+export type CountItemsSalesTaxGroupData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-sales-tax-group/count";
+};
+
+export type CountItemsSalesTaxGroupErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsSalesTaxGroupError =
+  CountItemsSalesTaxGroupErrors[keyof CountItemsSalesTaxGroupErrors];
+
+export type CountItemsSalesTaxGroupResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsSalesTaxGroupResponse =
+  CountItemsSalesTaxGroupResponses[keyof CountItemsSalesTaxGroupResponses];
+
+export type CountItemsSalesTaxData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-sales-tax/count";
+};
+
+export type CountItemsSalesTaxErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsSalesTaxError =
+  CountItemsSalesTaxErrors[keyof CountItemsSalesTaxErrors];
+
+export type CountItemsSalesTaxResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsSalesTaxResponse =
+  CountItemsSalesTaxResponses[keyof CountItemsSalesTaxResponses];
 
 export type ListServiceItemsData = {
   body?: never;
@@ -48987,9 +54376,9 @@ export type ListServiceItemsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
-    IncludeRetElement?: Array<string>;
-    OwnerId?: Array<string>;
+    fields?: Array<string>;
+    includeRetElement?: Array<string>;
+    ownerId?: Array<string>;
   };
   url: "/api/v1/items-service";
 };
@@ -49052,13 +54441,205 @@ export type ListServiceItemsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseServiceItem;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ServiceItem>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListServiceItemsResponse =
   ListServiceItemsResponses[keyof ListServiceItemsResponses];
 
-export type ListItemSubtotalsData = {
+export type CountServiceItemsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    includeRetElement?: Array<string>;
+    ownerId?: Array<string>;
+  };
+  url: "/api/v1/items-service/count";
+};
+
+export type CountServiceItemsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountServiceItemsError =
+  CountServiceItemsErrors[keyof CountServiceItemsErrors];
+
+export type CountServiceItemsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountServiceItemsResponse =
+  CountServiceItemsResponses[keyof CountServiceItemsResponses];
+
+export type ListItemsSubtotalData = {
   body?: never;
   headers?: {
     /**
@@ -49186,12 +54767,12 @@ export type ListItemSubtotalsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/items-subtotal";
 };
 
-export type ListItemSubtotalsErrors = {
+export type ListItemsSubtotalErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -49242,20 +54823,387 @@ export type ListItemSubtotalsErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListItemSubtotalsError =
-  ListItemSubtotalsErrors[keyof ListItemSubtotalsErrors];
+export type ListItemsSubtotalError =
+  ListItemsSubtotalErrors[keyof ListItemsSubtotalErrors];
 
-export type ListItemSubtotalsResponses = {
+export type ListItemsSubtotalResponses = {
   /**
    * OK
    */
-  200: BasePageResponseItemSubtotal;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ItemSubtotal>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListItemSubtotalsResponse =
-  ListItemSubtotalsResponses[keyof ListItemSubtotalsResponses];
+export type ListItemsSubtotalResponse =
+  ListItemsSubtotalResponses[keyof ListItemsSubtotalResponses];
 
-export type ListJournalEntrysData = {
+export type CountItemsSubtotalData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items-subtotal/count";
+};
+
+export type CountItemsSubtotalErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsSubtotalError =
+  CountItemsSubtotalErrors[keyof CountItemsSubtotalErrors];
+
+export type CountItemsSubtotalResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsSubtotalResponse =
+  CountItemsSubtotalResponses[keyof CountItemsSubtotalResponses];
+
+export type CountItemsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/items/count";
+};
+
+export type CountItemsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountItemsError = CountItemsErrors[keyof CountItemsErrors];
+
+export type CountItemsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountItemsResponse = CountItemsResponses[keyof CountItemsResponses];
+
+export type ListJournalEntriesData = {
   body?: never;
   headers?: {
     /**
@@ -49415,12 +55363,12 @@ export type ListJournalEntrysData = {
     /**
      * Filter for adjustment entries (journal-entry-specific filter)
      */
-    IsAdjustment?: boolean | null;
+    isAdjustment?: boolean | null;
   };
   url: "/api/v1/journal-entries";
 };
 
-export type ListJournalEntrysErrors = {
+export type ListJournalEntriesErrors = {
   /**
    * Bad Request — validation error or malformed input.
    */
@@ -49471,18 +55419,240 @@ export type ListJournalEntrysErrors = {
   502: StandardErrorResponse;
 };
 
-export type ListJournalEntrysError =
-  ListJournalEntrysErrors[keyof ListJournalEntrysErrors];
+export type ListJournalEntriesError =
+  ListJournalEntriesErrors[keyof ListJournalEntriesErrors];
 
-export type ListJournalEntrysResponses = {
+export type ListJournalEntriesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseJournalEntry;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<JournalEntry>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
-export type ListJournalEntrysResponse =
-  ListJournalEntrysResponses[keyof ListJournalEntrysResponses];
+export type ListJournalEntriesResponse =
+  ListJournalEntriesResponses[keyof ListJournalEntriesResponses];
+
+export type CountJournalEntriesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter for adjustment entries (journal-entry-specific filter)
+     */
+    isAdjustment?: boolean | null;
+  };
+  url: "/api/v1/journal-entries/count";
+};
+
+export type CountJournalEntriesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountJournalEntriesError =
+  CountJournalEntriesErrors[keyof CountJournalEntriesErrors];
+
+export type CountJournalEntriesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountJournalEntriesResponse =
+  CountJournalEntriesResponses[keyof CountJournalEntriesResponses];
 
 export type CreateJournalEntryData = {
   body: CreateJournalEntryRequest;
@@ -50358,20 +56528,6 @@ export type ListOtherNamesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -50454,7 +56610,7 @@ export type ListOtherNamesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/other-names";
 };
@@ -50517,11 +56673,198 @@ export type ListOtherNamesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseOtherName;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<OtherName>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListOtherNamesResponse =
   ListOtherNamesResponses[keyof ListOtherNamesResponses];
+
+export type CountOtherNamesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/other-names/count";
+};
+
+export type CountOtherNamesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountOtherNamesError =
+  CountOtherNamesErrors[keyof CountOtherNamesErrors];
+
+export type CountOtherNamesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountOtherNamesResponse =
+  CountOtherNamesResponses[keyof CountOtherNamesResponses];
 
 export type CreatePaymentMethodData = {
   body: CreatePaymentMethodRequest;
@@ -50803,100 +57146,6 @@ export type RetrievePaymentMethodResponses = {
 export type RetrievePaymentMethodResponse =
   RetrievePaymentMethodResponses[keyof RetrievePaymentMethodResponses];
 
-export type UpdatePaymentMethodData = {
-  body: UpdatePaymentMethodRequest;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/payment-method/{id}";
-};
-
-export type UpdatePaymentMethodErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type UpdatePaymentMethodError =
-  UpdatePaymentMethodErrors[keyof UpdatePaymentMethodErrors];
-
-export type UpdatePaymentMethodResponses = {
-  /**
-   * OK
-   */
-  200: PaymentMethod;
-};
-
-export type UpdatePaymentMethodResponse =
-  UpdatePaymentMethodResponses[keyof UpdatePaymentMethodResponses];
-
 export type ListPaymentMethodsData = {
   body?: never;
   headers?: {
@@ -50928,20 +57177,6 @@ export type ListPaymentMethodsData = {
   };
   path?: never;
   query?: {
-    /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
     /**
      * The maximum number of items to return for this request.
      */
@@ -51025,11 +57260,11 @@ export type ListPaymentMethodsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * This payment method's type.
      */
-    PaymentMethodType?: string;
+    paymentMethodType?: string;
   };
   url: "/api/v1/payment-methods";
 };
@@ -51092,11 +57327,202 @@ export type ListPaymentMethodsResponses = {
   /**
    * OK
    */
-  200: BasePageResponsePaymentMethod;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<PaymentMethod>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListPaymentMethodsResponse =
   ListPaymentMethodsResponses[keyof ListPaymentMethodsResponses];
+
+export type CountPaymentMethodsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * This payment method's type.
+     */
+    paymentMethodType?: string;
+  };
+  url: "/api/v1/payment-methods/count";
+};
+
+export type CountPaymentMethodsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountPaymentMethodsError =
+  CountPaymentMethodsErrors[keyof CountPaymentMethodsErrors];
+
+export type CountPaymentMethodsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountPaymentMethodsResponse =
+  CountPaymentMethodsResponses[keyof CountPaymentMethodsResponses];
 
 export type DeletePayrollItemNonWageData = {
   body?: never;
@@ -51318,20 +57744,6 @@ export type ListPayrollItemNonWagesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -51414,7 +57826,7 @@ export type ListPayrollItemNonWagesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/payroll-item-non-wages";
 };
@@ -51477,11 +57889,198 @@ export type ListPayrollItemNonWagesResponses = {
   /**
    * OK
    */
-  200: BasePageResponsePayrollItemNonWage;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<PayrollItemNonWage>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListPayrollItemNonWagesResponse =
   ListPayrollItemNonWagesResponses[keyof ListPayrollItemNonWagesResponses];
+
+export type CountPayrollItemNonWagesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/payroll-item-non-wages/count";
+};
+
+export type CountPayrollItemNonWagesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountPayrollItemNonWagesError =
+  CountPayrollItemNonWagesErrors[keyof CountPayrollItemNonWagesErrors];
+
+export type CountPayrollItemNonWagesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountPayrollItemNonWagesResponse =
+  CountPayrollItemNonWagesResponses[keyof CountPayrollItemNonWagesResponses];
 
 export type CreatePayrollItemWageData = {
   body: CreatePayrollItemWageRequest;
@@ -51795,20 +58394,6 @@ export type ListPayrollItemWagesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -51891,7 +58476,7 @@ export type ListPayrollItemWagesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/payroll-item-wages";
 };
@@ -51954,11 +58539,198 @@ export type ListPayrollItemWagesResponses = {
   /**
    * OK
    */
-  200: BasePageResponsePayrollItemWage;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<PayrollItemWage>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListPayrollItemWagesResponse =
   ListPayrollItemWagesResponses[keyof ListPayrollItemWagesResponses];
+
+export type CountPayrollItemWagesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/payroll-item-wages/count";
+};
+
+export type CountPayrollItemWagesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountPayrollItemWagesError =
+  CountPayrollItemWagesErrors[keyof CountPayrollItemWagesErrors];
+
+export type CountPayrollItemWagesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountPayrollItemWagesResponse =
+  CountPayrollItemWagesResponses[keyof CountPayrollItemWagesResponses];
 
 export type CreatePriceLevelData = {
   body: CreatePriceLevelRequest;
@@ -52366,20 +59138,6 @@ export type ListPriceLevelsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -52462,13 +59220,13 @@ export type ListPriceLevelsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * (Optional) Filter for Price Levels that apply to a specific item (by ListID or FullName).
      * Maps to ItemRef in QBXML. Can be combined with MaxReturned and other filters.
      * Note: QBXML only supports a single ItemRef filter (not repeatable).
      */
-    ItemId?: string;
+    itemId?: string;
   };
   url: "/api/v1/price-levels";
 };
@@ -52531,11 +59289,204 @@ export type ListPriceLevelsResponses = {
   /**
    * OK
    */
-  200: BasePageResponsePriceLevel;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<PriceLevel>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListPriceLevelsResponse =
   ListPriceLevelsResponses[keyof ListPriceLevelsResponses];
+
+export type CountPriceLevelsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter for Price Levels that apply to a specific item (by ListID or FullName).
+     * Maps to ItemRef in QBXML. Can be combined with MaxReturned and other filters.
+     * Note: QBXML only supports a single ItemRef filter (not repeatable).
+     */
+    itemId?: string;
+  };
+  url: "/api/v1/price-levels/count";
+};
+
+export type CountPriceLevelsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountPriceLevelsError =
+  CountPriceLevelsErrors[keyof CountPriceLevelsErrors];
+
+export type CountPriceLevelsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountPriceLevelsResponse =
+  CountPriceLevelsResponses[keyof CountPriceLevelsResponses];
 
 export type CreatePurchaseOrderData = {
   body: CreatePurchaseOrderRequest;
@@ -53071,7 +60022,7 @@ export type ListPurchaseOrdersData = {
     /**
      * (Optional) A single transaction ID (TxnID) or document number (RefNumber) to retrieve a specific Purchase Order.
      */
-    Id?: string;
+    id?: string;
   };
   url: "/api/v1/purchase-orders";
 };
@@ -53134,11 +60085,233 @@ export type ListPurchaseOrdersResponses = {
   /**
    * OK
    */
-  200: BasePageResponsePurchaseOrder;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<PurchaseOrder>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListPurchaseOrdersResponse =
   ListPurchaseOrdersResponses[keyof ListPurchaseOrdersResponses];
+
+export type CountPurchaseOrdersData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) A single transaction ID (TxnID) or document number (RefNumber) to retrieve a specific Purchase Order.
+     */
+    id?: string;
+  };
+  url: "/api/v1/purchase-orders/count";
+};
+
+export type CountPurchaseOrdersErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountPurchaseOrdersError =
+  CountPurchaseOrdersErrors[keyof CountPurchaseOrdersErrors];
+
+export type CountPurchaseOrdersResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountPurchaseOrdersResponse =
+  CountPurchaseOrdersResponses[keyof CountPurchaseOrdersResponses];
 
 export type RetrieveConnectionStatusAuthenticatedData = {
   body?: never;
@@ -53806,11 +60979,229 @@ export type ListReceivePaymentsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseReceivePayment;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ReceivePayment>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListReceivePaymentsResponse =
   ListReceivePaymentsResponses[keyof ListReceivePaymentsResponses];
+
+export type CountReceivePaymentsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/receive-payments/count";
+};
+
+export type CountReceivePaymentsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountReceivePaymentsError =
+  CountReceivePaymentsErrors[keyof CountReceivePaymentsErrors];
+
+export type CountReceivePaymentsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountReceivePaymentsResponse =
+  CountReceivePaymentsResponses[keyof CountReceivePaymentsResponses];
 
 export type RetrieveAgingReportData = {
   body?: never;
@@ -53826,25 +61217,25 @@ export type RetrieveAgingReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which aging is calculated. Valid values: ReportEndDate (default), Today
      */
-    AgingAsOf?: string;
+    agingAsOf?: string;
     /**
      * The specific Aging report to run.
      * Valid values: APAgingDetail, APAgingSummary, ARAgingDetail, ARAgingSummary, CollectionsReport
      */
-    AgingType?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingType?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -53858,48 +61249,50 @@ export type RetrieveAgingReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include. Valid values: All, InUse
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -53907,17 +61300,17 @@ export type RetrieveAgingReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
     SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/aging";
 };
@@ -54000,31 +61393,31 @@ export type RetrieveBudgetSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
+    agingAsOf?: string;
     /**
      * Valid values: Accounts, AccountsAndClasses, AccountsAndCustomers
      */
-    BudgetCriterion?: string;
+    budgetCriterion?: string;
     /**
      * Valid values: BalanceSheetBudgetOverview, BalanceSheetBudgetVsActual,
      * ProfitAndLossBudgetOverview, ProfitAndLossBudgetPerformance, ProfitAndLossBudgetVsActual
      */
-    BudgetType?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    budgetType?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54038,54 +61431,56 @@ export type RetrieveBudgetSummaryReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
     /**
      * The fiscal year for the budget report (4-digit, e.g. 2024).
      */
-    FiscalYear?: number | null;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    fiscalYear?: number | null;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -54093,25 +61488,25 @@ export type RetrieveBudgetSummaryReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
     /**
      * Valid values: Class, Customer, Date
      */
-    SummarizeBudgetColumnsBy?: string;
+    summarizeBudgetColumnsBy?: string;
     /**
      * Valid values: Account, Class, Customer
      */
-    SummarizeBudgetRowsBy?: string;
-    SummarizeColumnsBy?: string;
+    summarizeBudgetRowsBy?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/budget-summary";
 };
@@ -54194,22 +61589,22 @@ export type RetrieveCustomDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54223,54 +61618,56 @@ export type RetrieveCustomDetailReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     /**
      * Valid values: CustomTxnDetail
      */
-    CustomDetailType?: string;
+    customDetailType?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -54278,17 +61675,17 @@ export type RetrieveCustomDetailReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/custom-detail";
 };
@@ -54371,22 +61768,22 @@ export type RetrieveCustomSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54400,54 +61797,56 @@ export type RetrieveCustomSummaryReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     /**
      * Valid values: CustomSummary, ProfitAndLossStandard, BalanceSheetStandard
      */
-    CustomSummaryType?: string;
+    customSummaryType?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -54455,17 +61854,17 @@ export type RetrieveCustomSummaryReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/custom-summary";
 };
@@ -54548,22 +61947,22 @@ export type RetrieveGeneralDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54577,20 +61976,20 @@ export type RetrieveGeneralDetailReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Valid values: 1099Detail, AuditTrail, BalanceSheetDetail, CheckDetail,
      * CustomerBalanceDetail, DepositDetail, EstimatesByJob, ExpenseByVendorDetail,
@@ -54602,37 +62001,39 @@ export type RetrieveGeneralDetailReportData = {
      * TxnListByCustomer, TxnListByDate, TxnListByVendor,
      * UnbilledCostsByJob, UnpaidBillsDetail, VendorBalanceDetail
      */
-    GeneralDetailType?: string;
+    generalDetailType?: string;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -54640,17 +62041,17 @@ export type RetrieveGeneralDetailReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/general-detail";
 };
@@ -54733,22 +62134,22 @@ export type RetrieveGeneralSummaryReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54762,20 +62163,20 @@ export type RetrieveGeneralSummaryReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Valid values: BalanceSheetByClass, BalanceSheetPrevYearComp, BalanceSheetStandard,
      * BalanceSheetSummary, CustomerBalanceSummary, ExpenseByVendorSummary,
@@ -54788,37 +62189,39 @@ export type RetrieveGeneralSummaryReportData = {
      * SalesTaxLiability, SalesTaxRevenueSummary, SerialNumberInStockBySite,
      * TrialBalance, VendorBalanceSummary
      */
-    GeneralSummaryType?: string;
+    generalSummaryType?: string;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -54826,17 +62229,17 @@ export type RetrieveGeneralSummaryReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/general-summary";
 };
@@ -54919,22 +62322,22 @@ export type RetrieveJobReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -54948,56 +62351,58 @@ export type RetrieveJobReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * Valid values: ItemEstimatesVsActuals, ItemProfitability,
      * JobEstimatesVsActualsDetail, JobEstimatesVsActualsSummary,
      * JobProfitabilityDetail, JobProfitabilitySummary
      */
-    JobType?: string;
+    jobType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -55005,17 +62410,17 @@ export type RetrieveJobReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/job";
 };
@@ -55098,22 +62503,22 @@ export type RetrievePayrollDetailReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -55127,55 +62532,57 @@ export type RetrievePayrollDetailReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * Valid values: EmployeeStateTaxesDetail, PayrollItemDetail,
      * PayrollReviewDetail, PayrollTransactionDetail, PayrollTransactionsByPayee
      */
-    PayrollDetailType?: string;
+    payrollDetailType?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -55183,17 +62590,17 @@ export type RetrievePayrollDetailReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    summarizeRowsBy?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/payroll-detail";
 };
@@ -55276,22 +62683,22 @@ export type RetrieveTimeReportData = {
   };
   path?: never;
   query?: {
-    AccountFullNames?: Array<string>;
-    AccountFullNameWithChildren?: string;
-    AccountIds?: Array<string>;
-    AccountIdWithChildren?: string;
-    AccountType?: string;
+    accountFullNames?: Array<string>;
+    accountFullNameWithChildren?: string;
+    accountIds?: Array<string>;
+    accountIdWithChildren?: string;
+    accountType?: string;
     /**
      * The date from which to calculate aging in an Aging report.
      * Valid values: "ReportEndDate" (default), "Today"
      * Only applies to Aging report types.
      */
-    AgingAsOf?: string;
-    Calendar?: string;
-    ClassFullNames?: Array<string>;
-    ClassIds?: Array<string>;
-    ClassIdWithChildren?: string;
-    ClassNameWithChildren?: string;
+    agingAsOf?: string;
+    calendar?: string;
+    classFullNames?: Array<string>;
+    classIds?: Array<string>;
+    classIdWithChildren?: string;
+    classNameWithChildren?: string;
     /**
      * The pagination cursor token used to retrieve the next set of records.
      *
@@ -55305,50 +62712,52 @@ export type RetrieveTimeReportData = {
      * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
      * of the fetch sequence until `hasMore` is `false`.
      */
-    Cursor?: string;
+    cursor?: string;
     detailLevel?: string;
     /**
      * If true, the report will be displayed in QuickBooks Desktop after generation.
      * If false or null, the report is only returned via QBXML without displaying.
      */
-    DisplayReport?: boolean | null;
-    EntityFullNames?: Array<string>;
-    EntityFullNameWithChildren?: string;
-    EntityIds?: Array<string>;
-    EntityIdWithChildren?: string;
-    EntityType?: string;
-    FromModifiedDate?: string | null;
-    FromReportDate?: string | null;
+    displayReport?: boolean | null;
+    entityFullNames?: Array<string>;
+    entityFullNameWithChildren?: string;
+    entityIds?: Array<string>;
+    entityIdWithChildren?: string;
+    entityType?: string;
+    fromModifiedDate?: string | null;
+    fromReportDate?: string | null;
     /**
      * Filter which accounts to include in the Aging report.
      * Valid values: "All", "InUse"
      * Only applies to Aging report types.
      */
-    IncludeAccounts?: string;
-    IncludeColumnList?: Array<string>;
-    IncludeSubcolumns?: boolean | null;
-    ItemFullNames?: Array<string>;
-    ItemIds?: Array<string>;
-    ItemIdWithChildren?: string;
-    ItemNameWithChildren?: string;
-    ItemType?: string;
+    includeAccounts?: string;
+    includeColumnList?: Array<string>;
+    includeSubcolumns?: boolean | null;
+    itemFullNames?: Array<string>;
+    itemIds?: Array<string>;
+    itemIdWithChildren?: string;
+    itemNameWithChildren?: string;
+    itemType?: string;
     /**
      * The maximum number of items to return in a single response.
+     *
+     * Cursor-based pagination has a max limit of 150
      */
-    Limit?: number;
-    ModifiedPeriod?: string;
+    limit?: number;
+    modifiedPeriod?: string;
     /**
      * A predefined date range macro (e.g., "ThisMonth", "LastYear", "Today").
      * Corresponds to the 'period' parameter in common web APIs.
      * Cannot be used with FromReportDate/ToReportDate.
      */
-    Period?: string;
-    PostingStatus?: string;
+    period?: string;
+    postingStatus?: string;
     QueryElement?: string;
     /**
      * The accounting basis for the report (e.g., "Accrual", "Cash", "None").
      */
-    ReportBasis?: string;
+    reportBasis?: string;
     /**
      * The type of report being requested (e.g., "ProfitAndLoss", "BalanceSheet", "GeneralDetail").
      * Required for generating the correct QBXML request.
@@ -55356,21 +62765,21 @@ export type RetrieveTimeReportData = {
      *
      * Valid values: "1099Detail", "AuditTrail", "BalanceSheetDetail", "CheckDetail", "CustomerBalanceDetail", "DepositDetail", "EstimatesByJob", "ExpenseByVendorDetail", "GeneralLedger", "IncomeByCustomerDetail", "IncomeTaxDetail", "InventoryValuationDetail", "JobProgressInvoicesVsEstimates", "Journal", "MissingChecks", "OpenInvoices", "OpenPOs", "OpenPOsByJob", "OpenSalesOrderByCustomer", "OpenSalesOrderByItem", "PendingSales", "ProfitAndLossDetail", "PurchaseByItemDetail", "PurchaseByVendorDetail", "SalesByCustomerDetail", "SalesByItemDetail", "SalesByRepDetail", "TxnDetailByAccount", "TxnListByCustomer", "TxnListByDate", "TxnListByVendor", "UnpaidBillsDetail", "UnbilledCostsByJob", "VendorBalanceDetail"
      */
-    ReportType?: string;
-    ReturnColumns?: string;
-    ReturnRows?: string;
-    SummarizeColumnsBy?: string;
+    reportType?: string;
+    returnColumns?: string;
+    returnRows?: string;
+    summarizeColumnsBy?: string;
     /**
      * Specifies how to summarize/group report rows (e.g., "Account", "Customer", "TotalOnly").
      */
-    SummarizeRowsBy?: string;
+    summarizeRowsBy?: string;
     /**
      * Valid values: TimeByItem, TimeByJobDetail, TimeByJobSummary, TimeByName
      */
-    TimeType?: string;
-    ToModifiedDate?: string | null;
-    ToReportDate?: string | null;
-    TxnType?: string;
+    timeType?: string;
+    toModifiedDate?: string | null;
+    toReportDate?: string | null;
+    txnType?: string;
   };
   url: "/api/v1/reports/time";
 };
@@ -55882,6 +63291,12 @@ export type ListSalesOrdersData = {
      */
     refNumberContains?: string;
     /**
+     * Filter by one or more reference numbers, matched case-sensitively.
+     *
+     * The case-sensitive counterpart of `refNumbers`. Supplying both uses `refNumbers`.
+     */
+    refNumbersCaseSensitive?: Array<string>;
+    /**
      * Filter for records modified on or before this date.
      *
      * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
@@ -55907,6 +63322,14 @@ export type ListSalesOrdersData = {
      * Filter by transaction date (start).
      */
     fromTransactionDate?: string | null;
+    /**
+     * Filter by a predefined transaction date range.
+     *
+     * An alternative to `fromTransactionDate`/`toTransactionDate`; the schema allows one
+     * or the other. When an explicit date is also supplied, the explicit dates win. The range is
+     * resolved by QuickBooks against the company file's fiscal calendar, not by this service.
+     */
+    transactionDateMacro?: QbdDateMacro;
     /**
      * Filter by starting reference number (startsWith).
      */
@@ -55951,6 +63374,13 @@ export type ListSalesOrdersData = {
      */
     vendorId?: string;
     /**
+     * Filter by one or more currency IDs.
+     *
+     * Requires the multicurrency feature to be enabled in the company file; QuickBooks returns an
+     * error otherwise.
+     */
+    currencyIds?: Array<string>;
+    /**
      * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
      * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
      */
@@ -55960,12 +63390,23 @@ export type ListSalesOrdersData = {
      */
     includeLinkedTransactions?: boolean | null;
     /**
-     * SalesOrder-specific override: accepts friendly camelCase JSON field names
-     * (e.g. "customer", "shipMethod", "referenceNumber") and translates them at set-time
-     * into the QBXML field names that QuickBooks Desktop expects inside &lt;IncludeRetElement&gt;.
-     * Raw QBXML names (e.g. "CustomerRef") still pass through unchanged.
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
     fields?: Array<string>;
+    /**
+     * The owners whose custom fields should be returned with each sales order.
+     *
+     * Pass `0` for the user-defined custom fields visible in the QuickBooks UI. Without this,
+     * QuickBooks omits the `customFields` collection entirely.
+     */
+    ownerIds?: Array<string>;
   };
   url: "/api/v1/sales-orders";
 };
@@ -56028,11 +63469,257 @@ export type ListSalesOrdersResponses = {
   /**
    * OK
    */
-  200: BasePageResponseSalesOrder;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<SalesOrder>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListSalesOrdersResponse =
   ListSalesOrdersResponses[keyof ListSalesOrdersResponses];
+
+export type CountSalesOrdersData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter by one or more reference numbers, matched case-sensitively.
+     *
+     * The case-sensitive counterpart of `refNumbers`. Supplying both uses `refNumbers`.
+     */
+    refNumbersCaseSensitive?: Array<string>;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by a predefined transaction date range.
+     *
+     * An alternative to `fromTransactionDate`/`toTransactionDate`; the schema allows one
+     * or the other. When an explicit date is also supplied, the explicit dates win. The range is
+     * resolved by QuickBooks against the company file's fiscal calendar, not by this service.
+     */
+    transactionDateMacro?: QbdDateMacro;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Filter by one or more currency IDs.
+     *
+     * Requires the multicurrency feature to be enabled in the company file; QuickBooks returns an
+     * error otherwise.
+     */
+    currencyIds?: Array<string>;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * The owners whose custom fields should be returned with each sales order.
+     *
+     * Pass `0` for the user-defined custom fields visible in the QuickBooks UI. Without this,
+     * QuickBooks omits the `customFields` collection entirely.
+     */
+    ownerIds?: Array<string>;
+  };
+  url: "/api/v1/sales-orders/count";
+};
+
+export type CountSalesOrdersErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountSalesOrdersError =
+  CountSalesOrdersErrors[keyof CountSalesOrdersErrors];
+
+export type CountSalesOrdersResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountSalesOrdersResponse =
+  CountSalesOrdersResponses[keyof CountSalesOrdersResponses];
 
 export type CreateSalesReceiptData = {
   body: CreateSalesReceiptRequest;
@@ -56662,7 +64349,7 @@ export type ListSalesReceiptsData = {
     /**
      * (Optional) Filter by Currency ListID.
      */
-    CurrencyIds?: Array<string>;
+    currencyIds?: Array<string>;
   };
   url: "/api/v1/sales-receipts";
 };
@@ -56725,11 +64412,233 @@ export type ListSalesReceiptsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseSalesReceipt;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<SalesReceipt>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListSalesReceiptsResponse =
   ListSalesReceiptsResponses[keyof ListSalesReceiptsResponses];
+
+export type CountSalesReceiptsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter by Currency ListID.
+     */
+    currencyIds?: Array<string>;
+  };
+  url: "/api/v1/sales-receipts/count";
+};
+
+export type CountSalesReceiptsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountSalesReceiptsError =
+  CountSalesReceiptsErrors[keyof CountSalesReceiptsErrors];
+
+export type CountSalesReceiptsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountSalesReceiptsResponse =
+  CountSalesReceiptsResponses[keyof CountSalesReceiptsResponses];
 
 export type CreateSalesTaxCodeData = {
   body: CreateSalesTaxCodeRequest;
@@ -57137,20 +65046,6 @@ export type ListSalesTaxCodesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -57233,7 +65128,7 @@ export type ListSalesTaxCodesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/sales-tax-codes";
 };
@@ -57296,11 +65191,198 @@ export type ListSalesTaxCodesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseSalesTaxCode;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<SalesTaxCode>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListSalesTaxCodesResponse =
   ListSalesTaxCodesResponses[keyof ListSalesTaxCodesResponses];
+
+export type CountSalesTaxCodesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/sales-tax-codes/count";
+};
+
+export type CountSalesTaxCodesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountSalesTaxCodesError =
+  CountSalesTaxCodesErrors[keyof CountSalesTaxCodesErrors];
+
+export type CountSalesTaxCodesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountSalesTaxCodesResponse =
+  CountSalesTaxCodesResponses[keyof CountSalesTaxCodesResponses];
 
 export type CreateSalesTaxPaymentCheckData = {
   body: CreateSalesTaxPaymentCheckRequest;
@@ -57836,27 +65918,27 @@ export type ListSalesTaxPaymentChecksData = {
     /**
      * Filter by bank account.
      */
-    BankAccountId?: string;
+    bankAccountId?: string;
     /**
      * Filter transactions by date range end.
      */
-    EndDate?: string | null;
+    endDate?: string | null;
     /**
      * Filter transactions modified after this date.
      */
-    ModifiedAfter?: string | null;
+    modifiedAfter?: string | null;
     /**
      * Filter by payee entity (vendor).
      */
-    PayeeId?: string;
+    payeeId?: string;
     /**
      * Filter transactions by reference number (check number).
      */
-    RefNumber?: string;
+    refNumber?: string;
     /**
      * Filter transactions by date range start.
      */
-    StartDate?: string | null;
+    startDate?: string | null;
   };
   url: "/api/v1/sales-tax-payment-checks";
 };
@@ -57919,11 +66001,253 @@ export type ListSalesTaxPaymentChecksResponses = {
   /**
    * OK
    */
-  200: BasePageResponseSalesTaxPaymentCheck;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<SalesTaxPaymentCheck>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListSalesTaxPaymentChecksResponse =
   ListSalesTaxPaymentChecksResponses[keyof ListSalesTaxPaymentChecksResponses];
+
+export type CountSalesTaxPaymentChecksData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by bank account.
+     */
+    bankAccountId?: string;
+    /**
+     * Filter transactions by date range end.
+     */
+    endDate?: string | null;
+    /**
+     * Filter transactions modified after this date.
+     */
+    modifiedAfter?: string | null;
+    /**
+     * Filter by payee entity (vendor).
+     */
+    payeeId?: string;
+    /**
+     * Filter transactions by reference number (check number).
+     */
+    refNumber?: string;
+    /**
+     * Filter transactions by date range start.
+     */
+    startDate?: string | null;
+  };
+  url: "/api/v1/sales-tax-payment-checks/count";
+};
+
+export type CountSalesTaxPaymentChecksErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountSalesTaxPaymentChecksError =
+  CountSalesTaxPaymentChecksErrors[keyof CountSalesTaxPaymentChecksErrors];
+
+export type CountSalesTaxPaymentChecksResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountSalesTaxPaymentChecksResponse =
+  CountSalesTaxPaymentChecksResponses[keyof CountSalesTaxPaymentChecksResponses];
 
 export type CreateShipMethodData = {
   body: CreateShipMethodRequest;
@@ -58331,20 +66655,6 @@ export type ListShipMethodsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -58427,7 +66737,7 @@ export type ListShipMethodsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/ship-methods";
 };
@@ -58490,11 +66800,198 @@ export type ListShipMethodsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseShipMethod;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<ShipMethod>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListShipMethodsResponse =
   ListShipMethodsResponses[keyof ListShipMethodsResponses];
+
+export type CountShipMethodsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/ship-methods/count";
+};
+
+export type CountShipMethodsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountShipMethodsError =
+  CountShipMethodsErrors[keyof CountShipMethodsErrors];
+
+export type CountShipMethodsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountShipMethodsResponse =
+  CountShipMethodsResponses[keyof CountShipMethodsResponses];
 
 export type CreateSpecialItemData = {
   body: CreateSpecialItemRequest;
@@ -59043,21 +67540,7 @@ export type ListTermsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -59139,7 +67622,7 @@ export type ListTermsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/terms";
 };
@@ -59201,10 +67684,195 @@ export type ListTermsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseTerm;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Term>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListTermsResponse = ListTermsResponses[keyof ListTermsResponses];
+
+export type CountTermsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/terms/count";
+};
+
+export type CountTermsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountTermsError = CountTermsErrors[keyof CountTermsErrors];
+
+export type CountTermsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountTermsResponse = CountTermsResponses[keyof CountTermsResponses];
 
 export type ListTimeTrackingsData = {
   body?: never;
@@ -59366,11 +68034,11 @@ export type ListTimeTrackingsData = {
     /**
      * (Optional) A single transaction ID (TxnID) to retrieve a specific Time Tracking entry.
      */
-    Id?: string;
+    id?: string;
     /**
      * (Optional) Filter by the entity (Employee, Vendor, OtherName) associated with the time entry.
      */
-    TimeTrackingEntityFilter?: string;
+    timeTrackingEntityFilter?: string;
   };
   url: "/api/v1/time-tracking-activities";
 };
@@ -59433,11 +68101,237 @@ export type ListTimeTrackingsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseTimeTracking;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<TimeTracking>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListTimeTrackingsResponse =
   ListTimeTrackingsResponses[keyof ListTimeTrackingsResponses];
+
+export type CountTimeTrackingsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) A single transaction ID (TxnID) to retrieve a specific Time Tracking entry.
+     */
+    id?: string;
+    /**
+     * (Optional) Filter by the entity (Employee, Vendor, OtherName) associated with the time entry.
+     */
+    timeTrackingEntityFilter?: string;
+  };
+  url: "/api/v1/time-tracking-activities/count";
+};
+
+export type CountTimeTrackingsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountTimeTrackingsError =
+  CountTimeTrackingsErrors[keyof CountTimeTrackingsErrors];
+
+export type CountTimeTrackingsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountTimeTrackingsResponse =
+  CountTimeTrackingsResponses[keyof CountTimeTrackingsResponses];
 
 export type CreateTimeTrackingData = {
   body: CreateTimeTrackingRequest;
@@ -59813,100 +68707,6 @@ export type UpdateTimeTrackingResponses = {
 export type UpdateTimeTrackingResponse =
   UpdateTimeTrackingResponses[keyof UpdateTimeTrackingResponses];
 
-export type VoidTimeTrackingData = {
-  body?: never;
-  headers?: {
-    /**
-     * Identifies which QuickBooks Desktop company file to target.
-     *
-     * Accepts three formats:
-     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
-     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
-     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
-     *
-     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
-     */
-    "X-Connection-Id"?: string;
-    /**
-     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
-     *
-     * Create / update / delete and single-entity retrieval operations accept **1–120** seconds (default **120**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
-     *
-     * Passed as a request header — not a query-string value.
-     */
-    "X-Nxus-Timeout-Seconds"?: number;
-  };
-  path: {
-    id: string;
-  };
-  query?: never;
-  url: "/api/v1/time-tracking-activity/{id}/void";
-};
-
-export type VoidTimeTrackingErrors = {
-  /**
-   * Bad Request — validation error or malformed input.
-   */
-  400: StandardErrorResponse;
-  /**
-   * Unauthorized — API key is missing, invalid, or expired.
-   */
-  401: StandardErrorResponse;
-  /**
-   * Payment Required — an active subscription is required for this operation.
-   */
-  402: StandardErrorResponse;
-  /**
-   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
-   */
-  403: StandardErrorResponse;
-  /**
-   * Not Found — the requested resource does not exist.
-   */
-  404: StandardErrorResponse;
-  /**
-   * Method Not Allowed — this operation is not supported for this resource.
-   */
-  405: StandardErrorResponse;
-  /**
-   * Request Timeout — the request took too long to process.
-   */
-  408: StandardErrorResponse;
-  /**
-   * Conflict — the operation conflicts with the current resource or connection state.
-   */
-  409: StandardErrorResponse;
-  /**
-   * Unprocessable Entity — the request was valid but could not be processed.
-   */
-  422: StandardErrorResponse;
-  /**
-   * Too Many Requests — rate limit exceeded.
-   */
-  429: StandardErrorResponse;
-  /**
-   * Internal Server Error — an unexpected error occurred.
-   */
-  500: StandardErrorResponse;
-  /**
-   * Bad Gateway — QuickBooks Desktop connection or integration error.
-   */
-  502: StandardErrorResponse;
-};
-
-export type VoidTimeTrackingError =
-  VoidTimeTrackingErrors[keyof VoidTimeTrackingErrors];
-
-export type VoidTimeTrackingResponses = {
-  /**
-   * OK
-   */
-  200: VoidResponse;
-};
-
-export type VoidTimeTrackingResponse =
-  VoidTimeTrackingResponses[keyof VoidTimeTrackingResponses];
-
 export type DeleteTransactionData = {
   body?: never;
   headers?: {
@@ -60267,32 +69067,41 @@ export type ListTransactionsData = {
     /**
      * Filter by Currency ListIDs.
      */
-    CurrencyIds?: Array<string>;
+    currencyIds?: Array<string>;
     /**
      * Transaction Detail Level: "all", "transaction_lines_only", "transactions_without_lines"
      * QBXML maps to: All, AllExceptSummary, SummaryOnly
      *
-     * <value>all</value>
-     * <value>transaction_lines_only</value>
-     * <value>transactions_without_lines</value>
+     * <value>all</value><value>transaction_lines_only</value><value>transactions_without_lines</value>
      */
     detailLevel?: string;
     /**
      * Filter by Payment Status: "open", "closed"
      */
-    PaymentStatus?: string;
+    paymentStatus?: string;
     /**
      * Filter by Posting Status: "posting", "non_posting"
      */
-    PostingStatus?: string;
+    postingStatus?: string;
     /**
      * Filter transactions by transaction type.
+     *
      * Available options: all, ar_refund_credit_card, bill, bill_payment_check, bill_payment_credit_card, build_assembly,
      * charge, check, credit_card_charge, credit_card_credit, credit_memo, deposit, estimate, inventory_adjustment, invoice,
      * item_receipt, journal_entry, liability_adjustment, paycheck, payroll_liability_check, purchase_order, receive_payment,
      * sales_order, sales_receipt, sales_tax_payment_check, transfer, vendor_credit, ytd_adjustment
+     *
+     *
+     *
+     * The PascalCase spellings listed by the `TransactionType` response schema — `Invoice`,
+     * `ARRefundCreditCard` — are accepted here too, so a value copied from a response works as a filter.
+     *
+     *
+     * **Note:** unlike `fields`, an unrecognised value here is **rejected** with a 400 rather than
+     * ignored. QuickBooks would otherwise drop it silently and return every transaction type, which is
+     * indistinguishable from a successful unfiltered query.
      */
-    TransactionTypes?: Array<string>;
+    transactionTypes?: Array<string>;
   };
   url: "/api/v1/transactions";
 };
@@ -60355,11 +69164,267 @@ export type ListTransactionsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseTransaction;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Transaction>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListTransactionsResponse =
   ListTransactionsResponses[keyof ListTransactionsResponses];
+
+export type CountTransactionsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * Filter by Currency ListIDs.
+     */
+    currencyIds?: Array<string>;
+    /**
+     * Transaction Detail Level: "all", "transaction_lines_only", "transactions_without_lines"
+     * QBXML maps to: All, AllExceptSummary, SummaryOnly
+     *
+     * <value>all</value><value>transaction_lines_only</value><value>transactions_without_lines</value>
+     */
+    detailLevel?: string;
+    /**
+     * Filter by Payment Status: "open", "closed"
+     */
+    paymentStatus?: string;
+    /**
+     * Filter by Posting Status: "posting", "non_posting"
+     */
+    postingStatus?: string;
+    /**
+     * Filter transactions by transaction type.
+     *
+     * Available options: all, ar_refund_credit_card, bill, bill_payment_check, bill_payment_credit_card, build_assembly,
+     * charge, check, credit_card_charge, credit_card_credit, credit_memo, deposit, estimate, inventory_adjustment, invoice,
+     * item_receipt, journal_entry, liability_adjustment, paycheck, payroll_liability_check, purchase_order, receive_payment,
+     * sales_order, sales_receipt, sales_tax_payment_check, transfer, vendor_credit, ytd_adjustment
+     *
+     *
+     *
+     * The PascalCase spellings listed by the `TransactionType` response schema — `Invoice`,
+     * `ARRefundCreditCard` — are accepted here too, so a value copied from a response works as a filter.
+     *
+     *
+     * **Note:** unlike `fields`, an unrecognised value here is **rejected** with a 400 rather than
+     * ignored. QuickBooks would otherwise drop it silently and return every transaction type, which is
+     * indistinguishable from a successful unfiltered query.
+     */
+    transactionTypes?: Array<string>;
+  };
+  url: "/api/v1/transactions/count";
+};
+
+export type CountTransactionsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountTransactionsError =
+  CountTransactionsErrors[keyof CountTransactionsErrors];
+
+export type CountTransactionsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountTransactionsResponse =
+  CountTransactionsResponses[keyof CountTransactionsResponses];
 
 export type CreateUnitOfMeasureSetData = {
   body: CreateUnitOfMeasureSetRequest;
@@ -60579,20 +69644,6 @@ export type ListUnitOfMeasureSetsData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -60675,7 +69726,7 @@ export type ListUnitOfMeasureSetsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/unit-of-measure-sets";
 };
@@ -60738,11 +69789,198 @@ export type ListUnitOfMeasureSetsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseUnitOfMeasureSet;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<UnitOfMeasureSet>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListUnitOfMeasureSetsResponse =
   ListUnitOfMeasureSetsResponses[keyof ListUnitOfMeasureSetsResponses];
+
+export type CountUnitOfMeasureSetsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/unit-of-measure-sets/count";
+};
+
+export type CountUnitOfMeasureSetsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountUnitOfMeasureSetsError =
+  CountUnitOfMeasureSetsErrors[keyof CountUnitOfMeasureSetsErrors];
+
+export type CountUnitOfMeasureSetsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountUnitOfMeasureSetsResponse =
+  CountUnitOfMeasureSetsResponses[keyof CountUnitOfMeasureSetsResponses];
 
 export type CreateVendorData = {
   body: CreateVendorRequest;
@@ -61522,11 +70760,229 @@ export type ListVendorCreditsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseVendorCredit;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<VendorCredit>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListVendorCreditsResponse =
   ListVendorCreditsResponses[keyof ListVendorCreditsResponses];
+
+export type CountVendorCreditsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (TxnIDs).
+     *
+     * Provide a list of strictly matched TxnIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more reference numbers.
+     *
+     * Returns transactions where the `RefNumber` exactly matches any of the provided values.
+     */
+    refNumbers?: Array<string>;
+    /**
+     * Filter by reference number (substring match).
+     *
+     * Returns transactions where the `RefNumber` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    refNumberContains?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by transaction date (end).
+     */
+    toTransactionDate?: string | null;
+    /**
+     * Filter by transaction date (start).
+     */
+    fromTransactionDate?: string | null;
+    /**
+     * Filter by starting reference number (startsWith).
+     */
+    refNumberStartsWith?: string;
+    /**
+     * Filter by ending reference number (endsWith).
+     */
+    refNumberEndsWith?: string;
+    /**
+     * Reference number range filter (start).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or after this value.
+     */
+    refNumberFrom?: string;
+    /**
+     * Reference number range filter (end).
+     *
+     * Use this to return transactions whose reference number is alphabetically at or before this value.
+     * If both `refNumberFrom` and `refNumberTo` are specified, `refNumberTo` must be lexicographically higher.
+     */
+    refNumberTo?: string;
+    /**
+     * Filter by Account IDs
+     */
+    accountIds?: Array<string>;
+    /**
+     * Filter by Entity IDs (Customers, Vendors, Employees)
+     */
+    entityIds?: Array<string>;
+    /**
+     * Filter by Item IDs
+     */
+    itemIds?: Array<string>;
+    /**
+     * Filter by Class IDs
+     *
+     * Provide a list of strictly matched ClassIDs.
+     */
+    classIds?: Array<string>;
+    /**
+     * Filter by Vendor ID.
+     */
+    vendorId?: string;
+    /**
+     * Whether to include line items (ExpenseLines, ItemLines, ItemGroupLines) in the response.
+     * Only applies to transaction objects that support line items (Bills, Checks, Invoices, etc.)
+     */
+    includeLineItems?: boolean | null;
+    /**
+     * Whether to include linked transactions in the response.
+     */
+    includeLinkedTransactions?: boolean | null;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `refNumber`, `transactionDate` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/vendor-credits/count";
+};
+
+export type CountVendorCreditsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountVendorCreditsError =
+  CountVendorCreditsErrors[keyof CountVendorCreditsErrors];
+
+export type CountVendorCreditsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountVendorCreditsResponse =
+  CountVendorCreditsResponses[keyof CountVendorCreditsResponses];
 
 export type CreateVendorTypeData = {
   body: CreateVendorTypeRequest;
@@ -61840,21 +71296,7 @@ export type ListVendorTypesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
-     * The maximum number of items to return per page.
+     * The maximum number of items to return for this request.
      */
     limit?: number;
     /**
@@ -61936,7 +71378,7 @@ export type ListVendorTypesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/vendor-types";
 };
@@ -61999,11 +71441,198 @@ export type ListVendorTypesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseVendorType;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<VendorType>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListVendorTypesResponse =
   ListVendorTypesResponses[keyof ListVendorTypesResponses];
+
+export type CountVendorTypesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/vendor-types/count";
+};
+
+export type CountVendorTypesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountVendorTypesError =
+  CountVendorTypesErrors[keyof CountVendorTypesErrors];
+
+export type CountVendorTypesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountVendorTypesResponse =
+  CountVendorTypesResponses[keyof CountVendorTypesResponses];
 
 export type DeleteVendorData = {
   body?: never;
@@ -62422,7 +72051,7 @@ export type ListVendorsData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
   };
   url: "/api/v1/vendors";
 };
@@ -62484,11 +72113,200 @@ export type ListVendorsResponses = {
   /**
    * OK
    */
-  200: BasePageResponseVendor;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<Vendor>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+    nextCursor: string | null;
+    hasMore: boolean;
+    remainingCount: number;
+  };
 };
 
 export type ListVendorsResponse =
   ListVendorsResponses[keyof ListVendorsResponses];
+
+export type CountVendorsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+  };
+  url: "/api/v1/vendors/count";
+};
+
+export type CountVendorsErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountVendorsError = CountVendorsErrors[keyof CountVendorsErrors];
+
+export type CountVendorsResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountVendorsResponse =
+  CountVendorsResponses[keyof CountVendorsResponses];
 
 export type CreateWorkersCompCodeData = {
   body: CreateWorkersCompCodeRequest;
@@ -62802,20 +72620,6 @@ export type ListWorkersCompCodesData = {
   path?: never;
   query?: {
     /**
-     * The pagination cursor token used to retrieve the next set of records.
-     *
-     * Capture the `nextCursor` from the response JSON and provide it here to continue fetching data.
-     *
-     *
-     * **The 10-Second Rule:** Due to QuickBooks Desktop architectural requirements, you must request
-     * the next page within **10 seconds** of receiving the previous response.
-     *
-     *
-     * **Static Cursors:** Unlike some APIs, the cursor remains constant for the entire duration
-     * of the fetch sequence until `hasMore` is `false`.
-     */
-    cursor?: string;
-    /**
      * The maximum number of items to return for this request.
      */
     limit?: number;
@@ -62898,15 +72702,15 @@ export type ListWorkersCompCodesData = {
      * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
      * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
      */
-    IncludeRetElementList?: Array<string>;
+    fields?: Array<string>;
     /**
      * (Optional) Filter for codes with effective dates on or after this date.
      */
-    FromEffectiveDate?: string | null;
+    fromEffectiveDate?: string | null;
     /**
      * (Optional) Filter for codes with effective dates on or before this date.
      */
-    ToEffectiveDate?: string | null;
+    toEffectiveDate?: string | null;
   };
   url: "/api/v1/workers-comp-codes";
 };
@@ -62969,8 +72773,203 @@ export type ListWorkersCompCodesResponses = {
   /**
    * OK
    */
-  200: BasePageResponseWorkersCompCode;
+  200: {
+    requestId: string;
+    success: boolean;
+    data: Array<WorkersCompCode>;
+    count: number;
+    limit: number;
+    totalCount: number;
+    timestamp: string;
+  };
 };
 
 export type ListWorkersCompCodesResponse =
   ListWorkersCompCodesResponses[keyof ListWorkersCompCodesResponses];
+
+export type CountWorkersCompCodesData = {
+  body?: never;
+  headers?: {
+    /**
+     * Identifies which QuickBooks Desktop company file to target.
+     *
+     * Accepts three formats:
+     * - **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`
+     * - **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+     * - **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)
+     *
+     * The API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.
+     */
+    "X-Connection-Id"?: string;
+    /**
+     * A unique identifier for tracing a single request through the entire system.
+     * If not provided by the client, a new one will be generated.
+     * This is not persisted and is used only for logging and monitoring.
+     */
+    "X-Correlation-ID"?: string;
+    /**
+     * Maximum time in seconds to wait for the queued job to be picked up and the response returned from QuickBooks Desktop.
+     *
+     * List and streaming query operations accept **1–90** seconds (default **90**). Raise this when the QuickBooks Web Connector is configured with longer polling intervals or the target company file is slow to respond.
+     *
+     * Passed as a request header — not a query-string value.
+     */
+    "X-Nxus-Timeout-Seconds"?: number;
+  };
+  path?: never;
+  query?: {
+    /**
+     * Filter by one or more unique identifiers (ListIDs).
+     *
+     * Provide a list of strictly matched ListIDs. This is the most efficient way to retrieve specific records.
+     */
+    ids?: Array<string>;
+    /**
+     * Filter by one or more exact full names.
+     *
+     * Returns records whose `FullName` exactly matches any of the provided strings.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    fullnames?: Array<string>;
+    /**
+     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     */
+    activeStatus?: string;
+    /**
+     * Filter for records modified on or before this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **23:59:59** (end of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedBefore?: string | null;
+    /**
+     * Filter for records modified on or after this date.
+     *
+     * **Time Defaults:** If a time is not specified, local time **00:00:00** (beginning of day) is assumed.
+     *
+     *
+     * **Range:** Supports dates from 1970-01-01 to 2038-01-18.
+     */
+    updatedAfter?: string | null;
+    /**
+     * Filter by name (substring match).
+     *
+     * Matches records where the `FullName` contains this string.
+     * Case-insensitive according to QuickBooks Desktop rules.
+     */
+    nameContains?: string;
+    /**
+     * Return records whose name starts with this value.
+     *
+     * Matches records where the `FullName` begins with this string.
+     * Example: Searching "Mac" returns "MacPherson", "MacGyver", etc.
+     */
+    nameStartsWith?: string;
+    /**
+     * Return records whose name ends with this value.
+     *
+     * Matches records where the `FullName` finishes with this string.
+     * Example: Searching "kitchen" returns "John's Kitchen", "Central Kitchen", etc.
+     */
+    nameEndsWith?: string;
+    /**
+     * Name range filter (start).
+     *
+     * Returns records whose name is alphabetically at or after this value.
+     */
+    nameFrom?: string;
+    /**
+     * Name range filter (end).
+     *
+     * Returns records whose name is alphabetically at or before this value.
+     * If both `nameFrom` and `nameTo` are specified, `nameTo` must be lexicographically higher.
+     */
+    nameTo?: string;
+    /**
+     * Limit the response to only these top-level fields, named exactly as they appear in the response body.
+     *
+     * Supply the JSON field names you want back — `id`, `name`, `address`, `phone` — not the
+     * underlying QuickBooks element names. They are mapped for you.
+     *
+     *
+     * **Note:** An unrecognised name is ignored rather than rejected; QuickBooks returns no error for one, so a
+     * misspelling shows up as a silently missing field. To return custom fields, request `customFields`.
+     */
+    fields?: Array<string>;
+    /**
+     * (Optional) Filter for codes with effective dates on or after this date.
+     */
+    fromEffectiveDate?: string | null;
+    /**
+     * (Optional) Filter for codes with effective dates on or before this date.
+     */
+    toEffectiveDate?: string | null;
+  };
+  url: "/api/v1/workers-comp-codes/count";
+};
+
+export type CountWorkersCompCodesErrors = {
+  /**
+   * Bad Request — validation error or malformed input.
+   */
+  400: StandardErrorResponse;
+  /**
+   * Unauthorized — API key is missing, invalid, or expired.
+   */
+  401: StandardErrorResponse;
+  /**
+   * Payment Required — an active subscription is required for this operation.
+   */
+  402: StandardErrorResponse;
+  /**
+   * Forbidden — insufficient permissions or a policy restriction blocks this operation.
+   */
+  403: StandardErrorResponse;
+  /**
+   * Not Found — the requested resource does not exist.
+   */
+  404: StandardErrorResponse;
+  /**
+   * Method Not Allowed — this operation is not supported for this resource.
+   */
+  405: StandardErrorResponse;
+  /**
+   * Request Timeout — the request took too long to process.
+   */
+  408: StandardErrorResponse;
+  /**
+   * Conflict — the operation conflicts with the current resource or connection state.
+   */
+  409: StandardErrorResponse;
+  /**
+   * Unprocessable Entity — the request was valid but could not be processed.
+   */
+  422: StandardErrorResponse;
+  /**
+   * Too Many Requests — rate limit exceeded.
+   */
+  429: StandardErrorResponse;
+  /**
+   * Internal Server Error — an unexpected error occurred.
+   */
+  500: StandardErrorResponse;
+  /**
+   * Bad Gateway — QuickBooks Desktop connection or integration error.
+   */
+  502: StandardErrorResponse;
+};
+
+export type CountWorkersCompCodesError =
+  CountWorkersCompCodesErrors[keyof CountWorkersCompCodesErrors];
+
+export type CountWorkersCompCodesResponses = {
+  /**
+   * OK
+   */
+  200: CountResponse;
+};
+
+export type CountWorkersCompCodesResponse =
+  CountWorkersCompCodesResponses[keyof CountWorkersCompCodesResponses];

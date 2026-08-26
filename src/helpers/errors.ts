@@ -310,13 +310,14 @@ export class NxusApiError extends Error {
         // StandardErrorResponse shape: { error: ErrorDetail }
         if (obj.error && typeof obj.error === 'object' && 'message' in obj.error) {
             const detail = obj.error as ErrorDetail;
+            const detailMessage = detail.message ?? 'Request failed.';
             return new NxusApiError({
-                message: detail.message,
-                userMessage: detail.userFacingMessage || detail.message,
+                message: detailMessage,
+                userMessage: detail.userFacingMessage ?? detailMessage,
                 status: detail.httpStatusCode ?? obj.status ?? 0,
                 code: detail.code,
                 type: detail.type,
-                requestId: detail.requestId,
+                requestId: detail.requestId ?? undefined,
                 integrationCode: detail.integrationCode ?? undefined,
                 lifecycleState,
                 restrictionReason,

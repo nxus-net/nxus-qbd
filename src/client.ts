@@ -105,7 +105,7 @@ import type {
   CreateVendorCreditRequest,
   CreateBuildAssemblyRequest,
   CreateChargeRequest,
-  CreateCreditCardRequest,
+  CreateCreditCardChargeRequest,
   CreateCreditMemoRequest,
   CreateInventoryAdjustmentRequest,
   CreateInvoiceRequest,
@@ -113,9 +113,8 @@ import type {
   // Transactions — update request types
   UpdateArRefundCreditCardRequest,
   UpdateBillRequest,
-  UpdateCheckBillPaymentRequest,
   UpdateCheckRequest,
-  UpdateCreditCardBillPaymentRequest,
+  UpdateCheckBillPaymentRequest,
   UpdateCreditCardCreditRequest,
   UpdateDepositRequest,
   UpdateEstimateRequest,
@@ -128,7 +127,6 @@ import type {
   UpdateVendorCreditRequest,
   UpdateBuildAssemblyRequest,
   UpdateChargeRequest,
-  UpdateCreditCardRequest,
   UpdateCreditMemoRequest,
   UpdateInventoryAdjustmentRequest,
   UpdateInvoiceRequest,
@@ -181,16 +179,12 @@ import type {
   UpdateClassRequest,
   UpdateCurrencyRequest,
   UpdateCustomerRequest,
-  CreateCustomerTypeRequest as UpdateCustomerTypeRequest,
-  CreateDateDrivenTermRequest as UpdateDateDrivenTermRequest,
   UpdateEmployeeRequest,
   UpdateInventorySiteRequest,
   UpdateOtherNameRequest,
-  UpdatePaymentMethodRequest,
   UpdatePriceLevelRequest,
   UpdateSalesTaxCodeRequest,
   UpdateShipMethodRequest,
-  CreateTermRequest as UpdateTermRequest,
   UpdateVendorRequest,
   // Items — response types
   Item,
@@ -245,6 +239,7 @@ import type {
   CreateConnectionRequest,
   UpdateConnectionRequest,
   CreateAuthSessionRequest,
+  UpdateCreditCardChargeRequest,
 } from "./generated/types.gen";
 
 // ---------------------------------------------------------------------------
@@ -421,8 +416,7 @@ export class NxusClient {
   get creditCardBillPayments() {
     return new VoidableResource<
       CreditCardBillPayment,
-      CreateCreditCardBillPaymentRequest,
-      UpdateCreditCardBillPaymentRequest
+      CreateCreditCardBillPaymentRequest
     >(this.transport, "/api/v1/credit-card-bill-payments");
   }
 
@@ -549,8 +543,8 @@ export class NxusClient {
   get creditCardCharges() {
     return new VoidableResource<
       CreditCardCharge,
-      CreateCreditCardRequest,
-      UpdateCreditCardRequest
+      CreateCreditCardChargeRequest,
+      UpdateCreditCardChargeRequest
     >(this.transport, "/api/v1/credit-card-charges");
   }
 
@@ -658,8 +652,7 @@ export class NxusClient {
   get customerTypes() {
     return new Resource<
       CustomerType,
-      CreateCustomerTypeRequest,
-      UpdateCustomerTypeRequest
+      CreateCustomerTypeRequest
     >(this.transport, "/api/v1/customer-types");
   }
 
@@ -667,8 +660,7 @@ export class NxusClient {
   get dateDrivenTerms() {
     return new Resource<
       DateDrivenTerm,
-      CreateDateDrivenTermRequest,
-      UpdateDateDrivenTermRequest
+      CreateDateDrivenTermRequest
     >(this.transport, "/api/v1/date-driven-terms");
   }
 
@@ -718,8 +710,7 @@ export class NxusClient {
   get paymentMethods() {
     return new Resource<
       PaymentMethod,
-      CreatePaymentMethodRequest,
-      UpdatePaymentMethodRequest
+      CreatePaymentMethodRequest
     >(this.transport, "/api/v1/payment-methods");
   }
 
@@ -760,7 +751,7 @@ export class NxusClient {
 
   /** Terms — full CRUD */
   get terms() {
-    return new Resource<Term, CreateTermRequest, UpdateTermRequest>(
+    return new Resource<Term, CreateTermRequest>(
       this.transport,
       "/api/v1/terms",
       "/api/v1/term",
