@@ -28,12 +28,16 @@ import {
   type NxusLogger,
 } from "./transport";
 import type { RequestOptions } from "./transport";
+import { COUNT_PATHS } from "./generated/count-capabilities";
 import { type NxusEnvironment, resolveBaseUrl } from "./config";
 import {
+  withCount,
   Resource,
   VoidableResource,
+  VoidableNoUpdateResource,
   ReadOnlyResource,
   ListDeleteResource,
+  ListOnlyResource,
   ListRetrieveDeleteResource,
   ListRetrieveCreateResource,
   CrudNoUpdateResource,
@@ -76,6 +80,7 @@ import type {
   JournalEntry,
   PurchaseOrder,
   SalesReceipt,
+  SalesOrder,
   SalesTaxPaymentCheck,
   TimeTracking,
   Transaction,
@@ -100,6 +105,7 @@ import type {
   CreateJournalEntryRequest,
   CreatePurchaseOrderRequest,
   CreateSalesReceiptRequest,
+  CreateSalesOrderRequest,
   CreateSalesTaxPaymentCheckRequest,
   CreateTimeTrackingRequest,
   CreateVendorCreditRequest,
@@ -122,6 +128,7 @@ import type {
   UpdateJournalEntryRequest,
   UpdatePurchaseOrderRequest,
   UpdateSalesReceiptRequest,
+  UpdateSalesOrderRequest,
   UpdateSalesTaxPaymentCheckRequest,
   UpdateTimeTrackingRequest,
   UpdateVendorCreditRequest,
@@ -380,208 +387,310 @@ export class NxusClient {
 
   /** AR Refund Credit Cards — full CRUD + void */
   get arRefundCreditCards() {
-    return new VoidableResource<
-      ArRefundCreditCard,
-      CreateArRefundCreditCardRequest,
-      UpdateArRefundCreditCardRequest
-    >(this.transport, "/api/v1/ar-refund-credit-cards");
+    return withCount(
+      new VoidableResource<
+        ArRefundCreditCard,
+        CreateArRefundCreditCardRequest,
+        UpdateArRefundCreditCardRequest
+      >(this.transport, "/api/v1/ar-refund-credit-cards"),
+      this.transport,
+      COUNT_PATHS.arRefundCreditCards,
+    );
   }
 
   /** Bills — full CRUD + void */
   get bills() {
-    return new VoidableResource<Bill, CreateBillRequest, UpdateBillRequest>(
+    return withCount(
+      new VoidableResource<Bill, CreateBillRequest, UpdateBillRequest>(
+        this.transport,
+        "/api/v1/bills",
+      ),
       this.transport,
-      "/api/v1/bills",
+      COUNT_PATHS.bills,
     );
   }
 
   /** Check Bill Payments — full CRUD + void */
   get checkBillPayments() {
-    return new VoidableResource<
-      CheckBillPayment,
-      CreateCheckBillPaymentRequest,
-      UpdateCheckBillPaymentRequest
-    >(this.transport, "/api/v1/check-bill-payments");
+    return withCount(
+      new VoidableResource<
+        CheckBillPayment,
+        CreateCheckBillPaymentRequest,
+        UpdateCheckBillPaymentRequest
+      >(this.transport, "/api/v1/check-bill-payments"),
+      this.transport,
+      COUNT_PATHS.checkBillPayments,
+    );
   }
 
   /** Checks — full CRUD + void */
   get checks() {
-    return new VoidableResource<Check, CreateCheckRequest, UpdateCheckRequest>(
+    return withCount(
+      new VoidableResource<Check, CreateCheckRequest, UpdateCheckRequest>(
+        this.transport,
+        "/api/v1/checks",
+      ),
       this.transport,
-      "/api/v1/checks",
+      COUNT_PATHS.checks,
     );
   }
 
   /** Credit Card Bill Payments — full CRUD + void */
   get creditCardBillPayments() {
-    return new VoidableResource<
-      CreditCardBillPayment,
-      CreateCreditCardBillPaymentRequest
-    >(this.transport, "/api/v1/credit-card-bill-payments");
+    return withCount(
+      new VoidableNoUpdateResource<
+        CreditCardBillPayment,
+        CreateCreditCardBillPaymentRequest
+      >(this.transport, "/api/v1/credit-card-bill-payments"),
+      this.transport,
+      COUNT_PATHS.creditCardBillPayments,
+    );
   }
 
   /** Credit Card Credits — full CRUD + void */
   get creditCardCredits() {
-    return new VoidableResource<
-      CreditCardCredit,
-      CreateCreditCardCreditRequest,
-      UpdateCreditCardCreditRequest
-    >(this.transport, "/api/v1/credit-card-credits");
+    return withCount(
+      new VoidableResource<
+        CreditCardCredit,
+        CreateCreditCardCreditRequest,
+        UpdateCreditCardCreditRequest
+      >(this.transport, "/api/v1/credit-card-credits"),
+      this.transport,
+      COUNT_PATHS.creditCardCredits,
+    );
   }
 
   /** Deposits — full CRUD + void */
   get deposits() {
-    return new VoidableResource<
-      Deposit,
-      CreateDepositRequest,
-      UpdateDepositRequest
-    >(this.transport, "/api/v1/deposits");
+    return withCount(
+      new VoidableResource<Deposit, CreateDepositRequest, UpdateDepositRequest>(
+        this.transport,
+        "/api/v1/deposits",
+      ),
+      this.transport,
+      COUNT_PATHS.deposits,
+    );
   }
 
   /** Estimates — full CRUD */
   get estimates() {
-    return new Resource<Estimate, CreateEstimateRequest, UpdateEstimateRequest>(
+    return withCount(
+      new Resource<Estimate, CreateEstimateRequest, UpdateEstimateRequest>(
+        this.transport,
+        "/api/v1/estimates",
+      ),
       this.transport,
-      "/api/v1/estimates",
+      COUNT_PATHS.estimates,
     );
   }
 
   /** Item Receipts — full CRUD + void */
   get itemReceipts() {
-    return new VoidableResource<
-      ItemReceipt,
-      CreateItemReceiptRequest,
-      UpdateItemReceiptRequest
-    >(this.transport, "/api/v1/item-receipts");
+    return withCount(
+      new VoidableResource<
+        ItemReceipt,
+        CreateItemReceiptRequest,
+        UpdateItemReceiptRequest
+      >(this.transport, "/api/v1/item-receipts"),
+      this.transport,
+      COUNT_PATHS.itemReceipts,
+    );
   }
 
   /** Journal Entries — full CRUD + void */
   get journalEntries() {
-    return new VoidableResource<
-      JournalEntry,
-      CreateJournalEntryRequest,
-      UpdateJournalEntryRequest
-    >(this.transport, "/api/v1/journal-entries", "/api/v1/journal-entry");
+    return withCount(
+      new VoidableResource<
+        JournalEntry,
+        CreateJournalEntryRequest,
+        UpdateJournalEntryRequest
+      >(this.transport, "/api/v1/journal-entries", "/api/v1/journal-entry"),
+      this.transport,
+      COUNT_PATHS.journalEntries,
+    );
   }
 
   /** Purchase Orders — full CRUD */
   get purchaseOrders() {
-    return new Resource<
-      PurchaseOrder,
-      CreatePurchaseOrderRequest,
-      UpdatePurchaseOrderRequest
-    >(this.transport, "/api/v1/purchase-orders");
+    return withCount(
+      new Resource<
+        PurchaseOrder,
+        CreatePurchaseOrderRequest,
+        UpdatePurchaseOrderRequest
+      >(this.transport, "/api/v1/purchase-orders"),
+      this.transport,
+      COUNT_PATHS.purchaseOrders,
+    );
   }
 
   /** Sales Receipts — full CRUD + void */
   get salesReceipts() {
-    return new VoidableResource<
-      SalesReceipt,
-      CreateSalesReceiptRequest,
-      UpdateSalesReceiptRequest
-    >(this.transport, "/api/v1/sales-receipts");
+    return withCount(
+      new VoidableResource<
+        SalesReceipt,
+        CreateSalesReceiptRequest,
+        UpdateSalesReceiptRequest
+      >(this.transport, "/api/v1/sales-receipts"),
+      this.transport,
+      COUNT_PATHS.salesReceipts,
+    );
+  }
+
+  /** Sales Orders — full CRUD */
+  get salesOrders() {
+    return withCount(
+      new Resource<
+        SalesOrder,
+        CreateSalesOrderRequest,
+        UpdateSalesOrderRequest
+      >(this.transport, "/api/v1/sales-orders"),
+      this.transport,
+      COUNT_PATHS.salesOrders,
+    );
   }
 
   /** Sales Tax Payment Checks — full CRUD */
   get salesTaxPaymentChecks() {
-    return new Resource<
-      SalesTaxPaymentCheck,
-      CreateSalesTaxPaymentCheckRequest,
-      UpdateSalesTaxPaymentCheckRequest
-    >(this.transport, "/api/v1/sales-tax-payment-checks");
+    return withCount(
+      new Resource<
+        SalesTaxPaymentCheck,
+        CreateSalesTaxPaymentCheckRequest,
+        UpdateSalesTaxPaymentCheckRequest
+      >(this.transport, "/api/v1/sales-tax-payment-checks"),
+      this.transport,
+      COUNT_PATHS.salesTaxPaymentChecks,
+    );
   }
 
   /** Time Trackings — full CRUD */
   get timeTrackings() {
-    return new Resource<
-      TimeTracking,
-      CreateTimeTrackingRequest,
-      UpdateTimeTrackingRequest
-    >(
+    return withCount(
+      new Resource<
+        TimeTracking,
+        CreateTimeTrackingRequest,
+        UpdateTimeTrackingRequest
+      >(
+        this.transport,
+        "/api/v1/time-tracking-activities",
+        "/api/v1/time-tracking-activity",
+      ),
       this.transport,
-      "/api/v1/time-tracking-activities",
-      "/api/v1/time-tracking-activity",
+      COUNT_PATHS.timeTrackings,
     );
   }
 
   /** Transactions — list, retrieve, delete only (no create/update) */
   get transactions() {
-    return new ListRetrieveDeleteResource<Transaction>(
+    return withCount(
+      new ListRetrieveDeleteResource<Transaction>(
+        this.transport,
+        "/api/v1/transactions",
+      ),
       this.transport,
-      "/api/v1/transactions",
+      COUNT_PATHS.transactions,
     );
   }
 
   /** Vendor Credits — full CRUD + void */
   get vendorCredits() {
-    return new VoidableResource<
-      VendorCredit,
-      CreateVendorCreditRequest,
-      UpdateVendorCreditRequest
-    >(this.transport, "/api/v1/vendor-credits");
+    return withCount(
+      new VoidableResource<
+        VendorCredit,
+        CreateVendorCreditRequest,
+        UpdateVendorCreditRequest
+      >(this.transport, "/api/v1/vendor-credits"),
+      this.transport,
+      COUNT_PATHS.vendorCredits,
+    );
   }
 
   /** Build Assemblies — full CRUD */
   get buildAssemblies() {
-    return new Resource<
-      BuildAssembly,
-      CreateBuildAssemblyRequest,
-      UpdateBuildAssemblyRequest
-    >(this.transport, "/api/v1/build-assemblies", "/api/v1/build-assembly");
+    return withCount(
+      new Resource<
+        BuildAssembly,
+        CreateBuildAssemblyRequest,
+        UpdateBuildAssemblyRequest
+      >(this.transport, "/api/v1/build-assemblies", "/api/v1/build-assembly"),
+      this.transport,
+      COUNT_PATHS.buildAssemblies,
+    );
   }
 
   /** Charges — full CRUD + void */
   get charges() {
-    return new VoidableResource<
-      Charge,
-      CreateChargeRequest,
-      UpdateChargeRequest
-    >(this.transport, "/api/v1/charges");
+    return withCount(
+      new VoidableResource<Charge, CreateChargeRequest, UpdateChargeRequest>(
+        this.transport,
+        "/api/v1/charges",
+      ),
+      this.transport,
+      COUNT_PATHS.charges,
+    );
   }
 
   /** Credit Card Charges — full CRUD + void */
   get creditCardCharges() {
-    return new VoidableResource<
-      CreditCardCharge,
-      CreateCreditCardChargeRequest,
-      UpdateCreditCardChargeRequest
-    >(this.transport, "/api/v1/credit-card-charges");
+    return withCount(
+      new VoidableResource<
+        CreditCardCharge,
+        CreateCreditCardChargeRequest,
+        UpdateCreditCardChargeRequest
+      >(this.transport, "/api/v1/credit-card-charges"),
+      this.transport,
+      COUNT_PATHS.creditCardCharges,
+    );
   }
 
   /** Credit Memos — full CRUD + void */
   get creditMemos() {
-    return new VoidableResource<
-      CreditMemo,
-      CreateCreditMemoRequest,
-      UpdateCreditMemoRequest
-    >(this.transport, "/api/v1/credit-memos");
+    return withCount(
+      new VoidableResource<
+        CreditMemo,
+        CreateCreditMemoRequest,
+        UpdateCreditMemoRequest
+      >(this.transport, "/api/v1/credit-memos"),
+      this.transport,
+      COUNT_PATHS.creditMemos,
+    );
   }
 
   /** Inventory Adjustments — full CRUD + void */
   get inventoryAdjustments() {
-    return new VoidableResource<
-      InventoryAdjustment,
-      CreateInventoryAdjustmentRequest,
-      UpdateInventoryAdjustmentRequest
-    >(this.transport, "/api/v1/inventory-adjustments");
+    return withCount(
+      new VoidableResource<
+        InventoryAdjustment,
+        CreateInventoryAdjustmentRequest,
+        UpdateInventoryAdjustmentRequest
+      >(this.transport, "/api/v1/inventory-adjustments"),
+      this.transport,
+      COUNT_PATHS.inventoryAdjustments,
+    );
   }
 
   /** Invoices — full CRUD + void */
   get invoices() {
-    return new VoidableResource<
-      Invoice,
-      CreateInvoiceRequest,
-      UpdateInvoiceRequest
-    >(this.transport, "/api/v1/invoices");
+    return withCount(
+      new VoidableResource<Invoice, CreateInvoiceRequest, UpdateInvoiceRequest>(
+        this.transport,
+        "/api/v1/invoices",
+      ),
+      this.transport,
+      COUNT_PATHS.invoices,
+    );
   }
 
   /** Receive Payments — full CRUD */
   get receivePayments() {
-    return new Resource<
-      ReceivePayment,
-      CreateReceivePaymentRequest,
-      UpdateReceivePaymentRequest
-    >(this.transport, "/api/v1/receive-payments");
+    return withCount(
+      new Resource<
+        ReceivePayment,
+        CreateReceivePaymentRequest,
+        UpdateReceivePaymentRequest
+      >(this.transport, "/api/v1/receive-payments"),
+      this.transport,
+      COUNT_PATHS.receivePayments,
+    );
   }
 
   // =========================================================================
@@ -590,9 +699,13 @@ export class NxusClient {
 
   /** Accounts — full CRUD */
   get accounts() {
-    return new Resource<Account, CreateAccountRequest, UpdateAccountRequest>(
+    return withCount(
+      new Resource<Account, CreateAccountRequest, UpdateAccountRequest>(
+        this.transport,
+        "/api/v1/accounts",
+      ),
       this.transport,
-      "/api/v1/accounts",
+      COUNT_PATHS.accounts,
     );
   }
 
@@ -605,89 +718,124 @@ export class NxusClient {
     );
   }
 
-  /** Bar Codes — list and delete (no retrieve/create/update) */
+  /** Bar Codes — list only (no retrieve/create/update/delete) */
   get barCodes() {
-    return new ListDeleteResource<BarCode>(
+    return withCount(
+      new ListOnlyResource<BarCode>(this.transport, "/api/v1/bar-codes"),
       this.transport,
-      "/api/v1/bar-codes",
-      "/api/v1/bar-code",
+      COUNT_PATHS.barCodes,
     );
   }
 
   /** Billing Rates — list, retrieve, create, delete (no update) */
   get billingRates() {
-    return new CrudNoUpdateResource<BillingRate, CreateBillingRateRequest>(
+    return withCount(
+      new CrudNoUpdateResource<BillingRate, CreateBillingRateRequest>(
+        this.transport,
+        "/api/v1/billing-rates",
+      ),
       this.transport,
-      "/api/v1/billing-rates",
+      COUNT_PATHS.billingRates,
     );
   }
 
   /** QBD Classes — full CRUD */
   get qbdClasses() {
-    return new Resource<QbdClass, CreateClassRequest, UpdateClassRequest>(
+    return withCount(
+      new Resource<QbdClass, CreateClassRequest, UpdateClassRequest>(
+        this.transport,
+        "/api/v1/classes",
+        "/api/v1/class",
+      ),
       this.transport,
-      "/api/v1/classes",
-      "/api/v1/class",
+      COUNT_PATHS.qbdClasses,
     );
   }
 
   /** Currencies — list, retrieve, create, update (no delete) */
   get currencies() {
-    return new NoDeleteResource<
-      Currency,
-      CreateCurrencyRequest,
-      UpdateCurrencyRequest
-    >(this.transport, "/api/v1/currencies", "/api/v1/currency");
+    return withCount(
+      new NoDeleteResource<
+        Currency,
+        CreateCurrencyRequest,
+        UpdateCurrencyRequest
+      >(this.transport, "/api/v1/currencies", "/api/v1/currency"),
+      this.transport,
+      COUNT_PATHS.currencies,
+    );
   }
 
   /** Customers — full CRUD */
   get customers() {
-    return new Resource<Customer, CreateCustomerRequest, UpdateCustomerRequest>(
+    return withCount(
+      new Resource<Customer, CreateCustomerRequest, UpdateCustomerRequest>(
+        this.transport,
+        "/api/v1/customers",
+      ),
       this.transport,
-      "/api/v1/customers",
+      COUNT_PATHS.customers,
     );
   }
 
   /** Customer Types — full CRUD */
   get customerTypes() {
-    return new Resource<
-      CustomerType,
-      CreateCustomerTypeRequest
-    >(this.transport, "/api/v1/customer-types");
+    return withCount(
+      new CrudNoUpdateResource<CustomerType, CreateCustomerTypeRequest>(
+        this.transport,
+        "/api/v1/customer-types",
+      ),
+      this.transport,
+      COUNT_PATHS.customerTypes,
+    );
   }
 
   /** Date-Driven Terms — full CRUD */
   get dateDrivenTerms() {
-    return new Resource<
-      DateDrivenTerm,
-      CreateDateDrivenTermRequest
-    >(this.transport, "/api/v1/date-driven-terms");
+    return withCount(
+      new CrudNoUpdateResource<DateDrivenTerm, CreateDateDrivenTermRequest>(
+        this.transport,
+        "/api/v1/date-driven-terms",
+      ),
+      this.transport,
+      COUNT_PATHS.dateDrivenTerms,
+    );
   }
 
   /** Employees — full CRUD */
   get employees() {
-    return new Resource<Employee, CreateEmployeeRequest, UpdateEmployeeRequest>(
+    return withCount(
+      new Resource<Employee, CreateEmployeeRequest, UpdateEmployeeRequest>(
+        this.transport,
+        "/api/v1/employees",
+      ),
       this.transport,
-      "/api/v1/employees",
+      COUNT_PATHS.employees,
     );
   }
 
   /** Inventory Sites — full CRUD */
   get inventorySites() {
-    return new Resource<
-      InventorySite,
-      CreateInventorySiteRequest,
-      UpdateInventorySiteRequest
-    >(this.transport, "/api/v1/inventory-sites");
+    return withCount(
+      new Resource<
+        InventorySite,
+        CreateInventorySiteRequest,
+        UpdateInventorySiteRequest
+      >(this.transport, "/api/v1/inventory-sites"),
+      this.transport,
+      COUNT_PATHS.inventorySites,
+    );
   }
 
   /** Other Names — full CRUD */
   get otherNames() {
-    return new Resource<
-      OtherName,
-      CreateOtherNameRequest,
-      UpdateOtherNameRequest
-    >(this.transport, "/api/v1/other-names");
+    return withCount(
+      new Resource<OtherName, CreateOtherNameRequest, UpdateOtherNameRequest>(
+        this.transport,
+        "/api/v1/other-names",
+      ),
+      this.transport,
+      COUNT_PATHS.otherNames,
+    );
   }
 
   /**
@@ -708,37 +856,53 @@ export class NxusClient {
 
   /** Payment Methods — full CRUD */
   get paymentMethods() {
-    return new Resource<
-      PaymentMethod,
-      CreatePaymentMethodRequest
-    >(this.transport, "/api/v1/payment-methods");
+    return withCount(
+      new CrudNoUpdateResource<PaymentMethod, CreatePaymentMethodRequest>(
+        this.transport,
+        "/api/v1/payment-methods",
+      ),
+      this.transport,
+      COUNT_PATHS.paymentMethods,
+    );
   }
 
   /** Price Levels — full CRUD */
   get priceLevels() {
-    return new Resource<
-      PriceLevel,
-      CreatePriceLevelRequest,
-      UpdatePriceLevelRequest
-    >(this.transport, "/api/v1/price-levels");
+    return withCount(
+      new Resource<
+        PriceLevel,
+        CreatePriceLevelRequest,
+        UpdatePriceLevelRequest
+      >(this.transport, "/api/v1/price-levels"),
+      this.transport,
+      COUNT_PATHS.priceLevels,
+    );
   }
 
   /** Sales Tax Codes — full CRUD */
   get salesTaxCodes() {
-    return new Resource<
-      SalesTaxCode,
-      CreateSalesTaxCodeRequest,
-      UpdateSalesTaxCodeRequest
-    >(this.transport, "/api/v1/sales-tax-codes");
+    return withCount(
+      new Resource<
+        SalesTaxCode,
+        CreateSalesTaxCodeRequest,
+        UpdateSalesTaxCodeRequest
+      >(this.transport, "/api/v1/sales-tax-codes"),
+      this.transport,
+      COUNT_PATHS.salesTaxCodes,
+    );
   }
 
   /** Ship Methods — full CRUD */
   get shipMethods() {
-    return new Resource<
-      ShipMethod,
-      CreateShipMethodRequest,
-      UpdateShipMethodRequest
-    >(this.transport, "/api/v1/ship-methods");
+    return withCount(
+      new Resource<
+        ShipMethod,
+        CreateShipMethodRequest,
+        UpdateShipMethodRequest
+      >(this.transport, "/api/v1/ship-methods"),
+      this.transport,
+      COUNT_PATHS.shipMethods,
+    );
   }
 
   /** Special Items — create-only */
@@ -751,47 +915,67 @@ export class NxusClient {
 
   /** Terms — full CRUD */
   get terms() {
-    return new Resource<Term, CreateTermRequest>(
+    return withCount(
+      new CrudNoUpdateResource<Term, CreateTermRequest>(
+        this.transport,
+        "/api/v1/terms",
+        "/api/v1/term",
+      ),
       this.transport,
-      "/api/v1/terms",
-      "/api/v1/term",
+      COUNT_PATHS.terms,
     );
   }
 
   /** Unit of Measure Sets — list, retrieve, create (no update/delete) */
   get unitOfMeasureSets() {
-    return new ListRetrieveCreateResource<
-      UnitOfMeasureSet,
-      CreateUnitOfMeasureSetRequest
-    >(
+    return withCount(
+      new ListRetrieveCreateResource<
+        UnitOfMeasureSet,
+        CreateUnitOfMeasureSetRequest
+      >(
+        this.transport,
+        "/api/v1/unit-of-measure-sets",
+        "/api/v1/unit-of-measure-set",
+      ),
       this.transport,
-      "/api/v1/unit-of-measure-sets",
-      "/api/v1/unit-of-measure-set",
+      COUNT_PATHS.unitOfMeasureSets,
     );
   }
 
   /** Vendors — full CRUD */
   get vendors() {
-    return new Resource<Vendor, CreateVendorRequest, UpdateVendorRequest>(
+    return withCount(
+      new Resource<Vendor, CreateVendorRequest, UpdateVendorRequest>(
+        this.transport,
+        "/api/v1/vendors",
+      ),
       this.transport,
-      "/api/v1/vendors",
+      COUNT_PATHS.vendors,
     );
   }
 
   /** Vendor Types — list, retrieve, create, delete (no update) */
   get vendorTypes() {
-    return new CrudNoUpdateResource<VendorType, CreateVendorTypeRequest>(
+    return withCount(
+      new CrudNoUpdateResource<VendorType, CreateVendorTypeRequest>(
+        this.transport,
+        "/api/v1/vendor-types",
+      ),
       this.transport,
-      "/api/v1/vendor-types",
+      COUNT_PATHS.vendorTypes,
     );
   }
 
   /** Bill Payments or Credits — list, retrieve only */
   get billPaymentsOrCredits() {
-    return new ReadOnlyResource<BillPaymentOrCredit>(
+    return withCount(
+      new ReadOnlyResource<BillPaymentOrCredit>(
+        this.transport,
+        "/api/v1/bill-payments-or-credits",
+        "/api/v1/bill-payment-or-credit",
+      ),
       this.transport,
-      "/api/v1/bill-payments-or-credits",
-      "/api/v1/bill-payment-or-credit",
+      COUNT_PATHS.billPaymentsOrCredits,
     );
   }
 
@@ -809,7 +993,11 @@ export class NxusClient {
 
   /** Items — aggregate read-only view across all item types */
   get items() {
-    return new ReadOnlyResource<Item>(this.transport, "/api/v1/items");
+    return withCount(
+      new ReadOnlyResource<Item>(this.transport, "/api/v1/items"),
+      this.transport,
+      COUNT_PATHS.items,
+    );
   }
 
   /**
@@ -832,110 +1020,158 @@ export class NxusClient {
 
   /** Inventory Items — full CRUD */
   get inventoryItems() {
-    return this.itemResource<
-      InventoryItem,
-      CreateInventoryItemRequest,
-      UpdateInventoryItemRequest
-    >("inventory");
+    return withCount(
+      this.itemResource<
+        InventoryItem,
+        CreateInventoryItemRequest,
+        UpdateInventoryItemRequest
+      >("inventory"),
+      this.transport,
+      COUNT_PATHS.inventoryItems,
+    );
   }
 
   /** Item Discounts — full CRUD */
   get itemDiscounts() {
-    return this.itemResource<
-      ItemDiscount,
-      CreateItemDiscountRequest,
-      UpdateItemDiscountRequest
-    >("discount");
+    return withCount(
+      this.itemResource<
+        ItemDiscount,
+        CreateItemDiscountRequest,
+        UpdateItemDiscountRequest
+      >("discount"),
+      this.transport,
+      COUNT_PATHS.itemDiscounts,
+    );
   }
 
   /** Item Fixed Assets — full CRUD */
   get itemFixedAssets() {
-    return this.itemResource<
-      ItemFixedAsset,
-      CreateItemFixedAssetRequest,
-      UpdateItemFixedAssetRequest
-    >("fixed-asset");
+    return withCount(
+      this.itemResource<
+        ItemFixedAsset,
+        CreateItemFixedAssetRequest,
+        UpdateItemFixedAssetRequest
+      >("fixed-asset"),
+      this.transport,
+      COUNT_PATHS.itemFixedAssets,
+    );
   }
 
   /** Item Groups — full CRUD */
   get itemGroups() {
-    return this.itemResource<
-      ItemGroup,
-      CreateItemGroupRequest,
-      UpdateItemGroupRequest
-    >("group");
+    return withCount(
+      this.itemResource<
+        ItemGroup,
+        CreateItemGroupRequest,
+        UpdateItemGroupRequest
+      >("group"),
+      this.transport,
+      COUNT_PATHS.itemGroups,
+    );
   }
 
   /** Item Inventory Assemblies — full CRUD */
   get itemInventoryAssemblies() {
-    return this.itemResource<
-      ItemInventoryAssembly,
-      CreateItemInventoryAssemblyRequest,
-      UpdateItemInventoryAssemblyRequest
-    >("inventory-assembly");
+    return withCount(
+      this.itemResource<
+        ItemInventoryAssembly,
+        CreateItemInventoryAssemblyRequest,
+        UpdateItemInventoryAssemblyRequest
+      >("inventory-assembly"),
+      this.transport,
+      COUNT_PATHS.itemInventoryAssemblies,
+    );
   }
 
   /** Item Non-Inventory — full CRUD */
   get itemNonInventory() {
-    return this.itemResource<
-      ItemNonInventory,
-      CreateItemNonInventoryRequest,
-      UpdateItemNonInventoryRequest
-    >("non-inventory");
+    return withCount(
+      this.itemResource<
+        ItemNonInventory,
+        CreateItemNonInventoryRequest,
+        UpdateItemNonInventoryRequest
+      >("non-inventory"),
+      this.transport,
+      COUNT_PATHS.itemNonInventory,
+    );
   }
 
   /** Item Other Charges — full CRUD */
   get itemOtherCharges() {
-    return this.itemResource<
-      ItemOtherCharge,
-      CreateItemOtherChargeRequest,
-      UpdateItemOtherChargeRequest
-    >("other-charge");
+    return withCount(
+      this.itemResource<
+        ItemOtherCharge,
+        CreateItemOtherChargeRequest,
+        UpdateItemOtherChargeRequest
+      >("other-charge"),
+      this.transport,
+      COUNT_PATHS.itemOtherCharges,
+    );
   }
 
   /** Item Payments — full CRUD */
   get itemPayments() {
-    return this.itemResource<
-      ItemPayment,
-      CreateItemPaymentRequest,
-      UpdateItemPaymentRequest
-    >("payment");
+    return withCount(
+      this.itemResource<
+        ItemPayment,
+        CreateItemPaymentRequest,
+        UpdateItemPaymentRequest
+      >("payment"),
+      this.transport,
+      COUNT_PATHS.itemPayments,
+    );
   }
 
   /** Item Sales Tax — full CRUD */
   get itemSalesTax() {
-    return this.itemResource<
-      ItemSalesTax,
-      CreateItemSalesTaxRequest,
-      UpdateItemSalesTaxRequest
-    >("sales-tax");
+    return withCount(
+      this.itemResource<
+        ItemSalesTax,
+        CreateItemSalesTaxRequest,
+        UpdateItemSalesTaxRequest
+      >("sales-tax"),
+      this.transport,
+      COUNT_PATHS.itemSalesTax,
+    );
   }
 
   /** Item Sales Tax Groups — full CRUD */
   get itemSalesTaxGroups() {
-    return this.itemResource<
-      ItemSalesTaxGroup,
-      CreateItemSalesTaxGroupRequest,
-      UpdateItemSalesTaxGroupRequest
-    >("sales-tax-group");
+    return withCount(
+      this.itemResource<
+        ItemSalesTaxGroup,
+        CreateItemSalesTaxGroupRequest,
+        UpdateItemSalesTaxGroupRequest
+      >("sales-tax-group"),
+      this.transport,
+      COUNT_PATHS.itemSalesTaxGroups,
+    );
   }
 
   /** Service Items — full CRUD */
   get serviceItems() {
-    return this.itemResource<
-      ServiceItem,
-      CreateServiceItemRequest,
-      UpdateServiceItemRequest
-    >("service");
+    return withCount(
+      this.itemResource<
+        ServiceItem,
+        CreateServiceItemRequest,
+        UpdateServiceItemRequest
+      >("service"),
+      this.transport,
+      COUNT_PATHS.serviceItems,
+    );
   }
 
   /** Item Subtotals — full CRUD */
   get itemSubtotals() {
-    return this.itemResource<
-      ItemSubtotal,
-      CreateItemSubtotalRequest,
-      UpdateItemSubtotalRequest
-    >("subtotal");
+    return withCount(
+      this.itemResource<
+        ItemSubtotal,
+        CreateItemSubtotalRequest,
+        UpdateItemSubtotalRequest
+      >("subtotal"),
+      this.transport,
+      COUNT_PATHS.itemSubtotals,
+    );
   }
 
   // =========================================================================
@@ -944,27 +1180,39 @@ export class NxusClient {
 
   /** Payroll Item Non-Wages — list, retrieve, delete (no create/update) */
   get payrollItemNonWages() {
-    return new ListRetrieveDeleteResource<PayrollItemNonWage>(
+    return withCount(
+      new ListRetrieveDeleteResource<PayrollItemNonWage>(
+        this.transport,
+        "/api/v1/payroll-item-non-wages",
+      ),
       this.transport,
-      "/api/v1/payroll-item-non-wages",
+      COUNT_PATHS.payrollItemNonWages,
     );
   }
 
   /** Payroll Item Wages — list, retrieve, create, delete (no update) */
   get payrollItemWages() {
-    return new CrudNoUpdateResource<
-      PayrollItemWage,
-      CreatePayrollItemWageRequest
-    >(this.transport, "/api/v1/payroll-item-wages");
+    return withCount(
+      new CrudNoUpdateResource<PayrollItemWage, CreatePayrollItemWageRequest>(
+        this.transport,
+        "/api/v1/payroll-item-wages",
+      ),
+      this.transport,
+      COUNT_PATHS.payrollItemWages,
+    );
   }
 
   /** Workers Comp Codes — full CRUD */
   get workersCompCodes() {
-    return new Resource<
-      WorkersCompCode,
-      CreateWorkersCompCodeRequest,
-      UpdateWorkersCompCodeRequest
-    >(this.transport, "/api/v1/workers-comp-codes");
+    return withCount(
+      new NoDeleteResource<
+        WorkersCompCode,
+        CreateWorkersCompCodeRequest,
+        UpdateWorkersCompCodeRequest
+      >(this.transport, "/api/v1/workers-comp-codes"),
+      this.transport,
+      COUNT_PATHS.workersCompCodes,
+    );
   }
 
   // =========================================================================

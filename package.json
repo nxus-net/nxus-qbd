@@ -31,10 +31,12 @@
     "LICENSE"
   ],
   "scripts": {
-    "generate": "openapi-ts && pnpm run generate:models",
-    "generate:live": "cross-env OPENAPI_SPEC_URL=https://api.nx-us.net/openapi/v1.json openapi-ts && pnpm run generate:models",
-    "generate:local": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 OPENAPI_SPEC_URL=https://localhost:7242/openapi/v1.json openapi-ts && cross-env OPENAPI_PUBLIC_BASE_URL=https://api.nx-us.net/ pnpm run generate:models",
+    "generate": "openapi-ts && pnpm run generate:models && pnpm run generate:count-capabilities && pnpm run generate:capabilities",
+    "generate:live": "cross-env OPENAPI_SPEC_URL=https://api.nx-us.net/openapi/v1.json openapi-ts && pnpm run generate:models && pnpm run generate:count-capabilities && pnpm run generate:capabilities",
+    "generate:local": "cross-env NODE_TLS_REJECT_UNAUTHORIZED=0 OPENAPI_SPEC_URL=https://localhost:7242/openapi/v1.json openapi-ts && cross-env OPENAPI_PUBLIC_BASE_URL=https://api.nx-us.net/ pnpm run generate:models && pnpm run generate:count-capabilities && pnpm run generate:capabilities",
     "generate:models": "node ./scripts/generate-model-exports.mjs",
+    "generate:count-capabilities": "node ./scripts/generate-count-capabilities.mjs",
+    "generate:capabilities": "node ./scripts/generate-resource-capabilities.mjs",
     "build": "tsc",
     "prepublishOnly": "pnpm run build",
     "clean": "rm -rf dist",

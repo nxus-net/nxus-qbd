@@ -14,7 +14,7 @@ import type {
 } from "../helpers/pagination";
 import { PaginationError } from "../helpers/pagination";
 import { NxusResponse } from "../helpers/response";
-import type { VoidResponse } from "../models";
+import type { CountResponse, VoidResponse } from "../models";
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -26,6 +26,11 @@ export type ListParams = {
   timeoutSeconds?: number;
   serverTimeoutSeconds?: number;
   [key: string]: unknown;
+};
+
+export type CountParams = Omit<ListParams, "limit" | "cursor"> & {
+  limit?: never;
+  cursor?: never;
 };
 
 const REQUEST_OPTION_KEYS = [
@@ -578,6 +583,78 @@ export class Resource<
   }
 }
 
+export type CountResponseMethods = {
+  count(
+    query?: CountParams,
+    options?: RequestOptions,
+  ): Promise<NxusResponse<CountResponse>>;
+};
+
+export type CountedResource<TResource> = Omit<TResource, "withResponse"> & {
+  count(query?: CountParams, options?: RequestOptions): Promise<CountResponse>;
+  readonly withResponse: TResource extends { withResponse: infer TWrapped }
+    ? TWrapped & CountResponseMethods
+    : CountResponseMethods;
+};
+
+/** Add the metadata-only count operation to a resource selected by the spec. */
+export function withCount<TResource extends object>(
+  resource: TResource,
+  transport: NxusHttpTransport,
+  countPath: string,
+): CountedResource<TResource> {
+  const count = async (
+    query?: CountParams,
+    options?: RequestOptions,
+  ): Promise<CountResponse> => {
+    if (query && (query.limit !== undefined || query.cursor !== undefined)) {
+      throw new Error("count() does not accept limit or cursor parameters.");
+    }
+    const { query: requestQuery, options: requestOptions } =
+      splitListQueryAndOptions(query, options);
+    return transport.get<CountResponse>(
+      countPath,
+      requestQuery,
+      requestOptions,
+    );
+  };
+
+  const originalWithResponse = (resource as { withResponse?: object })
+    .withResponse;
+  Object.defineProperty(resource, "count", {
+    configurable: true,
+    value: count,
+  });
+  Object.defineProperty(resource, "withResponse", {
+    configurable: true,
+    get: () => ({
+      ...(originalWithResponse ?? {}),
+      count: async (
+        query?: CountParams,
+        options?: RequestOptions,
+      ): Promise<NxusResponse<CountResponse>> => {
+        if (
+          query &&
+          (query.limit !== undefined || query.cursor !== undefined)
+        ) {
+          throw new Error(
+            "count() does not accept limit or cursor parameters.",
+          );
+        }
+        const { query: requestQuery, options: requestOptions } =
+          splitListQueryAndOptions(query, options);
+        const wire = await transport.sendGet<CountResponse>(
+          countPath,
+          requestQuery,
+          requestOptions,
+        );
+        return NxusResponse.fromTransport(wire.body, wire);
+      },
+    }),
+  });
+  return resource as CountedResource<TResource>;
+}
+
 // ---------------------------------------------------------------------------
 // VoidableResource<T> — full CRUD plus void()
 // ---------------------------------------------------------------------------
@@ -901,6 +978,33 @@ export class ListDeleteResource<T> {
   }
 }
 
+/** list only (no retrieve, create, update, or delete) */
+export class ListOnlyResource<T> {
+  constructor(
+    protected readonly transport: NxusHttpTransport,
+    protected readonly basePath: string,
+  ) {}
+
+  list(query?: ListParams, options?: RequestOptions): AutoPaginationPromise<T> {
+    return new Resource<T, Record<string, unknown>, Record<string, unknown>>(
+      this.transport,
+      this.basePath,
+    ).list(query, options);
+  }
+
+  get withResponse(): Pick<WrappedResourceMethods<T>, "list"> {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, never, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.basePath,
+        getSingularPath: () => this.basePath,
+      }),
+      ["list"],
+    );
+  }
+}
+
 /** list + retrieve + create (no update, no delete) */
 export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
   constructor(
@@ -1018,6 +1122,35 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
         getSingularPath: (id) => this.getSingularPath(id),
       }),
       ["list", "retrieve", "create", "delete"],
+    );
+  }
+}
+
+/** list + retrieve + create + delete + void (no update) */
+export class VoidableNoUpdateResource<
+  T,
+  TCreate = Record<string, unknown>,
+> extends CrudNoUpdateResource<T, TCreate> {
+  async void(id: string, options?: RequestOptions): Promise<VoidResponse> {
+    return this.transport.post<VoidResponse>(
+      `${this.getSingularPath(id)}/void`,
+      undefined,
+      withDefaultMaxRetries(options, 0),
+    );
+  }
+
+  override get withResponse(): Pick<
+    WrappedResourceMethods<T, TCreate>,
+    "list" | "retrieve" | "create" | "delete" | "void"
+  > {
+    return pickWrappedResourceMethods(
+      buildWithResponse<T, TCreate, never>({
+        transport: this.transport,
+        basePath: this.basePath,
+        getCreatePath: () => this.getCreatePath(),
+        getSingularPath: (id) => this.getSingularPath(id),
+      }),
+      ["list", "retrieve", "create", "delete", "void"],
     );
   }
 }

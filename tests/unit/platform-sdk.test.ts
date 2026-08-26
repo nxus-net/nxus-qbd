@@ -566,10 +566,9 @@ describe("platform SDK surface", () => {
     );
   });
 
-  it("matches the spec surface for bar codes: list and delete only", async () => {
+  it("matches the spec surface for bar codes: list only", async () => {
     const fetchMock = installFetchMock(
       jsonResponse({ data: [], hasMore: false, nextCursor: null }),
-      new Response(null, { status: 204 }),
     );
 
     const client = new NxusClient({
@@ -578,19 +577,13 @@ describe("platform SDK surface", () => {
     });
 
     expect("retrieve" in client.barCodes).toBe(false);
+    expect("delete" in client.barCodes).toBe(false);
 
     await client.barCodes.list();
-    await client.barCodes.delete("barcode_1");
 
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
       "https://api.example.test/api/v1/bar-codes",
     );
-    expect(String(fetchMock.mock.calls[1]?.[0])).toBe(
-      "https://api.example.test/api/v1/bar-code/barcode_1",
-    );
-    expect(
-      (fetchMock.mock.calls[1]?.[1] as RequestInit | undefined)?.method,
-    ).toBe("DELETE");
   });
 
   it("exposes bill-payment-or-credits while omitting removed internal resources", async () => {
@@ -661,5 +654,50 @@ describe("platform SDK surface", () => {
     });
     expect(created.id).toBe("auth_sess_123");
     expect(retrieved.connectionId).toBe("conn_123");
+  });
+
+  it("exposes spec-driven count on count-capable resources", async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({
+        requestId: "req-count",
+        success: true,
+        count: 7,
+        isApproximate: false,
+        timestamp: "2026-08-26T00:00:00Z",
+      }),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const result = await client.vendors.count({ nameStartsWith: "Acme" });
+
+    expect(result.count).toBe(7);
+    expect(result.isApproximate).toBe(false);
+    const requestUrl = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    expect(requestUrl.pathname).toBe("/api/v1/vendors/count");
+    expect(requestUrl.searchParams.get("nameStartsWith")).toBe("Acme");
+  });
+
+  it("rejects pagination controls on count requests", async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({
+        requestId: "req-count",
+        success: true,
+        count: 7,
+        isApproximate: false,
+        timestamp: "2026-08-26T00:00:00Z",
+      }),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(client.vendors.count({ limit: 10 })).rejects.toThrow(
+      "count() does not accept limit or cursor",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
