@@ -626,7 +626,7 @@ describe("platform SDK surface", () => {
 
     await client.billToPay.list();
     expect(String(fetchMock.mock.calls[2]?.[0])).toBe(
-      "https://api.example.test/api/v1/bill-payment-or-credits",
+      "https://api.example.test/api/v1/bill-payments-or-credits",
     );
   });
 

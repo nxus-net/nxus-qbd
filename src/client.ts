@@ -799,7 +799,7 @@ export class NxusClient {
   get billPaymentsOrCredits() {
     return new ReadOnlyResource<BillPaymentOrCredit>(
       this.transport,
-      "/api/v1/bill-payment-or-credits",
+      "/api/v1/bill-payments-or-credits",
       "/api/v1/bill-payment-or-credit",
     );
   }
