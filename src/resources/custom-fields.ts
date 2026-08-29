@@ -50,29 +50,28 @@ export interface ListCustomFieldDefinitionsParams {
 }
 
 // ---------------------------------------------------------------------------
-// DataExtTargetKind — the OpenAPI spec types this as a bare `integer`, so the
-// generated TS is just `number`. These are the QBXML target families a custom
-// field value can attach to. Exposed here as a named const so callers don't
-// have to hard-code magic numbers.
+// DataExtTargetKind — re-exported from the generated types.
+//
+// This used to be a hand-written numeric const (`List: 0`), because the spec
+// typed the field as a bare `integer`. The spec now declares it as a string
+// enum (`"List" | "Transaction" | "Company"`) and the generator emits a real
+// enum, so the hand-written version was both wrong on the wire and — because
+// `index.ts` re-exports the generated types with `export type *` — shadowed the
+// generated enum at runtime while `DataExtTargetRequest.kind` was typed
+// against it. Callers writing the documented `kind: DataExtTargetKind.List`
+// got `0` where a type-checked `"List"` was required.
+//
+// Re-exported here rather than dropped so the `index.ts` export path and every
+// existing import keep working. Note the member names changed with the enum:
+// `DataExtTargetKind.LIST`, not `.List`.
 // ---------------------------------------------------------------------------
 
-/**
- * Which family of QuickBooks object a custom field value attaches to.
- * Mirrors the backend `DataExtTargetKind` enum (a C# enum serialized as its
- * integer value): a list entity, a transaction (optionally one line), or the
- * company file itself.
- */
-export const DataExtTargetKind = {
-  /** A list entity (Customer, Vendor, Employee, Item, Account, OtherName). */
-  List: 0,
-  /** A transaction (optionally a single transaction line). */
-  Transaction: 1,
-  /** The company file itself. */
-  Company: 2,
-} as const;
+export { DataExtTargetKind } from "../generated/types.gen";
 
-export type DataExtTargetKindValue =
-  (typeof DataExtTargetKind)[keyof typeof DataExtTargetKind];
+import type { DataExtTargetKind as DataExtTargetKindEnum } from "../generated/types.gen";
+
+/** The wire values of {@link DataExtTargetKind} — `"List" | "Transaction" | "Company"`. */
+export type DataExtTargetKindValue = `${DataExtTargetKindEnum}`;
 
 // ---------------------------------------------------------------------------
 // Custom Field Definitions — /api/v1/custom-field-definitions
@@ -261,7 +260,7 @@ export class CustomFieldDefinitionsResource {
  *   ownerId: "0",
  *   name: "SdkTestField",
  *   value: "hello-from-sdk",
- *   target: { kind: DataExtTargetKind.List, listType: ListType.CUSTOMER, fullName: "Acme" },
+ *   target: { kind: DataExtTargetKind.LIST, listType: ListType.CUSTOMER, fullName: "Acme" },
  * }, { connectionId: "conn_..." });
  * ```
  */

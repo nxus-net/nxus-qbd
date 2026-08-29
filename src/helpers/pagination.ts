@@ -10,13 +10,23 @@
 // Page shapes
 // ---------------------------------------------------------------------------
 
+/**
+ * A single page of a cursor-paginated list response.
+ *
+ * `count`, `limit` and `totalCount` are always present on the wire.
+ * `nextCursor`, `hasMore` and `remainingCount` are sent only while more
+ * records remain; the SDK normalizes their absence to `hasMore: false` /
+ * `nextCursor: null` so iteration stops on the final page.
+ *
+ * There is no page-number pagination — the envelope carries no `page` or
+ * `pageCount`, and nothing should be written against them.
+ */
 export type CursorPage<TItem = unknown> = {
   count?: number;
   data: TItem[];
   hasMore: boolean;
   limit?: number;
   nextCursor: string | null;
-  page?: number;
   remainingCount?: number;
   totalCount?: number;
   [key: string]: unknown;

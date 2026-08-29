@@ -156,13 +156,48 @@ function wireClient(source, entries) {
   return updated;
 }
 
+/**
+ * Write only when the content actually changes, and retry a transient failure.
+ *
+ * Generation is idempotent, so on a normal re-run `client.ts` comes out
+ * byte-identical and does not need touching at all. Rewriting it anyway is what
+ * exposed this step to a Windows write failure (`UNKNOWN`, libuv errno -4094)
+ * when a real-time scanner still held the file from the immediately preceding
+ * generator — which made `pnpm run generate` fail partway through, after
+ * openapi-ts had already emptied src/generated/. Skipping the no-op write
+ * removes the common case; the retry covers a real change.
+ */
+function writeIfChanged(file, content) {
+  const current = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+  if (current === content) return false;
+  const transient = new Set(["EBUSY", "EPERM", "UNKNOWN", "EACCES"]);
+  for (let attempt = 0; ; attempt++) {
+    try {
+      fs.writeFileSync(file, content);
+      return true;
+    } catch (error) {
+      if (attempt >= 4 || !transient.has(error.code)) throw error;
+      // Synchronous backoff — this script has no async context.
+      Atomics.wait(
+        new Int32Array(new SharedArrayBuffer(4)),
+        0,
+        0,
+        100 * 2 ** attempt,
+      );
+    }
+  }
+}
+
 const spec = JSON.parse(fs.readFileSync(specPath, "utf8"));
 const entries = countCapabilities(spec);
 if (entries.length !== 60)
   throw new Error(`Expected 60 count capabilities, found ${entries.length}.`);
-fs.writeFileSync(manifestPath, renderManifest(entries));
-fs.writeFileSync(
+writeIfChanged(manifestPath, renderManifest(entries));
+const clientRewritten = writeIfChanged(
   clientPath,
   wireClient(fs.readFileSync(clientPath, "utf8"), entries),
 );
-console.log(`Generated ${entries.length} count capabilities.`);
+console.log(
+  `Generated ${entries.length} count capabilities.` +
+    (clientRewritten ? " Rewired client.ts." : " client.ts already wired."),
+);
