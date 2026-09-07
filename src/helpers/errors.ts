@@ -24,6 +24,17 @@ function readBoolean(
     return typeof value === 'boolean' ? value : undefined;
 }
 
+function coerceRetryAfter(value: unknown): number | undefined {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value >= 0 ? value : undefined;
+    }
+    if (typeof value === 'string' && value.trim()) {
+        const seconds = Number(value);
+        return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined;
+    }
+    return undefined;
+}
+
 /**
  * Normalize a per-field error map into `{ field: [message, ...] }`.
  *
@@ -95,12 +106,14 @@ function withValidationDetail(
     return message ? `${message}: ${detail}` : detail;
 }
 
-
 /**
  * Error codes from the nXus API.
  * Mirrors the ErrorCode enum from types.gen.ts for convenience.
  */
-export type NxusErrorCode = ErrorDetail['code'] | (string & {});
+export type NxusErrorCode =
+    | ErrorDetail['code']
+    | 'IDEMPOTENCY_KEY_REUSED'
+    | (string & {});
 export type NxusErrorType = ErrorDetail['type'] | (string & {});
 
 // ---------------------------------------------------------------------------
@@ -143,6 +156,9 @@ export class NxusApiError extends Error {
     /** QB Desktop integration-specific error code (HRESULT or QBXML status). */
     readonly integrationCode: string | undefined;
 
+    /** Retry delay requested by the API, in seconds. */
+    readonly retryAfter: number | undefined;
+
     /** Per-field validation errors, when the API supplied them. */
     readonly validationErrors: Record<string, string[]> | undefined;
 
@@ -172,6 +188,7 @@ export class NxusApiError extends Error {
         type?: NxusErrorType;
         requestId?: string;
         integrationCode?: string;
+        retryAfter?: number;
         validationErrors?: Record<string, string[]>;
         lifecycleState?: string;
         restrictionReason?: string;
@@ -188,6 +205,7 @@ export class NxusApiError extends Error {
         this.userMessage = opts.userMessage;
         this.requestId = opts.requestId;
         this.integrationCode = opts.integrationCode;
+        this.retryAfter = opts.retryAfter;
         this.validationErrors = opts.validationErrors;
         this.lifecycleState = opts.lifecycleState;
         this.restrictionReason = opts.restrictionReason;
@@ -211,10 +229,9 @@ export class NxusApiError extends Error {
         );
     }
 
-    /** Whether this is a validation error (422, or explicit validation code/type). */
+    /** Whether the API explicitly identified this as a validation error. */
     get isValidationError(): boolean {
         return (
-            this.status === 422 ||
             this.code === 'VALIDATION_ERROR' ||
             this.type === 'VALIDATION_ERROR_TYPE' ||
             this.validationErrors != null
@@ -243,13 +260,17 @@ export class NxusApiError extends Error {
             this.requiresPayment === true ||
             this.restrictionReason != null ||
             this.restrictionCode != null ||
+            this.type === 'RESTRICTION_ERROR_TYPE' ||
             this.type === 'BILLING_ERROR_TYPE'
         );
     }
 
     /** Whether the connection appears to be archived. */
     get isArchivedConnection(): boolean {
-        return this.lifecycleState === 'archived';
+        return (
+            this.lifecycleState === 'archived' ||
+            this.code === 'CONNECTION_ARCHIVED'
+        );
     }
 
     /**
@@ -284,41 +305,134 @@ export class NxusApiError extends Error {
         }
 
         const obj = error as Record<string, any>;
+        const embeddedError = asRecord(obj.error);
         const restriction = asRecord(obj.restriction);
         const billing = asRecord(obj.billing);
 
         const lifecycleState =
             readString(obj, 'lifecycleState') ??
-            readString(restriction, 'lifecycleState');
+            readString(restriction, 'lifecycleState') ??
+            readString(embeddedError, 'lifecycleState');
         const restrictionReason =
             readString(obj, 'restrictionReason') ??
             readString(restriction, 'reason') ??
-            readString(restriction, 'restrictionReason');
+            readString(restriction, 'restrictionReason') ??
+            readString(embeddedError, 'restrictionReason');
         const restrictionCode =
             readString(obj, 'restrictionCode') ??
             readString(restriction, 'code') ??
-            readString(restriction, 'restrictionCode');
+            readString(restriction, 'restrictionCode') ??
+            readString(embeddedError, 'restrictionCode');
         const requiresPayment =
             readBoolean(obj, 'requiresPayment') ??
             readBoolean(restriction, 'requiresPayment') ??
-            readBoolean(billing, 'requiresPayment');
+            readBoolean(billing, 'requiresPayment') ??
+            readBoolean(embeddedError, 'requiresPayment');
         const checkoutUrl =
             readString(obj, 'checkoutUrl') ??
             readString(restriction, 'checkoutUrl') ??
-            readString(billing, 'checkoutUrl');
+            readString(billing, 'checkoutUrl') ??
+            readString(embeddedError, 'checkoutUrl');
+        const retryAfter =
+            coerceRetryAfter(embeddedError?.retryAfter) ??
+            coerceRetryAfter(obj.retryAfter);
 
-        // StandardErrorResponse shape: { error: ErrorDetail }
-        if (obj.error && typeof obj.error === 'object' && 'message' in obj.error) {
-            const detail = obj.error as ErrorDetail;
-            const detailMessage = detail.message ?? 'Request failed.';
+        // Failed QBD operation result returned with HTTP 200.
+        if (String(obj.status).toLowerCase() === 'failed') {
+            const detailMessage =
+                readString(obj, 'errorMessage') ??
+                readString(obj, 'message') ??
+                'QuickBooks operation failed.';
             return new NxusApiError({
                 message: detailMessage,
-                userMessage: detail.userFacingMessage ?? detailMessage,
+                userMessage: detailMessage,
+                status:
+                    typeof obj.httpStatusCode === 'number'
+                        ? obj.httpStatusCode
+                        : 0,
+                code: 'QBD_INTEGRATION_ERROR',
+                type: 'INTEGRATION_ERROR_TYPE',
+                requestId: readString(obj, 'requestId'),
+                integrationCode:
+                    obj.errorCode == null ? undefined : String(obj.errorCode),
+                retryAfter,
+                lifecycleState,
+                restrictionReason,
+                restrictionCode,
+                requiresPayment,
+                checkoutUrl,
+                raw: error,
+            });
+        }
+
+        // StandardErrorResponse shape: { error: ErrorDetail }
+        if (
+            obj.error &&
+            typeof obj.error === 'object' &&
+            'message' in obj.error
+        ) {
+            const detail = obj.error as ErrorDetail;
+            const validationErrors = coerceValidationErrors(
+                embeddedError?.errors,
+            );
+            const detailMessage = detail.message ?? 'Request failed.';
+            const userMessage = detail.userFacingMessage ?? detailMessage;
+            return new NxusApiError({
+                message: withValidationDetail(detailMessage, validationErrors),
+                userMessage:
+                    validationErrors && !detail.userFacingMessage
+                        ? withValidationDetail(userMessage, validationErrors)
+                        : userMessage,
                 status: detail.httpStatusCode ?? obj.status ?? 0,
                 code: detail.code,
                 type: detail.type,
                 requestId: detail.requestId ?? undefined,
                 integrationCode: detail.integrationCode ?? undefined,
+                retryAfter,
+                validationErrors,
+                lifecycleState,
+                restrictionReason,
+                restrictionCode,
+                requiresPayment,
+                checkoutUrl,
+                raw: error,
+            });
+        }
+
+        // Legacy QbdErrorResponse: { statusCode, errorCode, message, detail,
+        // severity, suggestedAction, metadata }. Some transports add `status`,
+        // which previously let a 503 with `detail` masquerade as ProblemDetails.
+        // Preserve the legacy body during migration without inventing validation.
+        const legacyMetadata = asRecord(obj.metadata);
+        const legacyStandardCode = readString(legacyMetadata, 'standardCode');
+        const legacyErrorCode = readString(obj, 'errorCode');
+        if (
+            typeof obj.message === 'string' &&
+            [
+                'statusCode',
+                'errorCode',
+                'severity',
+                'suggestedAction',
+                'traceId',
+                'metadata',
+            ].some((key) => key in obj)
+        ) {
+            return new NxusApiError({
+                message: readString(obj, 'detail') ?? obj.message,
+                userMessage: obj.message,
+                status:
+                    typeof obj.status === 'number'
+                        ? obj.status
+                        : typeof obj.statusCode === 'number'
+                          ? obj.statusCode
+                          : 0,
+                code: legacyStandardCode ?? legacyErrorCode,
+                type: readString(legacyMetadata, 'type'),
+                requestId: readString(obj, 'requestId'),
+                integrationCode: legacyStandardCode
+                    ? legacyErrorCode
+                    : undefined,
+                retryAfter,
                 lifecycleState,
                 restrictionReason,
                 restrictionCode,
@@ -331,17 +445,22 @@ export class NxusApiError extends Error {
         // ProblemDetails shape: { title, detail, status, errors? }
         if ('status' in obj && ('title' in obj || 'detail' in obj)) {
             const problemErrors = coerceValidationErrors(obj.errors);
+            const isValidationProblem = problemErrors != null;
             return new NxusApiError({
                 message: withValidationDetail(
                     obj.detail || obj.title || 'Validation failed.',
                     problemErrors,
                 ),
-                userMessage: obj.detail || obj.title || 'Please check your input and try again.',
-                status: obj.status ?? 422,
-                type: 'VALIDATION_ERROR_TYPE',
-                code: 'VALIDATION_ERROR',
+                userMessage:
+                    obj.detail ||
+                    obj.title ||
+                    'Please check your input and try again.',
+                status: typeof obj.status === 'number' ? obj.status : 0,
+                type: isValidationProblem ? 'VALIDATION_ERROR_TYPE' : undefined,
+                code: isValidationProblem ? 'VALIDATION_ERROR' : undefined,
                 validationErrors: problemErrors,
                 requestId: readString(obj, 'requestId'),
+                retryAfter,
                 lifecycleState,
                 restrictionReason,
                 restrictionCode,
@@ -376,6 +495,51 @@ export class NxusApiError extends Error {
                 type: 'VALIDATION_ERROR_TYPE',
                 requestId: readString(obj, 'requestId'),
                 validationErrors: envelopeErrors,
+                retryAfter,
+                lifecycleState,
+                restrictionReason,
+                restrictionCode,
+                requiresPayment,
+                checkoutUrl,
+                raw: error,
+            });
+        }
+
+        // Flat rich-error shape used by logical nxusApiError/qbdApiError
+        // envelopes after transport normalization.
+        if (
+            typeof obj.message === 'string' &&
+            [
+                'code',
+                'type',
+                'requestId',
+                'httpStatusCode',
+                'integrationCode',
+                'retryAfter',
+                'userFacingMessage',
+            ].some((key) => key in obj)
+        ) {
+            const validationErrors = coerceValidationErrors(obj.errors);
+            const userMessage =
+                readString(obj, 'userFacingMessage') ?? obj.message;
+            return new NxusApiError({
+                message: withValidationDetail(obj.message, validationErrors),
+                userMessage:
+                    validationErrors && !readString(obj, 'userFacingMessage')
+                        ? withValidationDetail(userMessage, validationErrors)
+                        : userMessage,
+                status:
+                    typeof obj.status === 'number'
+                        ? obj.status
+                        : typeof obj.httpStatusCode === 'number'
+                          ? obj.httpStatusCode
+                          : 0,
+                code: readString(obj, 'code'),
+                type: readString(obj, 'type'),
+                requestId: readString(obj, 'requestId'),
+                integrationCode: readString(obj, 'integrationCode'),
+                retryAfter,
+                validationErrors,
                 lifecycleState,
                 restrictionReason,
                 restrictionCode,
@@ -386,12 +550,17 @@ export class NxusApiError extends Error {
         }
 
         // Fallback: plain object with .message
-        const message = obj.message || obj.detail || obj.title || 'An unexpected error occurred.';
+        const message =
+            obj.message ||
+            obj.detail ||
+            obj.title ||
+            'An unexpected error occurred.';
         return new NxusApiError({
             message,
             userMessage: message,
             status: obj.status ?? obj.statusCode ?? 0,
             requestId: readString(obj, 'requestId'),
+            retryAfter,
             lifecycleState,
             restrictionReason,
             restrictionCode,

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { NxusApiError } from '../../src/helpers/errors';
+import {
+    NxusApiError,
+    throwIfError,
+    type NxusErrorCode,
+} from '../../src/helpers/errors';
 
 /**
  * The nXus validation envelope, as the API actually emits it. Note there is no
@@ -50,7 +54,9 @@ describe('NxusApiError.from — nXus validation envelope', () => {
             envelope({ PayeeId: ['Entity is required'] }),
         );
 
-        expect(err.userMessage).toBe('Validation failed: PayeeId: Entity is required');
+        expect(err.userMessage).toBe(
+            'Validation failed: PayeeId: Entity is required',
+        );
     });
 
     it('keeps the whole payload on raw', () => {
@@ -73,16 +79,23 @@ describe('NxusApiError.from — nXus validation envelope', () => {
 
     it('reads requestId when the payload carries one', () => {
         const err = NxusApiError.from(
-            envelope({ PayeeId: ['Entity is required'] }, { requestId: 'req_abc123' }),
+            envelope(
+                { PayeeId: ['Entity is required'] },
+                { requestId: 'req_abc123' },
+            ),
         );
 
         expect(err.requestId).toBe('req_abc123');
     });
 
     it('tolerates a bare string per field', () => {
-        const err = NxusApiError.from(envelope({ PayeeId: 'Entity is required' }));
+        const err = NxusApiError.from(
+            envelope({ PayeeId: 'Entity is required' }),
+        );
 
-        expect(err.validationErrors).toEqual({ PayeeId: ['Entity is required'] });
+        expect(err.validationErrors).toEqual({
+            PayeeId: ['Entity is required'],
+        });
     });
 
     it('tolerates a scalar per field', () => {
@@ -113,6 +126,67 @@ describe('NxusApiError.from — nXus validation envelope', () => {
 });
 
 describe('NxusApiError.from — existing shapes still win', () => {
+    it('does not invent validation for a generic RFC 7807 failure', () => {
+        const err = NxusApiError.from({
+            status: 503,
+            title: 'Gateway unavailable',
+            detail: 'The upstream gateway could not complete the request.',
+        });
+
+        expect(err).toMatchObject({ status: 503, code: undefined, type: undefined });
+        expect(err.isValidationError).toBe(false);
+    });
+
+    it('classifies RFC 7807 as validation only with field errors', () => {
+        const err = NxusApiError.from({
+            status: 400,
+            title: 'Validation failed',
+            errors: { name: ['Required'] },
+        });
+
+        expect(err.code).toBe('VALIDATION_ERROR');
+        expect(err.validationErrors).toEqual({ name: ['Required'] });
+        expect(err.isValidationError).toBe(true);
+    });
+
+    it('does not classify a legacy flat 503 as validation', () => {
+        const err = NxusApiError.from({
+            status: 503,
+            statusCode: 503,
+            errorCode: '3170',
+            message: 'QuickBooks request failed.',
+            detail: 'QuickBooks returned status 3170.',
+            metadata: {
+                type: 'INTEGRATION_RESPONSE_ERROR_TYPE',
+                standardCode: 'QBD_XML_3170',
+            },
+        });
+
+        expect(err).toMatchObject({
+            status: 503,
+            code: 'QBD_XML_3170',
+            type: 'INTEGRATION_RESPONSE_ERROR_TYPE',
+            integrationCode: '3170',
+        });
+        expect(err.isValidationError).toBe(false);
+    });
+
+    it('preserves unknown wrapped codes as strings', () => {
+        const err = NxusApiError.from({
+            error: {
+                message: 'A newer server code.',
+                userFacingMessage: 'Please retry later.',
+                code: 'FUTURE_SERVER_CODE',
+                type: 'FUTURE_SERVER_TYPE',
+                httpStatusCode: 503,
+                requestId: 'req_future',
+            },
+        });
+
+        expect(err.code).toBe('FUTURE_SERVER_CODE');
+        expect(err.type).toBe('FUTURE_SERVER_TYPE');
+    });
+
     it('StandardErrorResponse is unaffected', () => {
         const err = NxusApiError.from({
             error: {
@@ -162,8 +236,12 @@ describe('NxusApiError.from — existing shapes still win', () => {
             errors: { PayeeId: ['Entity is required'] },
         });
 
-        expect(err.message).toBe('Validation failed: PayeeId: Entity is required');
-        expect(err.validationErrors).toEqual({ PayeeId: ['Entity is required'] });
+        expect(err.message).toBe(
+            'Validation failed: PayeeId: Entity is required',
+        );
+        expect(err.validationErrors).toEqual({
+            PayeeId: ['Entity is required'],
+        });
     });
 
     it('does not append the field detail twice', () => {
@@ -173,6 +251,93 @@ describe('NxusApiError.from — existing shapes still win', () => {
             errors: { PayeeId: ['Entity is required'] },
         });
 
-        expect(err.message).toBe('Validation failed: PayeeId: Entity is required');
+        expect(err.message).toBe(
+            'Validation failed: PayeeId: Entity is required',
+        );
+    });
+
+    it('exposes retry and restriction metadata from a standard error', () => {
+        const err = NxusApiError.from({
+            error: {
+                message: 'Subscription required.',
+                code: 'SUBSCRIPTION_REQUIRED',
+                type: 'BILLING_ERROR_TYPE',
+                retryAfter: 4,
+            },
+            restriction: {
+                lifecycleState: 'archived',
+                reason: 'subscription_required',
+                code: 'plan_expired',
+            },
+            billing: {
+                requiresPayment: true,
+                checkoutUrl: 'https://billing.example.test/checkout',
+            },
+        });
+
+        expect(err.retryAfter).toBe(4);
+        expect(err.lifecycleState).toBe('archived');
+        expect(err.restrictionReason).toBe('subscription_required');
+        expect(err.restrictionCode).toBe('plan_expired');
+        expect(err.requiresPayment).toBe(true);
+        expect(err.checkoutUrl).toBe('https://billing.example.test/checkout');
+        expect(err.isRestrictionError).toBe(true);
+        expect(err.isArchivedConnection).toBe(true);
+    });
+
+    it('normalizes flat logical and failed QBD error results', () => {
+        const logical = NxusApiError.from({
+            message: 'QuickBooks timed out.',
+            integrationCode: 'QBD_TIMEOUT',
+            requestId: 'req-logical',
+            retryAfter: '3',
+            httpStatusCode: 200,
+        });
+        const failed = NxusApiError.from({
+            status: 'failed',
+            httpStatusCode: 200,
+            errorCode: '3175',
+            errorMessage: 'Object is in use.',
+        });
+
+        expect(logical).toMatchObject({
+            integrationCode: 'QBD_TIMEOUT',
+            requestId: 'req-logical',
+            retryAfter: 3,
+            status: 200,
+        });
+        expect(failed).toMatchObject({
+            code: 'QBD_INTEGRATION_ERROR',
+            type: 'INTEGRATION_ERROR_TYPE',
+            integrationCode: '3175',
+            status: 200,
+        });
+    });
+
+    it('keeps idempotency reuse in the known code surface', () => {
+        const code: NxusErrorCode = 'IDEMPOTENCY_KEY_REUSED';
+        expect(code).toBe('IDEMPOTENCY_KEY_REUSED');
+    });
+
+    it('recognizes restriction types and archived codes without extra metadata', () => {
+        expect(
+            NxusApiError.from({
+                message: 'Restricted',
+                type: 'RESTRICTION_ERROR_TYPE',
+            }).isRestrictionError,
+        ).toBe(true);
+        expect(
+            NxusApiError.from({
+                message: 'Archived',
+                code: 'CONNECTION_ARCHIVED',
+            }).isArchivedConnection,
+        ).toBe(true);
+    });
+
+    it('throws arbitrary error values and ignores undefined', () => {
+        expect(() => throwIfError(undefined)).not.toThrow();
+        expect(() => throwIfError({ message: 'Nope', status: 400 })).toThrow(
+            NxusApiError,
+        );
     });
 });
