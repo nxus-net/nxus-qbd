@@ -106,7 +106,28 @@ back in.
 For backoff, the standard `Retry-After` response header (seconds or HTTP-date)
 is honored when present, with `error.retryAfter` (seconds) in the JSON body
 as a fallback. Local timeouts (the SDK's abort timer) are treated as
-cancellations and are not retried.
+cancellations for reads, updates, deletes, and other non-idempotent calls.
+Generic Creates are the exception: their idempotency key makes timeout retries
+safe, so they reuse the same key on the next attempt.
+
+## Safe Create Retries
+
+Every generic resource `.create()` call automatically sends a cryptographically
+random `Idempotency-Key`. The SDK generates it once before retries begin and
+uses the same key for every attempt, including `.withResponse.create()`.
+
+For a workflow that can resume after the current process exits, supply and
+persist your own key:
+
+```ts
+await nxus.bills.create(request, {
+  idempotencyKey: `billing-import-${importJobId}`,
+});
+```
+
+The key is sent only as the `Idempotency-Key` HTTP header, never in the JSON
+body. QuickBooks recovery identifiers and recovery status remain server-owned;
+on a timeout, retry the same logical Create key and follow `x-should-retry`.
 
 Configure globally or per-request:
 
@@ -349,6 +370,61 @@ await nxus.authSessions.create(
 );
 ```
 
+## Filtering By Active Status
+
+QuickBooks returns only active records unless a list request says otherwise.
+`activeStatus` is typed, so the value comes from `QbdActiveStatus` rather than
+a hand-written string:
+
+```ts
+import { NxusClient, QbdActiveStatus } from "nxus-qbd";
+
+// Active and inactive records
+const all = await nxus.vendors.list({
+  limit: 50,
+  activeStatus: QbdActiveStatus.ALL,
+});
+
+// Only the records QuickBooks has marked inactive
+const inactive = await nxus.vendors.list({
+  limit: 50,
+  activeStatus: QbdActiveStatus.INACTIVE_ONLY,
+});
+
+// Omit it entirely for QuickBooks' ActiveOnly default
+const active = await nxus.vendors.list({ limit: 50 });
+```
+
+The wire values are `ActiveOnly`, `InactiveOnly` and `All`, and QuickBooks
+matches them exactly. A near miss such as `"all"` is not rejected as a bad
+request — it travels all the way into qbXML and comes back as QBD error 3110,
+`The enumerated value "all" in the field "ActiveStatus" is unknown or invalid`.
+That is what the enum is for.
+
+The enum and its wire string are interchangeable, so both of these compile and
+send the same request, while a typo does not compile at all:
+
+```ts
+await nxus.vendors.list({ activeStatus: QbdActiveStatus.ALL });
+await nxus.vendors.list({ activeStatus: "All" });
+
+// @ts-expect-error — "all" is not one of the three literals
+await nxus.vendors.list({ activeStatus: "all" });
+```
+
+A value the compiler only knows as `string` — an environment variable, a CLI
+flag, a database column — cannot be checked that way. `toActiveStatus` closes
+that gap by validating locally instead of letting QuickBooks fail the request:
+
+```ts
+import { toActiveStatus } from "nxus-qbd";
+
+const activeStatus = toActiveStatus(process.env.NXUS_ACTIVE_STATUS ?? "All");
+await nxus.vendors.list({ limit: 50, activeStatus });
+
+// `isActiveStatus(value)` narrows without throwing.
+```
+
 ## Auto-Pagination
 
 List methods return an `AutoPaginationPromise` that supports both manual page navigation and `for await` iteration:
@@ -403,12 +479,19 @@ try {
   if (err instanceof NxusApiError) {
     console.log(err.status); // 404
     console.log(err.userMessage); // User-safe message
+    console.log(err.retryAfter); // Requested retry delay in seconds, if present
     console.log(err.isNotFound); // true
     console.log(err.isAuthError); // false
     console.log(err.isRateLimited); // false
+    console.log(err.isRestrictionError); // lifecycle or billing restriction
+    console.log(err.isArchivedConnection); // lifecycleState === "archived"
   }
 }
 ```
+
+Restriction responses also expose `lifecycleState`, `restrictionReason`,
+`restrictionCode`, `requiresPayment`, and `checkoutUrl`. `throwIfError(value)`
+converts an arbitrary generated-client error value into `NxusApiError`.
 
 ## Resources
 

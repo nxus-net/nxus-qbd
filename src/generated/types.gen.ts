@@ -9227,11 +9227,15 @@ export type ErrorDetail = {
   type:
     | "VALIDATION_ERROR_TYPE"
     | "AUTHENTICATION_ERROR_TYPE"
+    | "AUTHORIZATION_ERROR_TYPE"
+    | "SECURITY_ERROR_TYPE"
     | "NOT_FOUND_ERROR_TYPE"
     | "RESTRICTION_ERROR_TYPE"
     | "INTEGRATION_CONNECTION_ERROR_TYPE"
+    | "INTEGRATION_CONNECTION_OFFLINE_TYPE"
     | "INTEGRATION_RESPONSE_ERROR_TYPE"
     | "BILLING_ERROR_TYPE"
+    | "PAYMENT_REQUIRED_ERROR_TYPE"
     | "APPLICATION_ERROR_TYPE"
     | "TIMEOUT_ERROR_TYPE"
     | "RATE_LIMIT_ERROR_TYPE"
@@ -9244,34 +9248,53 @@ export type ErrorDetail = {
     | "API_KEY_INVALID"
     | "API_KEY_EXPIRED"
     | "API_KEY_REVOKED"
+    | "API_KEY_INVALID_FORMAT"
+    | "API_KEY_ROTATION_EXPIRED"
+    | "AUTH_MIDDLEWARE_EXCEPTION"
     | "KEY_MODE_MISMATCH"
     | "AUTHENTICATION_ERROR"
     | "AUTHORIZATION_ERROR"
     | "VALIDATION_ERROR"
+    | "CSRF_VALIDATION_FAILED"
     | "QBD_OBJECT_NOT_FOUND"
+    | "RESOURCE_NOT_FOUND"
+    | "IP_BLACKLISTED"
     | "ACCOUNT_RESTRICTED"
     | "CONNECTION_RESTRICTED"
     | "CONNECTION_ARCHIVED"
     | "DEVELOPMENT_ACCESS_RESTRICTED"
+    | "EMAIL_NOT_VERIFIED"
     | "QBD_CONNECTION_ERROR"
     | "QBD_SESSION_ERROR"
+    | "QWC_NOT_CONNECTED"
+    | "QWC_NEVER_CONNECTED"
     | "QBD_XML_RESPONSE_ERROR"
     | "QBD_STALE_EDIT_SEQUENCE"
     | "INVALID_OPERATION"
     | "NOT_IMPLEMENTED"
     | "METHOD_NOT_ALLOWED"
+    | "OPERATION_NOT_SUPPORTED"
+    | "APPLICATION_ERROR"
+    | "APP_ERROR"
     | "GET_PAGINATED_NOT_SUPPORTED"
+    | "COUNT_NOT_SUPPORTED"
     | "GET_BY_ID_NOT_SUPPORTED"
     | "CREATE_NOT_SUPPORTED"
     | "UPDATE_NOT_SUPPORTED"
     | "DELETE_NOT_SUPPORTED"
+    | "VOID_NOT_SUPPORTED"
     | "UNEXPECTED_SERVICE_RESPONSE"
     | "SUBSCRIPTION_REQUIRED"
+    | "PRODUCTION_SUBSCRIPTION_REQUIRED"
+    | "CHECKOUT_CREATION_FAILED"
+    | "CANCEL_FAILED"
+    | "PORTAL_CREATION_FAILED"
     | "RATE_LIMIT_EXCEEDED"
     | "TIMEOUT_ERROR"
     | "REQUEST_TIMEOUT"
     | "UNEXPECTED_ERROR"
-    | "INTERNAL_ERROR";
+    | "INTERNAL_ERROR"
+    | "UNKNOWN";
   /**
    * HTTP status code for the response (e.g. 400, 404, 502, 500).
    */
@@ -9284,6 +9307,16 @@ export type ErrorDetail = {
    * Request ID for tracking and diagnostics (e.g. "req_abc123").
    */
   requestId: string | null;
+  /**
+   * Seconds to wait before retrying, on errors where retrying can succeed. Mirrors the Retry-After response header, which is the value to prefer.
+   */
+  retryAfter: number | null;
+  /**
+   * Field-level validation failures keyed by property name. Present only on validation errors; absent otherwise.
+   */
+  errors: {
+    [key: string]: Array<string>;
+  } | null;
 };
 
 /**
@@ -15336,7 +15369,7 @@ export type PurchaseOrderLine = {
   /**
    * The customer or job associated with this purchase-order line.
    */
-  payee?: QbdRef | null;
+  payee: QbdRef | null;
   /**
    * The ServiceDate associated with this object.
    */
@@ -15431,6 +15464,15 @@ export type PurchaseOrderLineGroup = {
    */
   customFields: Array<QbdDataExt> | null;
 };
+
+/**
+ * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
+ */
+export enum QbdActiveStatus {
+  ACTIVE_ONLY = "ActiveOnly",
+  INACTIVE_ONLY = "InactiveOnly",
+  ALL = "All",
+}
 
 /**
  * Represents a custom data extension (Custom Field) in QuickBooks.
@@ -16052,7 +16094,7 @@ export type SalesOrder = {
    * When updating this object, you must provide the most recent `revisionNumber` to ensure you are
    * working with the latest data and to prevent optimistic concurrency errors.
    */
-  revisionNumber?: string | null;
+  revisionNumber: string;
   /**
    * The date the transaction occurred or was recorded.
    */
@@ -16268,7 +16310,7 @@ export type SalesOrder = {
  * Represents an individual child line item within a sales order group (SalesOrderLineRet).
  */
 export type SalesOrderLine = {
-  id?: string | null;
+  id: string | null;
   objectType: string;
   item: QbdRef | null;
   description: string | null;
@@ -23120,6 +23162,7 @@ export type WorkersCompCode = {
 export type CreateAccountData = {
   body: CreateAccountRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -23640,9 +23683,9 @@ export type ListAccountsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -23944,9 +23987,9 @@ export type CountAccountsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -24092,6 +24135,7 @@ export type CountAccountsResponse =
 export type CreateArRefundCreditCardData = {
   body: CreateArRefundCreditCardRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -25396,6 +25440,7 @@ export type CountBarCodesResponse =
 export type CreateBillData = {
   body: CreateBillRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -26433,6 +26478,7 @@ export type VoidBillResponse = VoidBillResponses[keyof VoidBillResponses];
 export type CreateBillingRateData = {
   body: CreateBillingRateRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -26759,9 +26805,9 @@ export type ListBillingRatesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -26950,9 +26996,9 @@ export type CountBillingRatesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -28007,6 +28053,7 @@ export type CountBuildAssembliesResponse =
 export type CreateBuildAssemblyData = {
   body: CreateBuildAssemblyRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -28381,6 +28428,7 @@ export type UpdateBuildAssemblyResponse =
 export type CreateChargeData = {
   body: CreateChargeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -29317,6 +29365,7 @@ export type CountChargesResponse =
 export type CreateCheckData = {
   body: CreateCheckRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -29408,6 +29457,7 @@ export type CreateCheckResponse =
 export type CreateCheckBillPaymentData = {
   body: CreateCheckBillPaymentRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -31176,6 +31226,7 @@ export type CountChecksResponse =
 export type CreateClassData = {
   body: CreateClassRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -31601,9 +31652,9 @@ export type ListClassesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -31787,9 +31838,9 @@ export type CountClassesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -32497,6 +32548,7 @@ export type RestoreConnectionResponse =
 export type CreateCreditCardBillPaymentData = {
   body: CreateCreditCardBillPaymentRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -33338,6 +33390,7 @@ export type CountCreditCardBillPaymentsResponse =
 export type CreateCreditCardData = {
   body: CreateCreditCardChargeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -34249,6 +34302,7 @@ export type CountCreditCardsResponse =
 export type CreateCreditCardCreditData = {
   body: CreateCreditCardCreditRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -35172,6 +35226,7 @@ export type CountCreditCardCreditsResponse =
 export type CreateCreditMemoData = {
   body: CreateCreditMemoRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -36125,9 +36180,9 @@ export type ListCurrenciesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -36312,9 +36367,9 @@ export type CountCurrenciesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -36449,6 +36504,7 @@ export type CountCurrenciesResponse =
 export type CreateCurrencyData = {
   body: CreateCurrencyRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -36736,7 +36792,7 @@ export type CloseData = {
   body?: never;
   path: {
     /**
-     * The cursor operation identifier returned by a paginated response.
+     * The cursor / operation id issued with the first paginated response.
      */
     operationId: string;
   };
@@ -37464,6 +37520,7 @@ export type UpdateCustomFieldResponse =
 export type CreateCustomerData = {
   body: CreateCustomerRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -37556,6 +37613,7 @@ export type CreateCustomerResponse =
 export type CreateCustomerTypeData = {
   body: CreateCustomerTypeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -37882,9 +37940,9 @@ export type ListCustomerTypesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -38069,9 +38127,9 @@ export type CountCustomerTypesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -38557,9 +38615,9 @@ export type ListCustomersData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -38788,9 +38846,9 @@ export type CountCustomersData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -38967,6 +39025,7 @@ export type CountCustomersResponse =
 export type CreateDateDrivenTermData = {
   body: CreateDateDrivenTermRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -39293,9 +39352,9 @@ export type ListDateDrivenTermsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -39480,9 +39539,9 @@ export type CountDateDrivenTermsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -39617,6 +39676,7 @@ export type CountDateDrivenTermsResponse =
 export type CreateDepositData = {
   body: CreateDepositRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -40558,6 +40618,7 @@ export type CountDepositsResponse =
 export type CreateEmployeeData = {
   body: CreateEmployeeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -40987,9 +41048,9 @@ export type ListEmployeesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -41173,9 +41234,9 @@ export type CountEmployeesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -41310,6 +41371,7 @@ export type CountEmployeesResponse =
 export type CreateEstimateData = {
   body: CreateEstimateRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -42144,6 +42206,7 @@ export type CountEstimatesResponse =
 export type CreateInventoryAdjustmentData = {
   body: CreateInventoryAdjustmentRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -43063,6 +43126,7 @@ export type CountInventoryAdjustmentsResponse =
 export type CreateInventorySiteData = {
   body: CreateInventorySiteRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -43483,9 +43547,9 @@ export type ListInventorySitesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -43670,9 +43734,9 @@ export type CountInventorySitesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -43807,6 +43871,7 @@ export type CountInventorySitesResponse =
 export type CreateInvoiceData = {
   body: CreateInvoiceRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -44794,6 +44859,7 @@ export type CountInvoicesResponse =
 export type CreateItemDiscountData = {
   body: CreateItemDiscountRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -45168,6 +45234,7 @@ export type UpdateItemDiscountResponse =
 export type CreateItemFixedAssetData = {
   body: CreateItemFixedAssetRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -45542,6 +45609,7 @@ export type UpdateItemFixedAssetResponse =
 export type CreateItemGroupData = {
   body: CreateItemGroupRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -45916,6 +45984,7 @@ export type UpdateItemGroupResponse =
 export type CreateInventoryItemData = {
   body: CreateInventoryItemRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -46008,6 +46077,7 @@ export type CreateInventoryItemResponse =
 export type CreateItemInventoryAssemblyData = {
   body: CreateItemInventoryAssemblyRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -46664,6 +46734,7 @@ export type UpdateInventoryItemResponse =
 export type CreateItemNonInventoryData = {
   body: CreateItemNonInventoryRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -47038,6 +47109,7 @@ export type UpdateItemNonInventoryResponse =
 export type CreateItemOtherChargeData = {
   body: CreateItemOtherChargeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -47412,6 +47484,7 @@ export type UpdateItemOtherChargeResponse =
 export type CreateItemPaymentData = {
   body: CreateItemPaymentRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -47786,6 +47859,7 @@ export type UpdateItemPaymentResponse =
 export type CreateItemReceiptData = {
   body: CreateItemReceiptRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -48721,6 +48795,7 @@ export type CountItemReceiptsResponse =
 export type CreateItemSalesTaxData = {
   body: CreateItemSalesTaxRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -48813,6 +48888,7 @@ export type CreateItemSalesTaxResponse =
 export type CreateItemSalesTaxGroupData = {
   body: CreateItemSalesTaxGroupRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -49469,6 +49545,7 @@ export type UpdateItemSalesTaxResponse =
 export type CreateServiceItemData = {
   body: CreateServiceItemRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -49843,6 +49920,7 @@ export type UpdateServiceItemResponse =
 export type CreateItemSubtotalData = {
   body: CreateItemSubtotalRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -50373,9 +50451,9 @@ export type ListItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -50579,9 +50657,9 @@ export type ListItemsDiscountData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -50769,9 +50847,9 @@ export type CountItemsDiscountData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -50966,9 +51044,9 @@ export type ListItemsFixedAssetData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -51156,9 +51234,9 @@ export type CountItemsFixedAssetData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -51353,9 +51431,9 @@ export type ListItemsGroupData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -51547,9 +51625,9 @@ export type CountItemsGroupData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -51748,9 +51826,9 @@ export type ListInventoryItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -51942,7 +52020,10 @@ export type ListItemsInventoryAssemblyData = {
      * The maximum number of items to return per page.
      */
     limit?: number;
-    activeStatus?: string;
+    /**
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
+     */
+    activeStatus?: QbdActiveStatus;
     nameFilter?: string;
   };
   url: "/api/v1/items-inventory-assembly";
@@ -52054,7 +52135,10 @@ export type CountItemsInventoryAssemblyData = {
   };
   path?: never;
   query?: {
-    activeStatus?: string;
+    /**
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
+     */
+    activeStatus?: QbdActiveStatus;
     nameFilter?: string;
   };
   url: "/api/v1/items-inventory-assembly/count";
@@ -52169,9 +52253,9 @@ export type CountInventoryItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -52366,9 +52450,9 @@ export type ListItemsNonInventoryData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -52560,9 +52644,9 @@ export type CountItemsNonInventoryData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -52824,9 +52908,9 @@ export type ListItemsOtherChargeData = {
      */
     fields?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     nameFilter?: string;
   };
   url: "/api/v1/items-other-charge";
@@ -53015,9 +53099,9 @@ export type CountItemsOtherChargeData = {
      */
     fields?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     nameFilter?: string;
   };
   url: "/api/v1/items-other-charge/count";
@@ -53150,9 +53234,9 @@ export type ListItemsPaymentData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -53340,9 +53424,9 @@ export type CountItemsPaymentData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -53537,9 +53621,9 @@ export type ListItemsSalesTaxData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -53745,9 +53829,9 @@ export type ListItemsSalesTaxGroupData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -53935,9 +54019,9 @@ export type CountItemsSalesTaxGroupData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -54114,9 +54198,9 @@ export type CountItemsSalesTaxData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -54311,9 +54395,9 @@ export type ListServiceItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -54503,9 +54587,9 @@ export type CountServiceItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -54702,9 +54786,9 @@ export type ListItemsSubtotalData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -54892,9 +54976,9 @@ export type CountItemsSubtotalData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -55071,9 +55155,9 @@ export type CountItemsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -55657,6 +55741,7 @@ export type CountJournalEntriesResponse =
 export type CreateJournalEntryData = {
   body: CreateJournalEntryRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -56125,6 +56210,7 @@ export type VoidJournalEntryResponse =
 export type CreateOtherNameData = {
   body: CreateOtherNameRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -56545,9 +56631,9 @@ export type ListOtherNamesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -56732,9 +56818,9 @@ export type CountOtherNamesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -56869,6 +56955,7 @@ export type CountOtherNamesResponse =
 export type CreatePaymentMethodData = {
   body: CreatePaymentMethodRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -57195,9 +57282,9 @@ export type ListPaymentMethodsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -57386,9 +57473,9 @@ export type CountPaymentMethodsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -57761,9 +57848,9 @@ export type ListPayrollItemNonWagesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -57948,9 +58035,9 @@ export type CountPayrollItemNonWagesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -58085,6 +58172,7 @@ export type CountPayrollItemNonWagesResponse =
 export type CreatePayrollItemWageData = {
   body: CreatePayrollItemWageRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -58411,9 +58499,9 @@ export type ListPayrollItemWagesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -58598,9 +58686,9 @@ export type CountPayrollItemWagesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -58735,6 +58823,7 @@ export type CountPayrollItemWagesResponse =
 export type CreatePriceLevelData = {
   body: CreatePriceLevelRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -59155,9 +59244,9 @@ export type ListPriceLevelsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -59348,9 +59437,9 @@ export type CountPriceLevelsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -59491,6 +59580,7 @@ export type CountPriceLevelsResponse =
 export type CreatePurchaseOrderData = {
   body: CreatePurchaseOrderRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -60389,6 +60479,7 @@ export type RetrieveConnectionStatusAuthenticatedResponse =
 export type CreateReceivePaymentData = {
   body: CreateReceivePaymentRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -62851,6 +62942,7 @@ export type RetrieveTimeReportResponse =
 export type CreateSalesOrderData = {
   body: CreateSalesOrderRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -63724,6 +63816,7 @@ export type CountSalesOrdersResponse =
 export type CreateSalesReceiptData = {
   body: CreateSalesReceiptRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -64643,6 +64736,7 @@ export type CountSalesReceiptsResponse =
 export type CreateSalesTaxCodeData = {
   body: CreateSalesTaxCodeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -65063,9 +65157,9 @@ export type ListSalesTaxCodesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -65250,9 +65344,9 @@ export type CountSalesTaxCodesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -65387,6 +65481,7 @@ export type CountSalesTaxCodesResponse =
 export type CreateSalesTaxPaymentCheckData = {
   body: CreateSalesTaxPaymentCheckRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -66252,6 +66347,7 @@ export type CountSalesTaxPaymentChecksResponse =
 export type CreateShipMethodData = {
   body: CreateShipMethodRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -66672,9 +66768,9 @@ export type ListShipMethodsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -66859,9 +66955,9 @@ export type CountShipMethodsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -66996,6 +67092,7 @@ export type CountShipMethodsResponse =
 export type CreateSpecialItemData = {
   body: CreateSpecialItemRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -67230,6 +67327,7 @@ export type RotatePublishableKeyResponse2 =
 export type CreateTermData = {
   body: CreateTermRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -67557,9 +67655,9 @@ export type ListTermsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -67742,9 +67840,9 @@ export type CountTermsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -68336,6 +68434,7 @@ export type CountTimeTrackingsResponse =
 export type CreateTimeTrackingData = {
   body: CreateTimeTrackingRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -69429,6 +69528,7 @@ export type CountTransactionsResponse =
 export type CreateUnitOfMeasureSetData = {
   body: CreateUnitOfMeasureSetRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -69661,9 +69761,9 @@ export type ListUnitOfMeasureSetsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -69848,9 +69948,9 @@ export type CountUnitOfMeasureSetsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -69985,6 +70085,7 @@ export type CountUnitOfMeasureSetsResponse =
 export type CreateVendorData = {
   body: CreateVendorRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -70076,6 +70177,7 @@ export type CreateVendorResponse =
 export type CreateVendorCreditData = {
   body: CreateVendorCreditRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -70987,6 +71089,7 @@ export type CountVendorCreditsResponse =
 export type CreateVendorTypeData = {
   body: CreateVendorTypeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -71313,9 +71416,9 @@ export type ListVendorTypesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -71500,9 +71603,9 @@ export type CountVendorTypesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -71986,9 +72089,9 @@ export type ListVendorsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -72175,9 +72278,9 @@ export type CountVendorsData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -72311,6 +72414,7 @@ export type CountVendorsResponse =
 export type CreateWorkersCompCodeData = {
   body: CreateWorkersCompCodeRequest;
   headers?: {
+    "Idempotency-Key"?: string;
     /**
      * Identifies which QuickBooks Desktop company file to target.
      *
@@ -72637,9 +72741,9 @@ export type ListWorkersCompCodesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *
@@ -72832,9 +72936,9 @@ export type CountWorkersCompCodesData = {
      */
     fullnames?: Array<string>;
     /**
-     * Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL
+     * Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.
      */
-    activeStatus?: string;
+    activeStatus?: QbdActiveStatus;
     /**
      * Filter for records modified on or before this date.
      *

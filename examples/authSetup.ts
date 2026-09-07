@@ -16,7 +16,7 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
+import "./load-env.js";
 import { NxusClient, NxusApiError, type Connection } from "nxus-qbd";
 
 const apiKey = process.env.NXUS_API_KEY;
@@ -36,7 +36,7 @@ const nxus = new NxusClient({
 });
 
 function getConnectionId(connection: Connection): string | undefined {
-  return connection.id ?? connection.connectionId;
+  return connection.id ?? connection.connectionId ?? undefined;
 }
 
 async function main() {

@@ -44,10 +44,10 @@ describe.skipIf(!shouldRunIntegrationTests)("Integration Tests", () => {
 
   describe("Smoke Tests", () => {
     it("should list vendors", async () => {
-      const page = await client.vendors.list({
-        limit: 1,
-        serverTimeoutSeconds: 15,
-      });
+      // No serverTimeoutSeconds: it is a transport option, not a list
+      // parameter, and the backend rejects X-Nxus-Timeout-Seconds on list
+      // with a 400 either way.
+      const page = await client.vendors.list({ limit: 1 });
       expect(page).toHaveProperty("data");
       expect(Array.isArray(page.data)).toBe(true);
       expect(page.data.length).toBeLessThanOrEqual(1);

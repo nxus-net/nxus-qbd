@@ -14,7 +14,7 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
+import "./load-env.js";
 import { NxusClient, NxusApiError, Vendor } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------

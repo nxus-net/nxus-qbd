@@ -10,8 +10,9 @@ dist/
 
 # Environment / secrets
 .env
-.env.local
-.env.production
+# Every local variant — .env.dev holds a real dev API key and this is a
+# public repository.
+.env.*
 !.env.example
 
 # OS files

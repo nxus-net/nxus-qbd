@@ -38,6 +38,7 @@
     "generate:count-capabilities": "node ./scripts/generate-count-capabilities.mjs",
     "generate:capabilities": "node ./scripts/generate-resource-capabilities.mjs",
     "build": "tsc",
+    "typecheck:examples": "tsc -p examples/tsconfig.json",
     "prepublishOnly": "pnpm run build",
     "clean": "rm -rf dist",
     "test": "vitest run",

@@ -265,6 +265,48 @@ describe("transport retries", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("exposes Retry-After in seconds on the terminal typed error", async () => {
+    installFetchMock(
+      jsonResponse(
+        { error: { message: "rate limited", code: "RATE_LIMIT_EXCEEDED" } },
+        429,
+        { "Retry-After": "7" },
+      ),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(
+      client.connections.retrieve("conn_123", { maxRetries: 0 }),
+    ).rejects.toMatchObject({ status: 429, retryAfter: 7 });
+  });
+
+  it("rejects bare failed QBD operation results returned with HTTP 200", async () => {
+    installFetchMock(
+      jsonResponse({
+        status: "failed",
+        errorCode: "3175",
+        errorMessage: "Object is in use.",
+        requestId: "req-failed",
+      }),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(client.connections.retrieve("conn_123")).rejects.toMatchObject(
+      {
+        status: 200,
+        code: "QBD_INTEGRATION_ERROR",
+        integrationCode: "3175",
+        requestId: "req-failed",
+      },
+    );
+  });
+
   it("respects maxRetries: 0 (no retries)", async () => {
     const fetchMock = installFetchMock(
       jsonResponse({ error: { message: "down", code: "X", type: "Y" } }, 503),
@@ -326,7 +368,8 @@ describe("transport retries", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("defaults generic create to maxRetries: 0", async () => {
+  it("retries generic creates with one generated idempotency key", async () => {
+    vi.useFakeTimers();
     const fetchMock = installFetchMock(
       jsonResponse({ error: { message: "down", code: "X", type: "Y" } }, 503),
       jsonResponse({ id: "vendor_1" }, 200),
@@ -337,9 +380,179 @@ describe("transport retries", () => {
       baseUrl: "https://api.example.test",
     });
 
+    const promise = client.vendors.create({ name: "Acme" } as never);
+    await flushRetries(3);
+    await expect(promise).resolves.toMatchObject({ id: "vendor_1" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const firstHeaders = fetchMock.mock.calls[0]?.[1].headers as Record<
+      string,
+      string
+    >;
+    const secondHeaders = fetchMock.mock.calls[1]?.[1].headers as Record<
+      string,
+      string
+    >;
+    expect(firstHeaders["Idempotency-Key"]).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+    expect(secondHeaders["Idempotency-Key"]).toBe(
+      firstHeaders["Idempotency-Key"],
+    );
+    expect(fetchMock.mock.calls[0]?.[1].body).toBe('{"name":"Acme"}');
+  });
+
+  it("retries an idempotent create after a local timeout with the same key", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () => {
+              reject(new DOMException("aborted", "AbortError"));
+            });
+          }),
+      )
+      .mockResolvedValueOnce(jsonResponse({ id: "vendor_1" }, 201));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+      writable: true,
+    });
+
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      maxRetries: 1,
+      timeout: 50,
+    });
+
+    const promise = client.vendors.create({ name: "Acme" } as never);
+    await flushRetries(3);
+    await expect(promise).resolves.toMatchObject({ id: "vendor_1" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const firstHeaders = fetchMock.mock.calls[0]?.[1].headers as Record<
+      string,
+      string
+    >;
+    const secondHeaders = fetchMock.mock.calls[1]?.[1].headers as Record<
+      string,
+      string
+    >;
+    expect(secondHeaders["Idempotency-Key"]).toBe(
+      firstHeaders["Idempotency-Key"],
+    );
+  });
+
+  it("canonicalizes default idempotency headers before sending a generated key", async () => {
+    const fetchMock = installFetchMock(jsonResponse({ id: "vendor_1" }, 201));
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+      headers: { "idempotency-key": "legacy-default-key" },
+    });
+
+    await client.vendors.create({ name: "Acme" } as never);
+
+    const headers = fetchMock.mock.calls[0]?.[1].headers as Record<
+      string,
+      string
+    >;
+    const idempotencyHeaders = Object.entries(headers).filter(
+      ([name]) => name.toLowerCase() === "idempotency-key",
+    );
+    expect(idempotencyHeaders).toHaveLength(1);
+    expect(idempotencyHeaders[0]).toEqual([
+      "Idempotency-Key",
+      expect.stringMatching(/^[0-9a-f-]{36}$/i),
+    ]);
+  });
+
+  it("sends an explicit key unchanged for plain and wrapped creates", async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse({ id: "vendor_1" }, 201),
+      jsonResponse({ id: "vendor_2" }, 201),
+      jsonResponse({ id: "vendor_3" }, 201),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await client.vendors.create({ name: "Acme" } as never, {
+      idempotencyKey: "billing-import-123",
+    });
+    await client.vendors.withResponse.create({ name: "Beta" } as never, {
+      idempotencyKey: "billing-import-456",
+    });
+    await client.vendors.create({ name: "Gamma" } as never, {
+      headers: { "idempotency-key": "legacy-header-key" },
+    });
+
+    expect(fetchMock.mock.calls[0]?.[1].headers).toMatchObject({
+      "Idempotency-Key": "billing-import-123",
+    });
+    expect(fetchMock.mock.calls[1]?.[1].headers).toMatchObject({
+      "Idempotency-Key": "billing-import-456",
+    });
+    expect(fetchMock.mock.calls[2]?.[1].headers).toMatchObject({
+      "Idempotency-Key": "legacy-header-key",
+    });
+  });
+
+  it("honors x-should-retry for generic creates with the same key", async () => {
+    vi.useFakeTimers();
+    const fetchMock = installFetchMock(
+      jsonResponse(
+        { error: { message: "try again", code: "X", type: "Y" } },
+        409,
+        { "X-Should-Retry": "true" },
+      ),
+      jsonResponse({ id: "vendor_1" }, 201),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const promise = client.vendors.create({ name: "Acme" } as never, {
+      idempotencyKey: "durable-import-key",
+    });
+    await flushRetries(3);
+    await expect(promise).resolves.toMatchObject({ id: "vendor_1" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [, init] of fetchMock.mock.calls) {
+      expect((init.headers as Record<string, string>)["Idempotency-Key"]).toBe(
+        "durable-import-key",
+      );
+    }
+  });
+
+  it("does not retry a generic create when x-should-retry is false", async () => {
+    const fetchMock = installFetchMock(
+      jsonResponse(
+        {
+          error: {
+            message: "idempotency key reused",
+            code: "IDEMPOTENCY_KEY_REUSED",
+            type: "Y",
+          },
+        },
+        409,
+        { "X-Should-Retry": "false" },
+      ),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
     await expect(
       client.vendors.create({ name: "Acme" } as never),
-    ).rejects.toMatchObject({ status: 503 });
+    ).rejects.toMatchObject({ status: 409, code: "IDEMPOTENCY_KEY_REUSED" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

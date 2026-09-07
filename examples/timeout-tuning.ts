@@ -1,4 +1,5 @@
 /**
+ * nxus-qbd v
  * timeout-tuning.ts — Demonstrates default timeout behavior and overrides.
  *
  * Usage:
@@ -11,14 +12,14 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
-import { DEFAULT_TIMEOUT_MS, NxusApiError, NxusClient } from "../src/index";
+import "./load-env.js";
+import { DEFAULT_TIMEOUT_MS, NxusApiError, NxusClient } from "nxus-qbd";
 
 const apiKey = process.env.NXUS_API_KEY;
 if (!apiKey) {
-  console.error("Error: NXUS_API_KEY environment variable is required.");
-  process.exit(1);
+  throw new Error("NXUS_API_KEY environment variable is required.");
 }
+const requiredApiKey = apiKey;
 
 if (process.env.NXUS_DEV_MODE === "true") {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -26,9 +27,9 @@ if (process.env.NXUS_DEV_MODE === "true") {
 
 const connectionId = process.env.NXUS_CONNECTION_ID;
 if (!connectionId) {
-  console.error("Error: NXUS_CONNECTION_ID environment variable is required.");
-  process.exit(1);
+  throw new Error("NXUS_CONNECTION_ID environment variable is required.");
 }
+const requiredConnectionId = connectionId;
 
 async function main() {
   console.log("SDK timeout reference");
@@ -37,45 +38,50 @@ async function main() {
     "  Backend should usually timeout first and return a structured error.",
   );
   console.log(
-    "  Paginated/list timeout hints are sent via X-Nxus-Timeout-Seconds.",
+    "  The explicit serverTimeoutSeconds probe below verifies the backend header path.",
   );
 
   console.log("\n1. Default client timeout");
   const defaultClient = new NxusClient({
-    apiKey,
+    apiKey: requiredApiKey,
     baseUrl: process.env.NXUS_BASE_URL,
     environment: process.env.NXUS_ENVIRONMENT,
-    connectionId,
+    connectionId: requiredConnectionId,
   });
   const vendorPage = await defaultClient.vendors.list({ limit: 5 });
   console.log(
     `  Vendors page: count=${vendorPage.data.length}, total=${vendorPage.totalCount}, hasMore=${vendorPage.hasMore}`,
   );
 
-  console.log("\n2. Paginated backend timeout hint + local timeout override");
-  const hintedPage = await defaultClient.transactions.list(
+  console.log("\n2. Backend timeout hint + local timeout override");
+  const hintedPage = await defaultClient.vendors.list(
     {
       limit: 100,
-      DetailLevel: "all",
-      timeoutSeconds: 45,
     },
     {
-      timeout: 30_000,
+      timeout: 60_000,
+      serverTimeoutSeconds: 45,
     },
   );
   console.log(
-    "  Requested transactions page with timeout=30_000ms and X-Nxus-Timeout-Seconds=45",
+    "  Requested vendors page with local timeout=60_000ms and serverTimeoutSeconds=45",
   );
   console.log(
-    `  Transactions page: count=${hintedPage.data.length}, total=${hintedPage.totalCount}, hasMore=${hintedPage.hasMore}`,
+    `  Vendors page: count=${hintedPage.data.length}, total=${hintedPage.totalCount}, hasMore=${hintedPage.hasMore}`,
   );
+
+  const hintedCount = await defaultClient.vendors.count(undefined, {
+    timeout: 60_000,
+    serverTimeoutSeconds: 45,
+  });
+  console.log(`  Vendor count with server timeout hint: ${hintedCount.count}`);
 
   console.log("\n3. Client-wide timeout override (120_000ms)");
   const longClient = new NxusClient({
-    apiKey,
+    apiKey: requiredApiKey,
     baseUrl: process.env.NXUS_BASE_URL,
     environment: process.env.NXUS_ENVIRONMENT,
-    connectionId,
+    connectionId: requiredConnectionId,
     timeout: 120_000,
   });
   const transactionPage = await longClient.transactions.list({

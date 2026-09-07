@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
+import * as sdkRoot from "../../src/index";
 import * as modelsRoot from "../../src/models";
 import * as modelsCore from "../../src/models/core";
 import * as modelsQbd from "../../src/models/qbd";
@@ -114,6 +115,17 @@ describe("public export surface", () => {
       );
     }
     expect(actual.enums, "runtime enum exports").toEqual(expected.enums);
+  });
+
+  // The models subpaths are not what consumers import — "." is. An enum
+  // re-exported from the root under `export type *` type-checks as a type,
+  // fails as a value with TS1362, and is `undefined` at runtime. That shipped
+  // once; this pins it.
+  it("exposes every generated enum as a runtime value from the package root", () => {
+    const rootExports = sdkRoot as unknown as Record<string, unknown>;
+    for (const [name, members] of Object.entries(readEnumRuntime())) {
+      expect(rootExports[name], `${name} is not a runtime export of "."`).toEqual(members);
+    }
   });
 
   it("re-exports every model subpath from the models root", () => {

@@ -4,7 +4,7 @@
     "AuthSession",
     "QwcAuthSetup"
   ],
-  "generatedFrom": "93094379db886f3773b6f5b5f151203aca35cb2ffb84bf1e4c059a1913d075bf",
+  "generatedFrom": "f261adc8d09288daef8b25d0ff4c8a638219710edb2c0c99711e4b4b8e152795",
   "schemas": {
     "Account": {
       "module": "account",
@@ -1057,6 +1057,10 @@
     "PurchaseOrderLineGroup": {
       "module": "purchase_order",
       "package": "qbd"
+    },
+    "QbdActiveStatus": {
+      "module": "_shared",
+      "package": ""
     },
     "QbdDataExt": {
       "module": "_shared",

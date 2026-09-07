@@ -1478,6 +1478,7 @@ export {
   type PurchaseOrder,
   type PurchaseOrderLine,
   type PurchaseOrderLineGroup,
+  QbdActiveStatus,
   type QbdDataExt,
   QbdDateMacro,
   type QbdRef,

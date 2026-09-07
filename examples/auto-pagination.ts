@@ -23,7 +23,7 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
+import "./load-env.js";
 import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
@@ -63,7 +63,6 @@ async function main() {
 
   for await (const customer of nxus.customers.list({
     limit: 10,
-    timeoutSeconds: 45,
   })) {
     count++;
     console.log(`  ${count}. ${customer.name} (${customer.id})`);
@@ -93,7 +92,6 @@ async function main() {
 
   for await (const customer of nxus.customers.list({
     limit: 10,
-    timeoutSeconds: 45,
   })) {
     const name = customer.name ?? "";
     if (name.toLowerCase().includes(targetSubstring.toLowerCase())) {
@@ -119,7 +117,7 @@ async function main() {
   console.log("\n=== Manual page-by-page navigation ===\n");
 
   // Fetch the first page with a small limit
-  let page = await nxus.customers.list({ limit: 5, timeoutSeconds: 45 });
+  let page = await nxus.customers.list({ limit: 5 });
   let pageNumber = 1;
 
   console.log(
@@ -129,7 +127,8 @@ async function main() {
     console.log(`  - ${customer.name}`);
   }
 
-  // Navigate to the next page if available
+  // Navigate to the next page if available. The SDK preserves the original
+  // list parameters and manages the cursor for each follow-up request.
   while (page.hasNextPage() && pageNumber < 3) {
     page = await page.getNextPage();
     pageNumber++;

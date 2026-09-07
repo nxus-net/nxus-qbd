@@ -14318,11 +14318,15 @@
             "enum": [
               "VALIDATION_ERROR_TYPE",
               "AUTHENTICATION_ERROR_TYPE",
+              "AUTHORIZATION_ERROR_TYPE",
+              "SECURITY_ERROR_TYPE",
               "NOT_FOUND_ERROR_TYPE",
               "RESTRICTION_ERROR_TYPE",
               "INTEGRATION_CONNECTION_ERROR_TYPE",
+              "INTEGRATION_CONNECTION_OFFLINE_TYPE",
               "INTEGRATION_RESPONSE_ERROR_TYPE",
               "BILLING_ERROR_TYPE",
+              "PAYMENT_REQUIRED_ERROR_TYPE",
               "APPLICATION_ERROR_TYPE",
               "TIMEOUT_ERROR_TYPE",
               "RATE_LIMIT_ERROR_TYPE",
@@ -14338,34 +14342,53 @@
               "API_KEY_INVALID",
               "API_KEY_EXPIRED",
               "API_KEY_REVOKED",
+              "API_KEY_INVALID_FORMAT",
+              "API_KEY_ROTATION_EXPIRED",
+              "AUTH_MIDDLEWARE_EXCEPTION",
               "KEY_MODE_MISMATCH",
               "AUTHENTICATION_ERROR",
               "AUTHORIZATION_ERROR",
               "VALIDATION_ERROR",
+              "CSRF_VALIDATION_FAILED",
               "QBD_OBJECT_NOT_FOUND",
+              "RESOURCE_NOT_FOUND",
+              "IP_BLACKLISTED",
               "ACCOUNT_RESTRICTED",
               "CONNECTION_RESTRICTED",
               "CONNECTION_ARCHIVED",
               "DEVELOPMENT_ACCESS_RESTRICTED",
+              "EMAIL_NOT_VERIFIED",
               "QBD_CONNECTION_ERROR",
               "QBD_SESSION_ERROR",
+              "QWC_NOT_CONNECTED",
+              "QWC_NEVER_CONNECTED",
               "QBD_XML_RESPONSE_ERROR",
               "QBD_STALE_EDIT_SEQUENCE",
               "INVALID_OPERATION",
               "NOT_IMPLEMENTED",
               "METHOD_NOT_ALLOWED",
+              "OPERATION_NOT_SUPPORTED",
+              "APPLICATION_ERROR",
+              "APP_ERROR",
               "GET_PAGINATED_NOT_SUPPORTED",
+              "COUNT_NOT_SUPPORTED",
               "GET_BY_ID_NOT_SUPPORTED",
               "CREATE_NOT_SUPPORTED",
               "UPDATE_NOT_SUPPORTED",
               "DELETE_NOT_SUPPORTED",
+              "VOID_NOT_SUPPORTED",
               "UNEXPECTED_SERVICE_RESPONSE",
               "SUBSCRIPTION_REQUIRED",
+              "PRODUCTION_SUBSCRIPTION_REQUIRED",
+              "CHECKOUT_CREATION_FAILED",
+              "CANCEL_FAILED",
+              "PORTAL_CREATION_FAILED",
               "RATE_LIMIT_EXCEEDED",
               "TIMEOUT_ERROR",
               "REQUEST_TIMEOUT",
               "UNEXPECTED_ERROR",
-              "INTERNAL_ERROR"
+              "INTERNAL_ERROR",
+              "UNKNOWN"
             ],
             "nullable": true,
             "type": "string"
@@ -14383,8 +14406,27 @@
           },
           "requestId": {
             "description": "Request ID for tracking and diagnostics (e.g. \"req_abc123\").",
+            "example": "req_1234567890",
             "nullable": true,
             "type": "string"
+          },
+          "retryAfter": {
+            "description": "Seconds to wait before retrying, on errors where retrying can succeed. Mirrors the Retry-After response header, which is the value to prefer.",
+            "example": "60",
+            "format": "int32",
+            "nullable": true,
+            "type": "integer"
+          },
+          "errors": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "Field-level validation failures keyed by property name. Present only on validation errors; absent otherwise.",
+            "nullable": true,
+            "type": "object"
           }
         },
         "required": [
@@ -14394,7 +14436,9 @@
           "code",
           "httpStatusCode",
           "requestId",
-          "integrationCode"
+          "integrationCode",
+          "retryAfter",
+          "errors"
         ],
         "type": "object"
       },
@@ -23851,6 +23895,7 @@
           "class",
           "amount",
           "inventorySiteLocation",
+          "payee",
           "serviceDate",
           "salesTaxCode",
           "receivedQuantity",
@@ -23954,6 +23999,16 @@
           "customFields"
         ],
         "type": "object"
+      },
+      "QbdActiveStatus": {
+        "default": "ActiveOnly",
+        "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
+        "enum": [
+          "ActiveOnly",
+          "InactiveOnly",
+          "All"
+        ],
+        "type": "string"
       },
       "QbdDataExt": {
         "description": "Represents a custom data extension (Custom Field) in QuickBooks.",
@@ -24837,7 +24892,6 @@
           },
           "revisionNumber": {
             "description": "The current QuickBooks-assigned revision number for this object.\n\nThis value changes every time the record is modified.\nWhen updating this object, you must provide the most recent `revisionNumber` to ensure you are\nworking with the latest data and to prevent optimistic concurrency errors.",
-            "nullable": true,
             "type": "string"
           },
           "transactionDate": {
@@ -25202,6 +25256,7 @@
           "id",
           "createdAt",
           "updatedAt",
+          "revisionNumber",
           "objectType",
           "transactionDate",
           "currency",
@@ -25384,6 +25439,7 @@
         },
         "required": [
           "objectType",
+          "id",
           "item",
           "description",
           "quantity",
@@ -35965,6 +36021,13 @@
         "operationId": "CreateAccount",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -38255,12 +38318,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -39371,12 +39434,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -39938,6 +40001,13 @@
         "description": "Creates a new ArRefundCreditCard in QuickBooks.",
         "operationId": "CreateArRefundCreditCard",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -45438,6 +45508,13 @@
         "operationId": "CreateBill",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -49572,6 +49649,13 @@
         "operationId": "CreateBillingRate",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -50950,12 +51034,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -51558,12 +51642,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -54946,6 +55030,13 @@
         "operationId": "CreateBuildAssembly",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -56749,6 +56840,13 @@
         "description": "Creates a new Charge in QuickBooks.",
         "operationId": "CreateCharge",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -60403,6 +60501,13 @@
         "operationId": "CreateCheck",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -60858,6 +60963,13 @@
         "description": "Creates a new CheckBillPayment in QuickBooks.",
         "operationId": "CreateCheckBillPayment",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -67715,6 +67827,13 @@
         "operationId": "CreateClass",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -69561,12 +69680,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -70161,12 +70280,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -74091,6 +74210,13 @@
         "operationId": "CreateCreditCardBillPayment",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -77293,6 +77419,13 @@
         "description": "Creates a new CreditCard in QuickBooks.",
         "operationId": "CreateCreditCard",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -80920,6 +81053,13 @@
         "description": "Creates a new CreditCardCredit in QuickBooks.",
         "operationId": "CreateCreditCardCredit",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -84573,6 +84713,13 @@
         "description": "Creates a new CreditMemo in QuickBooks.",
         "operationId": "CreateCreditMemo",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -88251,12 +88398,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -88851,12 +88998,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -89386,6 +89533,13 @@
         "description": "Creates a new Currency in QuickBooks.",
         "operationId": "CreateCurrency",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -90753,7 +90907,7 @@
         "operationId": "Close",
         "parameters": [
           {
-            "description": "The cursor operation identifier returned by a paginated response.",
+            "description": "The cursor / operation id issued with the first paginated response.",
             "in": "path",
             "name": "operationId",
             "required": true,
@@ -94358,6 +94512,13 @@
         "operationId": "CreateCustomer",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -94813,6 +94974,13 @@
         "description": "Creates a new CustomerType in QuickBooks.",
         "operationId": "CreateCustomerType",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -96192,12 +96360,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -96792,12 +96960,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -98727,12 +98895,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -99418,12 +99586,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -100030,6 +100198,13 @@
         "description": "Creates a new DateDrivenTerm in QuickBooks.",
         "operationId": "CreateDateDrivenTerm",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -101409,12 +101584,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -102009,12 +102184,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -102544,6 +102719,13 @@
         "description": "Creates a new Deposit in QuickBooks.",
         "operationId": "CreateDeposit",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -106204,6 +106386,13 @@
         "operationId": "CreateEmployee",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -108050,12 +108239,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -108650,12 +108839,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -109185,6 +109374,13 @@
         "description": "Creates a new Estimate in QuickBooks.",
         "operationId": "CreateEstimate",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -112376,6 +112572,13 @@
         "description": "Creates a new InventoryAdjustment in QuickBooks.",
         "operationId": "CreateInventoryAdjustment",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -116022,6 +116225,13 @@
         "operationId": "CreateInventorySite",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -117862,12 +118072,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -118462,12 +118672,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -118997,6 +119207,13 @@
         "description": "Creates a new Invoice in QuickBooks.",
         "operationId": "CreateInvoice",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -122749,6 +122966,13 @@
         "operationId": "CreateItemDiscount",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -124552,6 +124776,13 @@
         "description": "Creates a new ItemFixedAsset in QuickBooks.",
         "operationId": "CreateItemFixedAsset",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -126357,6 +126588,13 @@
         "operationId": "CreateItemGroup",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -128161,6 +128399,13 @@
         "operationId": "CreateInventoryItem",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -128616,6 +128861,13 @@
         "description": "Creates a new ItemInventoryAssembly in QuickBooks.",
         "operationId": "CreateItemInventoryAssembly",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -131769,6 +132021,13 @@
         "operationId": "CreateItemNonInventory",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -133572,6 +133831,13 @@
         "description": "Creates a new ItemOtherCharge in QuickBooks.",
         "operationId": "CreateItemOtherCharge",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -135377,6 +135643,13 @@
         "operationId": "CreateItemPayment",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -137180,6 +137453,13 @@
         "description": "Creates a new ItemReceipt in QuickBooks.",
         "operationId": "CreateItemReceipt",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -140866,6 +141146,13 @@
         "operationId": "CreateItemSalesTax",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -141321,6 +141608,13 @@
         "description": "Creates a new ItemSalesTaxGroup in QuickBooks.",
         "operationId": "CreateItemSalesTaxGroup",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -144474,6 +144768,13 @@
         "operationId": "CreateServiceItem",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -146277,6 +146578,13 @@
         "description": "Creates a new ItemSubtotal in QuickBooks.",
         "operationId": "CreateItemSubtotal",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -148573,12 +148881,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -149208,12 +149516,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -149822,12 +150130,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -150403,12 +150711,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -151017,12 +151325,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -151598,12 +151906,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -152224,12 +152532,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -152817,12 +153125,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -153428,10 +153736,11 @@
             }
           },
           {
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -153940,10 +154249,11 @@
         "operationId": "CountItemsInventoryAssembly",
         "parameters": [
           {
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -154422,12 +154732,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -155003,12 +155313,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -155628,12 +155938,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -156303,12 +156613,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -156924,12 +157234,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -157429,12 +157739,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -158043,12 +158353,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -158624,12 +158934,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -159259,12 +159569,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -159873,12 +160183,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -160433,12 +160743,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -161014,12 +161324,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -161648,12 +161958,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -162249,12 +162559,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -162863,12 +163173,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -163423,12 +163733,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -165357,6 +165667,13 @@
         "description": "Creates a new JournalEntry in QuickBooks.",
         "operationId": "CreateJournalEntry",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -167606,6 +167923,13 @@
         "operationId": "CreateOtherName",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -169446,12 +169770,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -170046,12 +170370,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -170581,6 +170905,13 @@
         "description": "Creates a new PaymentMethod in QuickBooks.",
         "operationId": "CreatePaymentMethod",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -171960,12 +172291,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -172569,12 +172900,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -174036,12 +174367,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -174636,12 +174967,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -175171,6 +175502,13 @@
         "description": "Creates a new PayrollItemWage in QuickBooks.",
         "operationId": "CreatePayrollItemWage",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -176550,12 +176888,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -177150,12 +177488,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -177685,6 +178023,13 @@
         "description": "Creates a new PriceLevel in QuickBooks.",
         "operationId": "CreatePriceLevel",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -179526,12 +179871,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -180134,12 +180479,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -180677,6 +181022,13 @@
         "description": "Creates a new PurchaseOrder in QuickBooks.",
         "operationId": "CreatePurchaseOrder",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -184312,6 +184664,13 @@
         "description": "Creates a new ReceivePayment in QuickBooks.",
         "operationId": "CreateReceivePayment",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -194678,6 +195037,13 @@
         "operationId": "CreateSalesOrder",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -197966,6 +198332,13 @@
         "description": "Creates a new SalesReceipt in QuickBooks.",
         "operationId": "CreateSalesReceipt",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -201618,6 +201991,13 @@
         "operationId": "CreateSalesTaxCode",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -203458,12 +203838,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -204058,12 +204438,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -204593,6 +204973,13 @@
         "description": "Creates a new SalesTaxPaymentCheck in QuickBooks.",
         "operationId": "CreateSalesTaxPaymentCheck",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -207887,6 +208274,13 @@
         "operationId": "CreateShipMethod",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -209727,12 +210121,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -210327,12 +210721,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -210862,6 +211256,13 @@
         "description": "Creates a new SpecialItem in QuickBooks.",
         "operationId": "CreateSpecialItem",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -212146,6 +212547,13 @@
         "description": "Creates a new Term in QuickBooks.",
         "operationId": "CreateTerm",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -213529,12 +213937,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -214129,12 +214537,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -216077,6 +216485,13 @@
         "description": "Creates a new TimeTracking in QuickBooks.",
         "operationId": "CreateTimeTracking",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -220265,6 +220680,13 @@
         "operationId": "CreateUnitOfMeasureSet",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -221201,12 +221623,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -221801,12 +222223,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -222337,6 +222759,13 @@
         "operationId": "CreateVendor",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -222792,6 +223221,13 @@
         "description": "Creates a new VendorCredit in QuickBooks.",
         "operationId": "CreateVendorCredit",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -226422,6 +226858,13 @@
         "operationId": "CreateVendorType",
         "parameters": [
           {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
             "name": "X-Connection-Id",
@@ -227800,12 +228243,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -228400,12 +228843,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -230335,12 +230778,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -230949,12 +231392,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -231484,6 +231927,13 @@
         "description": "Creates a new WorkersCompCode in QuickBooks.",
         "operationId": "CreateWorkersCompCode",
         "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "description": "Identifies which QuickBooks Desktop company file to target.\n\nAccepts three formats:\n- **Prefixed ID**: `conn_01965a3f2e7b7000b4c1d2e3f4a5b6c7`\n- **Internal GUID**: `3fa85f64-5717-4562-b3fc-2c963f66afa6`\n- **Your external ID**: `acme-corp` (the `externalId` you assigned when creating the connection)\n\nThe API resolves any of these formats to the correct connection. Required for all QuickBooks resource operations — without it, the API cannot determine which company file to query.",
             "in": "header",
@@ -232883,12 +233333,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {
@@ -233503,12 +233953,12 @@
             }
           },
           {
-            "description": "Shortcut for Filters.ActiveStatus - Filter by active status enum: ActiveOnly InactiveOnly ALL",
+            "description": "Filters QuickBooks list records by active state. Omit the parameter to use QuickBooks' ActiveOnly default.",
             "example": "ActiveOnly",
             "in": "query",
             "name": "activeStatus",
             "schema": {
-              "type": "string"
+              "$ref": "#/components/schemas/QbdActiveStatus"
             }
           },
           {

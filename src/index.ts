@@ -38,7 +38,13 @@ export { core, qbd } from "./models";
 
 // Re-export every generated type so consumers can write:
 //   import { type Vendor, NxusClient } from '@nxus/qbd';
-export type * from "./generated/types.gen";
+//
+// A value export, not `export type *`: the generated module also declares 49
+// enums (QbdActiveStatus, QbdDateMacro, AccountType, ...) that are real runtime
+// objects. Under `export type *` those reached consumers as types only, so
+// `activeStatus: QbdActiveStatus.ALL` failed to compile (TS1362) and resolved
+// to `undefined` at runtime.
+export * from "./generated/types.gen";
 export type * from "./contracts";
 
 // Helpers — pagination, errors

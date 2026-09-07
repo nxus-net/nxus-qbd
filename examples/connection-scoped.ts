@@ -26,7 +26,7 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
+import "./load-env.js";
 import { NxusClient, NxusApiError } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
@@ -35,9 +35,9 @@ import { NxusClient, NxusApiError } from "nxus-qbd";
 
 const apiKey = process.env.NXUS_API_KEY;
 if (!apiKey) {
-  console.error("Error: NXUS_API_KEY environment variable is required.");
-  process.exit(1);
+  throw new Error("NXUS_API_KEY environment variable is required.");
 }
+const requiredApiKey = apiKey;
 
 const connectionIdA =
   process.env.CONNECTION_ID_A ??
@@ -47,11 +47,9 @@ const connectionIdB =
   process.env.CONNECTION_ID_B ?? process.env.NXUS_CONNECTION_ID_B;
 
 if (!connectionIdA) {
-  console.error(
-    "Error: CONNECTION_ID_A or NXUS_CONNECTION_ID_A environment variable is required.",
+  throw new Error(
+    "CONNECTION_ID_A, NXUS_CONNECTION_ID_A, or NXUS_CONNECTION_ID is required.",
   );
-  console.error("  Set it to a connection GUID or your external ID string.");
-  process.exit(1);
 }
 
 if (process.env.NXUS_DEV_MODE === "true") {
@@ -68,7 +66,7 @@ async function main() {
   console.log("=== 1: Default connection on the client ===\n");
 
   const clientA = new NxusClient({
-    apiKey,
+    apiKey: requiredApiKey,
     baseUrl: process.env.NXUS_BASE_URL,
     environment: process.env.NXUS_ENVIRONMENT,
     connectionId: connectionIdA,
@@ -92,7 +90,7 @@ async function main() {
   console.log("\n=== 2: Choose the connection per request ===\n");
 
   const nxus = new NxusClient({
-    apiKey,
+    apiKey: requiredApiKey,
     baseUrl: process.env.NXUS_BASE_URL,
     environment: process.env.NXUS_ENVIRONMENT,
   });

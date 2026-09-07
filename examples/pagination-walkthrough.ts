@@ -18,8 +18,8 @@
  *   NXUS_DEV_MODE         Set to "true" to disable TLS verification (local dev)
  */
 
-import "dotenv/config";
-import { NxusClient, NxusApiError } from "nxus-qbd";
+import "./load-env.js";
+import { NxusClient, NxusApiError, type Vendor, QbdActiveStatus } from "nxus-qbd";
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -56,13 +56,8 @@ const nxus = new NxusClient({
 const LIMIT = 20;
 const SEPARATOR = "=".repeat(60);
 
-function getDisplayName(vendor: Record<string, unknown>): string {
-  return (
-    (vendor.name as string) ??
-    (vendor.fullName as string) ??
-    (vendor.companyName as string) ??
-    "(unnamed)"
-  );
+function getDisplayName(vendor: Vendor): string {
+  return vendor.name ?? vendor.companyName ?? "(unnamed)";
 }
 
 // ---------------------------------------------------------------------------
@@ -74,7 +69,14 @@ async function main() {
   console.log(`  Sync Pagination Walkthrough  (limit=${LIMIT})`);
   console.log(`${SEPARATOR}\n`);
 
-  let page = await nxus.vendors.list({ limit: LIMIT, timeoutSeconds: 45 });
+  // Request only the fields this walkthrough displays, while preserving the
+  // response metadata needed to demonstrate pagination.
+  let page = await nxus.vendors.list({
+    limit: LIMIT,
+    // qbXML uses the exact enum literal `All`, not `ALL`.
+    activeStatus: QbdActiveStatus.ALL,
+    fields: ["id", "name", "companyName", "phone", "email", "currency"],
+  });
   let pageNumber = 1;
   let totalItems = 0;
 
@@ -96,7 +98,7 @@ async function main() {
     console.log(`  \u2514\u2500\u2500 first ${previewCount} items:`);
 
     for (let i = 0; i < previewCount; i++) {
-      const name = getDisplayName(page.data[i] as Record<string, unknown>);
+      const name = getDisplayName(page.data[i]);
       console.log(`       ${i + 1}. ${name}`);
     }
 
@@ -106,8 +108,8 @@ async function main() {
 
     console.log();
 
-    // Advance to the next page or stop. The SDK reuses
-    // X-Nxus-Timeout-Seconds for each follow-up page request.
+    // Advance to the next page or stop. The SDK preserves the original list
+    // filters and cursor state for each follow-up page request.
     if (!page.hasNextPage()) {
       break;
     }

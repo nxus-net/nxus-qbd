@@ -1499,6 +1499,7 @@
       "PurchaseOrder",
       "PurchaseOrderLine",
       "PurchaseOrderLineGroup",
+      "QbdActiveStatus",
       "QbdDataExt",
       "QbdDateMacro",
       "QbdRef",
@@ -2339,13 +2340,15 @@
       "WorkersCompCode",
       "core",
       "extractErrorMessage",
+      "isActiveStatus",
       "isNxusApiError",
       "isNxusResponse",
       "models",
       "normalizeEnvironment",
       "qbd",
       "resolveBaseUrl",
-      "throwIfError"
+      "throwIfError",
+      "toActiveStatus"
     ],
     "./models": [
       "Account",
@@ -2611,6 +2614,7 @@
       "PurchaseOrder",
       "PurchaseOrderLine",
       "PurchaseOrderLineGroup",
+      "QbdActiveStatus",
       "QbdDataExt",
       "QbdDateMacro",
       "QbdRef",
@@ -3140,6 +3144,11 @@
     "PaymentStatus": {
       "COMPLETED": "Completed",
       "UNKNOWN": "Unknown"
+    },
+    "QbdActiveStatus": {
+      "ACTIVE_ONLY": "ActiveOnly",
+      "ALL": "All",
+      "INACTIVE_ONLY": "InactiveOnly"
     },
     "QbdDateMacro": {
       "ALL": "All",

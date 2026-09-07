@@ -85,6 +85,20 @@ function setHeader(
   headers[name] = value;
 }
 
+/** Resolve case-insensitive duplicates after all header sources are merged. */
+function canonicalizeHeader(
+  headers: Record<string, string>,
+  canonicalName: string,
+): void {
+  const matching = Object.entries(headers).filter(
+    ([name]) => name.toLowerCase() === canonicalName.toLowerCase(),
+  );
+  const value = matching.at(-1)?.[1];
+  if (value !== undefined) {
+    setHeader(headers, canonicalName, value);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -130,8 +144,8 @@ export interface TransportOptions {
    * without `x-should-retry` to disambiguate the safe default is to surface
    * the error to the caller.
    *
-   * The local timeout abort (`timeout`) is treated as a non-retryable
-   * cancellation.
+   * Local timeout aborts are retried only for generic Create calls carrying an
+   * idempotency key. Other calls treat a local timeout as cancellation.
    */
   maxRetries?: number;
   /**
@@ -165,6 +179,15 @@ export interface TransportOptions {
 export interface RequestOptions {
   /** Connection ID for per-request scoping (sets X-Connection-Id header). */
   connectionId?: string;
+  /**
+   * Idempotency key for a logical Create operation (sets Idempotency-Key).
+   *
+   * Generic resource Create methods generate a cryptographically random key
+   * when this is omitted, then retain it for every transport retry. Supply a
+   * durable, application-owned key when a workflow can resume in a later
+   * process.
+   */
+  idempotencyKey?: string;
   /** Extra headers for this request. */
   headers?: Record<string, string>;
   /** Request timeout in milliseconds (overrides the default). */
@@ -198,6 +221,29 @@ export interface RequestOptions {
    * Has no effect on plain (unwrapped) calls, which discard the snapshot.
    */
   includeRawBody?: boolean;
+}
+
+const RETRY_IDEMPOTENT_CREATE_TIMEOUT = Symbol("retryIdempotentCreateTimeout");
+
+/** @internal Marks only SDK-owned generic Create options as timeout-retryable. */
+export function enableIdempotentCreateTimeoutRetry(
+  options: RequestOptions,
+): RequestOptions {
+  Object.defineProperty(options, RETRY_IDEMPOTENT_CREATE_TIMEOUT, {
+    value: true,
+  });
+  return options;
+}
+
+function retriesIdempotentCreateTimeout(options?: RequestOptions): boolean {
+  return Boolean(
+    options &&
+    (
+      options as RequestOptions & {
+        [RETRY_IDEMPOTENT_CREATE_TIMEOUT]?: boolean;
+      }
+    )[RETRY_IDEMPOTENT_CREATE_TIMEOUT],
+  );
 }
 
 function normalizeErrorPayload(
@@ -264,6 +310,15 @@ function normalizeErrorPayload(
   if (normalized.status == null) {
     normalized.status = response.status;
   }
+  if (normalized.httpStatusCode == null) {
+    normalized.httpStatusCode = response.status;
+  }
+  if (normalized.retryAfter == null) {
+    const retryAfterMs = parseRetryAfter(response.headers.get("retry-after"));
+    if (retryAfterMs != null) {
+      normalized.retryAfter = retryAfterMs / 1_000;
+    }
+  }
 
   // Bodies that carry no request id still get one from the header, so
   // `err.requestId` is usable for support regardless of the error shape.
@@ -304,6 +359,10 @@ function extractLogicalErrorPayload(body: unknown): unknown | undefined {
   }
 
   if (asRecord(record.nxusApiError) || asRecord(record.qbdApiError)) {
+    return body;
+  }
+
+  if (String(record.status).toLowerCase() === "failed") {
     return body;
   }
 
@@ -547,7 +606,10 @@ export class NxusHttpTransport {
         return outcome.value;
       }
 
-      if (attempt >= maxRetries || !shouldRetry(outcome)) {
+      if (
+        attempt >= maxRetries ||
+        !shouldRetry(outcome, retriesIdempotentCreateTimeout(options))
+      ) {
         throw outcome.error;
       }
 
@@ -613,7 +675,10 @@ export class NxusHttpTransport {
         return outcome.response;
       }
 
-      if (attempt >= maxRetries || !shouldRetry(outcome)) {
+      if (
+        attempt >= maxRetries ||
+        !shouldRetry(outcome, retriesIdempotentCreateTimeout(options))
+      ) {
         // Non-2xx that we won't retry: return the Response so the caller can
         // inspect status/headers/body, matching the documented contract.
         if (outcome.kind === "http-error") {
@@ -671,6 +736,7 @@ export class NxusHttpTransport {
       );
     }
 
+    canonicalizeHeader(headers, "Idempotency-Key");
     return headers;
   }
 
@@ -868,8 +934,9 @@ export class NxusHttpTransport {
         return {
           kind: "http-error",
           status:
-            (asRecord(normalizedError)?.status as number | undefined) ??
-            response.status,
+            typeof asRecord(normalizedError)?.status === "number"
+              ? (asRecord(normalizedError)?.status as number)
+              : response.status,
           retryAfter: parseBodyRetryAfter(normalizedError),
           shouldRetry: parseShouldRetry(response.headers.get("x-should-retry")),
           error: NxusApiError.from(normalizedError),
@@ -1035,9 +1102,10 @@ type RawAttemptOutcome =
 
 function shouldRetry<T>(
   outcome: AttemptOutcome<T> | RawAttemptOutcome,
+  retryTimeout = false,
 ): boolean {
   if (outcome.kind === "network-error") return true;
-  if (outcome.kind === "timeout") return false;
+  if (outcome.kind === "timeout") return retryTimeout;
   if (outcome.kind === "http-error") {
     if (outcome.shouldRetry != null) return outcome.shouldRetry;
     if (RETRYABLE_STATUSES.has(outcome.status)) return true;

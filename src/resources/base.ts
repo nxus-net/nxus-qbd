@@ -6,7 +6,12 @@
  * QuickBooks Desktop endpoint.
  */
 
-import type { NxusHttpTransport, RequestOptions } from "../transport";
+import { randomUUID } from "node:crypto";
+import {
+  enableIdempotentCreateTimeoutRetry,
+  type NxusHttpTransport,
+  type RequestOptions,
+} from "../transport";
 import type {
   CursorPage,
   PaginatedPage,
@@ -14,7 +19,7 @@ import type {
 } from "../helpers/pagination";
 import { PaginationError } from "../helpers/pagination";
 import { NxusResponse } from "../helpers/response";
-import type { CountResponse, VoidResponse } from "../models";
+import type { CountResponse, QbdActiveStatus, VoidResponse } from "../models";
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -24,7 +29,17 @@ export type ListParams = {
   limit?: number;
   cursor?: string;
   timeoutSeconds?: number;
-  serverTimeoutSeconds?: number;
+  /**
+   * Filter by QuickBooks active state. Omit for QuickBooks' `ActiveOnly`
+   * default.
+   *
+   * Typed rather than left to the index signature because the backend forwards
+   * the value straight to qbXML: a near miss such as `"all"` is not rejected
+   * as a bad request, it comes back as QBD error 3110 ("The enumerated value
+   * ... is unknown or invalid for the qbXML version in use") from deep inside
+   * the QuickBooks round trip.
+   */
+  activeStatus?: QbdActiveStatus | `${QbdActiveStatus}`;
   [key: string]: unknown;
 };
 
@@ -35,6 +50,7 @@ export type CountParams = Omit<ListParams, "limit" | "cursor"> & {
 
 const REQUEST_OPTION_KEYS = [
   "connectionId",
+  "idempotencyKey",
   "headers",
   "timeout",
   "serverTimeoutSeconds",
@@ -106,6 +122,40 @@ export function withDefaultMaxRetries(
   }
 
   return { ...(options ?? {}), maxRetries };
+}
+
+/**
+ * Attach one stable idempotency key to a logical generic Create operation.
+ *
+ * A raw Idempotency-Key header remains supported for backwards compatibility,
+ * but the first-class option wins when both forms are supplied. The returned
+ * options object is constructed once before the transport retry loop, so all
+ * attempts reuse the same header.
+ */
+export function withCreateIdempotencyKey(
+  options?: RequestOptions,
+): RequestOptions {
+  const headers = { ...(options?.headers ?? {}) };
+  const headerEntry = Object.entries(headers).find(
+    ([name]) => name.toLowerCase() === "idempotency-key",
+  );
+  const idempotencyKey =
+    options?.idempotencyKey ?? headerEntry?.[1] ?? randomUUID();
+
+  for (const name of Object.keys(headers)) {
+    if (name.toLowerCase() === "idempotency-key") {
+      delete headers[name];
+    }
+  }
+
+  return enableIdempotentCreateTimeoutRetry({
+    ...(options ?? {}),
+    idempotencyKey,
+    headers: {
+      ...headers,
+      "Idempotency-Key": idempotencyKey,
+    },
+  });
 }
 
 function splitListQueryAndOptions(
@@ -361,7 +411,7 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
       const wire = await ctx.transport.sendPost<T>(
         ctx.getCreatePath(),
         body as Record<string, unknown>,
-        withDefaultMaxRetries(options, 0),
+        withCreateIdempotencyKey(options),
       );
       return NxusResponse.fromTransport(wire.body, wire);
     },
@@ -511,7 +561,7 @@ export class Resource<
     return this.transport.post<T>(
       this.getCreatePath(),
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 
@@ -786,7 +836,7 @@ export class NoUpdateResource<T, TCreate = Record<string, unknown>> {
     return this.transport.post<T>(
       this.getCreatePath(),
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 
@@ -853,7 +903,7 @@ export class NoDeleteResource<
     return this.transport.post<T>(
       this.getCreatePath(),
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 
@@ -1041,7 +1091,7 @@ export class ListRetrieveCreateResource<T, TCreate = Record<string, unknown>> {
     return this.transport.post<T>(
       this.getCreatePath(),
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 
@@ -1098,7 +1148,7 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
     return this.transport.post<T>(
       this.getCreatePath(),
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 
@@ -1168,7 +1218,7 @@ export class CreateOnlyResource<T, TCreate = Record<string, unknown>> {
     return this.transport.post<T>(
       this.createPath,
       body as Record<string, unknown>,
-      withDefaultMaxRetries(options, 0),
+      withCreateIdempotencyKey(options),
     );
   }
 

@@ -210,12 +210,24 @@ describe("request option boundaries", () => {
     await resource.update("vendor_3", { name: "Updated Acme" }, FULL_OPTIONS);
     await specialItems.create({ code: "SPECIAL" }, FULL_OPTIONS);
 
-    expect(transport.post.mock.calls).toEqual([
-      ["/api/v1/vendor", { name: "Acme" }, FULL_OPTIONS],
-      ["/api/v1/vendor", { name: "Legacy Acme" }, FULL_OPTIONS],
-      ["/api/v1/vendor/vendor_3", { name: "Updated Acme" }, FULL_OPTIONS],
-      ["/api/v1/special-item", { code: "SPECIAL" }, FULL_OPTIONS],
+    expect(
+      transport.post.mock.calls.map(([path, body]) => [path, body]),
+    ).toEqual([
+      ["/api/v1/vendor", { name: "Acme" }],
+      ["/api/v1/vendor", { name: "Legacy Acme" }],
+      ["/api/v1/vendor/vendor_3", { name: "Updated Acme" }],
+      ["/api/v1/special-item", { code: "SPECIAL" }],
     ]);
+    for (const callIndex of [0, 1, 3]) {
+      const options = transport.post.mock.calls[callIndex]?.[2] as RequestOptions;
+      expect(options).toMatchObject({
+        ...FULL_OPTIONS,
+        headers: { "X-Test": "1" },
+      });
+      expect(options.headers["Idempotency-Key"]).toMatch(
+        /^[0-9a-f-]{36}$/i,
+      );
+    }
   });
 
   it("supports split report queries without leaking request options into the query string", async () => {
