@@ -32,7 +32,7 @@ async function main() {
     await mkdir(packageDir, { recursive: true });
 
     for (const moduleDef of modules) {
-      const moduleContent = renderModuleFile(moduleDef.module, moduleDef.symbols, `../../generated`, generatedExports);
+      const moduleContent = renderModuleFile(moduleDef.module, moduleDef.symbols, `../../generated/index.js`, generatedExports);
       await writeFile(path.join(packageDir, `${moduleDef.module}.ts`), moduleContent);
     }
 
@@ -207,7 +207,7 @@ function renderModuleFile(moduleName, symbols, importPath, generatedExports) {
 function renderPackageIndex(moduleNames) {
   const lines = [header()];
   for (const moduleName of moduleNames) {
-    lines.push(`export * from './${moduleName}';`);
+    lines.push(`export * from './${moduleName}.js';`);
   }
 
   return `${lines.join('\n')}\n`;
@@ -217,15 +217,15 @@ function renderRootIndex(sharedSymbols, generatedExports) {
   const { availableSymbols, missingSymbols } = partitionAvailableSymbols(sharedSymbols, generatedExports);
   const lines = [
     header(),
-    `import * as core from './core';`,
-    `import * as qbd from './qbd';`,
+    `import * as core from './core/index.js';`,
+    `import * as qbd from './qbd/index.js';`,
     '',
     `export { core, qbd };`,
-    `export * from './core';`,
-    `export * from './qbd';`,
+    `export * from './core/index.js';`,
+    `export * from './qbd/index.js';`,
   ];
 
-  const sharedExports = renderSplitExportBlock(availableSymbols, '../generated', generatedExports);
+  const sharedExports = renderSplitExportBlock(availableSymbols, '../generated/index.js', generatedExports);
   if (sharedExports) {
     lines.push('', sharedExports);
   }

@@ -2,14 +2,14 @@
  * Core app resources — connections and auth sessions.
  */
 
-import type { NxusHttpTransport, RequestOptions } from "../transport";
-import { NxusResponse } from "../helpers/response";
+import type { NxusHttpTransport, RequestOptions } from "../transport.js";
+import { NxusResponse } from "../helpers/response.js";
 import {
   Resource,
   assertNoRequestOptionKeys,
   withDefaultMaxRetries,
   type WrappedResourceMethods,
-} from "./base";
+} from "./base.js";
 
 type ConnectionsWithResponseMethods<TResponse, TCreate, TUpdate, TStatus> =
   Pick<

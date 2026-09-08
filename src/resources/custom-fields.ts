@@ -21,9 +21,9 @@
  * everything off an id path segment), these are hand-written.
  */
 
-import type { NxusHttpTransport, RequestOptions } from "../transport";
-import { NxusResponse } from "../helpers/response";
-import { assertNoRequestOptionKeys, withDefaultMaxRetries } from "./base";
+import type { NxusHttpTransport, RequestOptions } from "../transport.js";
+import { NxusResponse } from "../helpers/response.js";
+import { assertNoRequestOptionKeys, withDefaultMaxRetries } from "./base.js";
 import type {
   CreateCustomFieldDefinitionRequest,
   UpdateCustomFieldDefinitionRequest,
@@ -34,7 +34,7 @@ import type {
   DeleteCustomFieldValueRequest,
   DataExtDataExt,
   DeleteResponse,
-} from "../generated/types.gen";
+} from "../generated/types.gen.js";
 
 /**
  * Optional filters for {@link CustomFieldDefinitionsResource.list}. Mirrors the
@@ -66,9 +66,9 @@ export interface ListCustomFieldDefinitionsParams {
 // `DataExtTargetKind.LIST`, not `.List`.
 // ---------------------------------------------------------------------------
 
-export { DataExtTargetKind } from "../generated/types.gen";
+export { DataExtTargetKind } from "../generated/types.gen.js";
 
-import type { DataExtTargetKind as DataExtTargetKindEnum } from "../generated/types.gen";
+import type { DataExtTargetKind as DataExtTargetKindEnum } from "../generated/types.gen.js";
 
 /** The wire values of {@link DataExtTargetKind} — `"List" | "Transaction" | "Company"`. */
 export type DataExtTargetKindValue = `${DataExtTargetKindEnum}`;

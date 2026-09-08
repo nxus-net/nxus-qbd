@@ -2,9 +2,9 @@
  * ReportsResource — QuickBooks Desktop report endpoints.
  */
 
-import type { NxusHttpTransport, RequestOptions } from "../transport";
-import { NxusResponse } from "../helpers/response";
-import { assertNoRequestOptionKeys } from "./base";
+import type { NxusHttpTransport, RequestOptions } from "../transport.js";
+import { NxusResponse } from "../helpers/response.js";
+import { assertNoRequestOptionKeys } from "./base.js";
 
 // ---------------------------------------------------------------------------
 // Types

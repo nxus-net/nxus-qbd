@@ -11,15 +11,15 @@ import {
   enableIdempotentCreateTimeoutRetry,
   type NxusHttpTransport,
   type RequestOptions,
-} from "../transport";
+} from "../transport.js";
 import type {
   CursorPage,
   PaginatedPage,
   AutoPaginationPromise,
-} from "../helpers/pagination";
-import { PaginationError } from "../helpers/pagination";
-import { NxusResponse } from "../helpers/response";
-import type { CountResponse, QbdActiveStatus, VoidResponse } from "../models";
+} from "../helpers/pagination.js";
+import { PaginationError } from "../helpers/pagination.js";
+import { NxusResponse } from "../helpers/response.js";
+import type { CountResponse, QbdActiveStatus, VoidResponse } from "../models/index.js";
 
 // ---------------------------------------------------------------------------
 // Shared types

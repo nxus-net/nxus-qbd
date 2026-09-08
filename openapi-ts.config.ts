@@ -17,6 +17,12 @@ export default defineConfig({
     "./spec/openapi.json",
   output: {
     path: "src/generated",
+    // Node ESM requires explicit extensions on relative specifiers.
+    // Without this the emitted `from "./types.gen"` resolves under a
+    // bundler and under vitest, but throws ERR_MODULE_NOT_FOUND in
+    // plain `node` — which is what consumers of the published package
+    // actually run.
+    importFileExtension: ".js",
     // No `postProcess: ["prettier"]` here. openapi-ts resolves that formatter
     // from its own node_modules, which under pnpm's strict layout does not
     // contain prettier — so it printed "Running Prettier" and silently did

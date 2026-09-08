@@ -1,7 +1,7 @@
 import type {
   ConnectionModeRequest,
   ConnectionStatus as GeneratedConnectionStatus,
-} from './generated/types.gen';
+} from './generated/types.gen.js';
 
 export interface RestrictionSummary {
   code?: string | null;

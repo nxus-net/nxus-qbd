@@ -2314,4 +2314,4 @@ export {
   type VoidVendorCreditResponse,
   type VoidVendorCreditResponses,
   type WorkersCompCode,
-} from "./types.gen";
+} from "./types.gen.js";

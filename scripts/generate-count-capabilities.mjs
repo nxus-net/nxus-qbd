@@ -142,12 +142,12 @@ function wireClient(source, entries) {
   }
   if (
     !updated.includes(
-      'import { COUNT_PATHS } from "./generated/count-capabilities";',
+      'import { COUNT_PATHS } from "./generated/count-capabilities.js";',
     )
   ) {
     updated = updated.replace(
-      'import type { RequestOptions } from "./transport";',
-      'import type { RequestOptions } from "./transport";\nimport { COUNT_PATHS } from "./generated/count-capabilities";',
+      'import type { RequestOptions } from "./transport.js";',
+      'import type { RequestOptions } from "./transport.js";\nimport { COUNT_PATHS } from "./generated/count-capabilities.js";',
     );
   }
   if (!updated.includes("  withCount,")) {

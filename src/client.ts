@@ -26,10 +26,10 @@ import {
   DEFAULT_TIMEOUT_MS,
   type TransportOptions,
   type NxusLogger,
-} from "./transport";
-import type { RequestOptions } from "./transport";
-import { COUNT_PATHS } from "./generated/count-capabilities";
-import { type NxusEnvironment, resolveBaseUrl } from "./config";
+} from "./transport.js";
+import type { RequestOptions } from "./transport.js";
+import { COUNT_PATHS } from "./generated/count-capabilities.js";
+import { type NxusEnvironment, resolveBaseUrl } from "./config.js";
 import {
   withCount,
   Resource,
@@ -43,24 +43,24 @@ import {
   CrudNoUpdateResource,
   NoDeleteResource,
   CreateOnlyResource,
-} from "./resources/base";
-import { ReportsResource } from "./resources/reports";
+} from "./resources/base.js";
+import { ReportsResource } from "./resources/reports.js";
 import {
   ConnectionsResource,
   AuthSessionsResource,
-} from "./resources/connections";
+} from "./resources/connections.js";
 import {
   CustomFieldDefinitionsResource,
   CustomFieldsResource,
-} from "./resources/custom-fields";
-import type { Connection } from "./contracts";
+} from "./resources/custom-fields.js";
+import type { Connection } from "./contracts.js";
 
 // ---------------------------------------------------------------------------
 // Re-export all generated types for consumers
 // ---------------------------------------------------------------------------
 
-export type * from "./generated/types.gen";
-export type * from "./contracts";
+export type * from "./generated/types.gen.js";
+export type * from "./contracts.js";
 
 // ---------------------------------------------------------------------------
 // Import generated types for resource wiring
@@ -247,7 +247,7 @@ import type {
   UpdateConnectionRequest,
   CreateAuthSessionRequest,
   UpdateCreditCardChargeRequest,
-} from "./generated/types.gen";
+} from "./generated/types.gen.js";
 
 // ---------------------------------------------------------------------------
 // Constructor options

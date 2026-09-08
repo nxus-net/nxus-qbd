@@ -22,3 +22,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run test
+
+      # Packs the tarball, installs it with plain npm, and imports every
+      # advertised entry point with plain node. The suite above cannot
+      # catch a packaging defect: vitest resolves extensionless relative
+      # specifiers that Node ESM rejects, so `build` and `test` were both
+      # green while the published package threw ERR_MODULE_NOT_FOUND.
+      - run: pnpm run smoke:package

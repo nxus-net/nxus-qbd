@@ -5,8 +5,8 @@
  * and error mapping for all SDK requests.
  */
 
-import { NxusApiError } from "./helpers/errors";
-import type { TransportResponse } from "./helpers/response";
+import { NxusApiError } from "./helpers/errors.js";
+import type { TransportResponse } from "./helpers/response.js";
 
 export const DEFAULT_TIMEOUT_MS = 100_000;
 export const DEFAULT_MAX_RETRIES = 2;

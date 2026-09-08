@@ -3,7 +3,7 @@ export {
   type AutoPaginationPromise,
   type CursorPage,
   type PaginatedPage,
-} from './pagination';
+} from './pagination.js';
 export {
   NxusApiError,
   isNxusApiError,
@@ -11,6 +11,6 @@ export {
   extractErrorMessage,
   type NxusErrorCode,
   type NxusErrorType,
-} from './errors';
-export { NxusResponse, isNxusResponse } from './response';
-export { toActiveStatus, isActiveStatus } from './enums';
+} from './errors.js';
+export { NxusResponse, isNxusResponse } from './response.js';
+export { toActiveStatus, isActiveStatus } from './enums.js';

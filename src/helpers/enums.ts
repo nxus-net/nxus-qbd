@@ -2,7 +2,7 @@
  * Runtime coercion for the query enums the API forwards straight into qbXML.
  */
 
-import { QbdActiveStatus } from "../generated/types.gen";
+import { QbdActiveStatus } from "../generated/types.gen.js";
 
 const ACTIVE_STATUS_VALUES = Object.values(QbdActiveStatus);
 

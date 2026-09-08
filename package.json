@@ -38,8 +38,9 @@
     "generate:count-capabilities": "node ./scripts/generate-count-capabilities.mjs",
     "generate:capabilities": "node ./scripts/generate-resource-capabilities.mjs",
     "build": "tsc",
+    "smoke:package": "node ./scripts/smoke-package.mjs",
     "typecheck:examples": "tsc -p examples/tsconfig.json",
-    "prepublishOnly": "pnpm run build",
+    "prepublishOnly": "pnpm run build && pnpm run smoke:package",
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest"

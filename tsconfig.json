@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    // NodeNext, not ESNext/bundler. Under "bundler" the compiler accepts
+    // extensionless relative specifiers and emits them verbatim, so `tsc`
+    // stayed green while the emitted package threw ERR_MODULE_NOT_FOUND in
+    // plain `node` — the runtime the package advertises. NodeNext makes the
+    // compiler reject a missing extension, so this cannot regress silently.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "lib": ["ES2022", "DOM"],
     "outDir": "./dist",
     "rootDir": "./src",

@@ -16,7 +16,7 @@ export {
   type NxusClientOptions,
   type NxusLogger,
   type RequestOptions,
-} from "./client";
+} from "./client.js";
 export {
   DEFAULT_BASE_URL,
   LOCAL_BASE_URL,
@@ -24,17 +24,17 @@ export {
   normalizeEnvironment,
   resolveBaseUrl,
   type ResolveBaseUrlOptions,
-} from "./config";
-export { DEFAULT_TIMEOUT_MS } from "./transport";
+} from "./config.js";
+export { DEFAULT_TIMEOUT_MS } from "./transport.js";
 export {
   CustomFieldDefinitionsResource,
   CustomFieldsResource,
   DataExtTargetKind,
   type DataExtTargetKindValue,
   type ListCustomFieldDefinitionsParams,
-} from "./resources/custom-fields";
-export * as models from "./models";
-export { core, qbd } from "./models";
+} from "./resources/custom-fields.js";
+export * as models from "./models/index.js";
+export { core, qbd } from "./models/index.js";
 
 // Re-export every generated type so consumers can write:
 //   import { type Vendor, NxusClient } from '@nxus/qbd';
@@ -44,8 +44,8 @@ export { core, qbd } from "./models";
 // objects. Under `export type *` those reached consumers as types only, so
 // `activeStatus: QbdActiveStatus.ALL` failed to compile (TS1362) and resolved
 // to `undefined` at runtime.
-export * from "./generated/types.gen";
-export type * from "./contracts";
+export * from "./generated/types.gen.js";
+export type * from "./contracts.js";
 
 // Helpers — pagination, errors
-export * from "./helpers";
+export * from "./helpers/index.js";

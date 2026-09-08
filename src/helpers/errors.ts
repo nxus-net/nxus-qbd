@@ -1,4 +1,4 @@
-import type { ErrorDetail } from '../generated/types.gen';
+import type { ErrorDetail } from '../generated/types.gen.js';
 
 type ErrorRecord = Record<string, unknown>;
 
