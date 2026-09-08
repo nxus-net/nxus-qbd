@@ -12,6 +12,20 @@ export const DEFAULT_TIMEOUT_MS = 100_000;
 export const DEFAULT_MAX_RETRIES = 2;
 const RETRY_BASE_DELAY_MS = 500;
 const RETRY_MAX_DELAY_MS = 8_000;
+/**
+ * Ceiling on how long a server-supplied `Retry-After` will be honoured.
+ *
+ * Separate from RETRY_MAX_DELAY_MS, which bounds our own exponential backoff.
+ * Clamping the server's value to the backoff cap was actively harmful: on
+ * `Retry-After: 60` the SDK slept 8s, retried into a window still in force,
+ * and repeated until the budget was gone — every attempt guaranteed to fail.
+ *
+ * Beyond this ceiling the SDK does not sleep and does not spend an attempt; it
+ * returns the error with `retryAfter` intact so the caller can schedule the
+ * wait itself. Blocking a process for an unbounded server value is not the
+ * SDK's decision to make.
+ */
+const RETRY_AFTER_MAX_MS = 60_000;
 // 409 is intentionally omitted: the backend overloads it for both retryable
 // lock contention (`ObjectInUse`, `LockFailed`) and terminal business-rule
 // violations (`OutdatedEditSequence`, `NameNotUnique`, `TimeCreationMismatch`).
@@ -1166,6 +1180,20 @@ function shouldRetry<T>(
   if (outcome.kind === "network-error") return true;
   if (outcome.kind === "timeout") return retryTimeout;
   if (outcome.kind === "http-error") {
+    // A wait longer than we are willing to block for. Returning false here
+    // rather than retrying early is the point: an early retry cannot succeed
+    // inside a window the server just told us is still open, and it consumes
+    // an attempt to learn that. The caller gets the error with `retryAfter`
+    // on it and can schedule the real wait.
+    //
+    // Checked before `x-should-retry` on purpose. The two answer different
+    // questions — whether to retry, and when — and a server sending
+    // `x-should-retry: true` with `Retry-After: 300` is asking for a retry in
+    // five minutes, not for this process to block for five minutes. Nothing
+    // is lost: both facts reach the caller on the error.
+    if (outcome.retryAfter != null && outcome.retryAfter > RETRY_AFTER_MAX_MS) {
+      return false;
+    }
     if (outcome.shouldRetry != null) return outcome.shouldRetry;
     if (RETRYABLE_STATUSES.has(outcome.status)) return true;
     if (outcome.status >= 500) return true;
@@ -1179,7 +1207,9 @@ function computeRetryDelay<T>(
   outcome: AttemptOutcome<T> | RawAttemptOutcome,
 ): number {
   if (outcome.kind === "http-error" && outcome.retryAfter != null) {
-    return Math.min(outcome.retryAfter, RETRY_MAX_DELAY_MS);
+    // Honoured in full. shouldRetry() has already refused anything above
+    // RETRY_AFTER_MAX_MS, so this cannot exceed the ceiling.
+    return outcome.retryAfter;
   }
 
   const exponential = Math.min(

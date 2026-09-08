@@ -645,3 +645,138 @@ describe("transport retries", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+/**
+ * `Retry-After` policy.
+ *
+ * The server's wait used to be clamped to the 8s backoff cap, so a
+ * `Retry-After: 60` slept 8s, retried inside a window the server had just said
+ * was still open, and repeated until the budget was gone — every attempt
+ * guaranteed to fail. The two ceilings are now separate: our own backoff stays
+ * capped at 8s, the server's instruction is honoured up to 60s, and anything
+ * longer returns the error immediately with `retryAfter` intact rather than
+ * spending attempts to rediscover that the window is still open.
+ */
+describe("Retry-After handling", () => {
+  afterEach(() => {
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: originalFetch,
+      writable: true,
+    });
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  function rateLimited(retryAfterSeconds: string) {
+    return jsonResponse({ error: { message: "slow down" } }, 429, {
+      "retry-after": retryAfterSeconds,
+    });
+  }
+
+  it("waits the full server value when it is above the backoff cap", async () => {
+    vi.useFakeTimers();
+    const fetchMock = installFetchMock(
+      rateLimited("30"),
+      jsonResponse({ id: "conn_123" }, 200),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const promise = client.connections.retrieve("conn_123");
+
+    // Just short of the server's window: the retry must not have fired yet.
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    await promise;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("honours a Retry-After exactly at the 60s ceiling", async () => {
+    vi.useFakeTimers();
+    const fetchMock = installFetchMock(
+      rateLimited("60"),
+      jsonResponse({ id: "conn_123" }, 200),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const promise = client.connections.retrieve("conn_123");
+    await vi.advanceTimersByTimeAsync(61_000);
+    await promise;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry, or sleep, beyond the ceiling", async () => {
+    const fetchMock = installFetchMock(rateLimited("300"));
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    // Real timers: if this retried it would block the test for 300s.
+    await expect(client.connections.retrieve("conn_123")).rejects.toMatchObject({
+      status: 429,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves retryAfter on the raised error so the caller can schedule it", async () => {
+    installFetchMock(rateLimited("300"));
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const error = await client.connections
+      .retrieve("conn_123")
+      .then(() => undefined)
+      .catch((e) => e);
+
+    expect(error.retryAfter).toBe(300);
+    expect(error.isRateLimited).toBe(true);
+  });
+
+  it("a long Retry-After outranks x-should-retry: true", async () => {
+    // Different questions: whether to retry, and when. The server asking for a
+    // retry in five minutes is not asking this process to block for five.
+    const fetchMock = installFetchMock(
+      jsonResponse({ error: { message: "slow down" } }, 429, {
+        "retry-after": "300",
+        "x-should-retry": "true",
+      }),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    await expect(client.connections.retrieve("conn_123")).rejects.toBeDefined();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("still caps its own backoff at 8s when no Retry-After is sent", async () => {
+    vi.useFakeTimers();
+    const fetchMock = installFetchMock(
+      jsonResponse({ error: { message: "down" } }, 503),
+      jsonResponse({ id: "conn_123" }, 200),
+    );
+    const client = new NxusClient({
+      apiKey: "sk_test_123",
+      baseUrl: "https://api.example.test",
+    });
+
+    const promise = client.connections.retrieve("conn_123");
+    // 8s cap plus jitter; 15s is comfortably past it.
+    await vi.advanceTimersByTimeAsync(15_000);
+    await promise;
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
