@@ -34,7 +34,28 @@ import type {
   DeleteCustomFieldValueRequest,
   DataExtDataExt,
   DeleteResponse,
+  CollectionResponseDataExtDefinition,
 } from "../generated/types.gen.js";
+
+/**
+ * Unwrap the non-paginated collection envelope the definitions list returns.
+ *
+ * `GET /api/v1/custom-field-definitions` answers with
+ * `CollectionResponseDataExtDefinition` — `{ objectType, requestId, success,
+ * data, count, timestamp }` — not a bare array. The SDK typed the response as
+ * `Array<DataExtDefinition>` and returned it untouched, so callers got the
+ * envelope object while the type said array. `Array.isArray()` was false and
+ * `.find()` was not a function.
+ *
+ * A bare array is still accepted, because a private validation run points at
+ * whatever is deployed and this route has changed shape before.
+ */
+function unwrapDefinitionCollection(
+  body: CollectionResponseDataExtDefinition | Array<DataExtDefinition>,
+): Array<DataExtDefinition> {
+  if (Array.isArray(body)) return body;
+  return body?.data ?? [];
+}
 
 /**
  * Optional filters for {@link CustomFieldDefinitionsResource.list}. Mirrors the
@@ -138,8 +159,12 @@ export class CustomFieldDefinitionsResource {
    * List definitions. All filters are optional — omit them to fetch every
    * definition visible to the connection. This is a plain `GET` on the base
    * route (matching every other list endpoint in the API); the filters are
-   * repeated query-string params, not a request body. Returns a flat array
-   * (not paginated).
+   * repeated query-string params, not a request body.
+   *
+   * Returns a flat array (not paginated). The wire body is a
+   * `CollectionResponseDataExtDefinition` envelope; this unwraps `.data` so
+   * the return value matches the type. Use `withResponse.list()` when you need
+   * the envelope's `requestId` or `count`.
    *
    * @param params.ownerIds         Restrict to the given owner ids
    *   (`"0"` selects public / UI-defined fields).
@@ -160,11 +185,10 @@ export class CustomFieldDefinitionsResource {
     if (query.assignToObjects !== undefined) {
       requestQuery.AssignToObjects = query.assignToObjects;
     }
-    return this.transport.get<Array<DataExtDefinition>>(
-      CustomFieldDefinitionsResource.BASE,
-      requestQuery,
-      options,
-    );
+    const body = await this.transport.get<
+      CollectionResponseDataExtDefinition | Array<DataExtDefinition>
+    >(CustomFieldDefinitionsResource.BASE, requestQuery, options);
+    return unwrapDefinitionCollection(body);
   }
 
   /**
@@ -224,12 +248,15 @@ export class CustomFieldDefinitionsResource {
         if (query?.assignToObjects !== undefined) {
           requestQuery.AssignToObjects = query.assignToObjects;
         }
-        const wire = await this.transport.sendGet<Array<DataExtDefinition>>(
-          CustomFieldDefinitionsResource.BASE,
-          requestQuery,
-          options,
+        const wire = await this.transport.sendGet<
+          CollectionResponseDataExtDefinition | Array<DataExtDefinition>
+        >(CustomFieldDefinitionsResource.BASE, requestQuery, options);
+        // `.data` is the array; the envelope's requestId/count remain reachable
+        // through the NxusResponse metadata and `.raw`.
+        return NxusResponse.fromTransport(
+          unwrapDefinitionCollection(wire.body),
+          wire,
         );
-        return NxusResponse.fromTransport(wire.body, wire);
       },
       delete: async (
         body: DeleteCustomFieldDefinitionRequest,
