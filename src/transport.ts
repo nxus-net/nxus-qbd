@@ -579,6 +579,9 @@ export class NxusHttpTransport {
       ...this.fetchOptions,
       ...(options?.fetchOptions ?? {}),
     };
+    // Read here as well as inside the attempt, so a cancellation lands during
+    // the backoff wait rather than only at the next dispatch.
+    const { callerSignal } = extractCallerSignal(extraFetchOptions);
 
     let attempt = 0;
     while (true) {
@@ -606,6 +609,13 @@ export class NxusHttpTransport {
         return outcome.value;
       }
 
+      // Rethrow the caller's own abort reason rather than wrapping it. A
+      // consumer racing an AbortController checks `err.name === "AbortError"`;
+      // an NxusApiError here would read as a request failure instead.
+      if (outcome.kind === "canceled") {
+        throw outcome.reason;
+      }
+
       if (
         attempt >= maxRetries ||
         !shouldRetry(outcome, retriesIdempotentCreateTimeout(options))
@@ -623,7 +633,7 @@ export class NxusHttpTransport {
       }
       attempt += 1;
       if (delayMs > 0) {
-        await sleep(delayMs);
+        await sleep(delayMs, callerSignal);
       }
     }
   }
@@ -644,6 +654,9 @@ export class NxusHttpTransport {
       ...this.fetchOptions,
       ...(options?.fetchOptions ?? {}),
     };
+    // Read here as well as inside the attempt, so a cancellation lands during
+    // the backoff wait rather than only at the next dispatch.
+    const { callerSignal } = extractCallerSignal(extraFetchOptions);
 
     let attempt = 0;
     while (true) {
@@ -675,6 +688,10 @@ export class NxusHttpTransport {
         return outcome.response;
       }
 
+      if (outcome.kind === "canceled") {
+        throw outcome.reason;
+      }
+
       if (
         attempt >= maxRetries ||
         !shouldRetry(outcome, retriesIdempotentCreateTimeout(options))
@@ -697,7 +714,7 @@ export class NxusHttpTransport {
       }
       attempt += 1;
       if (delayMs > 0) {
-        await sleep(delayMs);
+        await sleep(delayMs, callerSignal);
       }
     }
   }
@@ -774,6 +791,11 @@ export class NxusHttpTransport {
     signal: AbortSignal,
     extraFetchOptions: Record<string, unknown>,
   ): Promise<RequestInit> {
+    // `signal` is placed last on purpose, and `extraFetchOptions` must already
+    // have had the caller's own signal removed by extractCallerSignal — the
+    // combined signal passed in here is what represents both. Leaving a raw
+    // caller signal in extraFetchOptions would let this spread drop the
+    // timeout instead, which is the same bug in the other direction.
     const merged: Record<string, unknown> = {
       ...extraFetchOptions,
       ...init,
@@ -815,6 +837,9 @@ export class NxusHttpTransport {
       case "timeout":
         this.logger.warn("timeout", ctx);
         return;
+      case "canceled":
+        this.logger.debug("canceled", ctx);
+        return;
       case "network-error":
         this.logger.warn("network-error", {
           ...ctx,
@@ -848,6 +873,9 @@ export class NxusHttpTransport {
       case "timeout":
         this.logger.warn("timeout", ctx);
         return;
+      case "canceled":
+        this.logger.debug("canceled", ctx);
+        return;
       case "network-error":
         this.logger.warn("network-error", {
           ...ctx,
@@ -865,6 +893,15 @@ export class NxusHttpTransport {
     extraFetchOptions: Record<string, unknown>,
     includeRawBody = false,
   ): Promise<AttemptOutcome<T>> {
+    const { callerSignal, rest } = extractCallerSignal(extraFetchOptions);
+
+    // Bail before dispatching. A caller who aborted before the call was made
+    // still had the request sent and the response returned, because the
+    // caller's signal never reached fetch at all.
+    if (callerSignal?.aborted) {
+      return { kind: "canceled", reason: callerSignal.reason };
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -872,8 +909,8 @@ export class NxusHttpTransport {
       const fetchInit = await this.resolveFetchInit(
         init,
         headers,
-        controller.signal,
-        extraFetchOptions,
+        combineAbortSignals(callerSignal, controller.signal),
+        rest,
       );
       const response = await fetch(url, fetchInit);
 
@@ -948,7 +985,15 @@ export class NxusHttpTransport {
         value: snapshot<T>(response, parsed, text, includeRawBody),
       };
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
+      if (isAbortError(error)) {
+        // Both aborts arrive here as the same DOMException, so the signal is
+        // the only way to tell them apart — and they mean opposite things. A
+        // timeout leaves the outcome unknown and may deserve a retry; a
+        // cancellation is an instruction to stop, and retrying a Create after
+        // one would resubmit work the caller is abandoning.
+        if (callerSignal?.aborted) {
+          return { kind: "canceled", reason: callerSignal.reason };
+        }
         return {
           kind: "timeout",
           error: new NxusApiError({
@@ -982,6 +1027,12 @@ export class NxusHttpTransport {
     timeout: number,
     extraFetchOptions: Record<string, unknown>,
   ): Promise<RawAttemptOutcome> {
+    const { callerSignal, rest } = extractCallerSignal(extraFetchOptions);
+
+    if (callerSignal?.aborted) {
+      return { kind: "canceled", reason: callerSignal.reason };
+    }
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
 
@@ -989,8 +1040,8 @@ export class NxusHttpTransport {
       const fetchInit = await this.resolveFetchInit(
         init,
         headers,
-        controller.signal,
-        extraFetchOptions,
+        combineAbortSignals(callerSignal, controller.signal),
+        rest,
       );
       const response = await fetch(url, fetchInit);
 
@@ -1010,7 +1061,10 @@ export class NxusHttpTransport {
 
       return { kind: "response", response };
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
+      if (isAbortError(error)) {
+        if (callerSignal?.aborted) {
+          return { kind: "canceled", reason: callerSignal.reason };
+        }
         return {
           kind: "timeout",
           error: new NxusApiError({
@@ -1086,7 +1140,8 @@ type AttemptOutcome<T> =
       error: NxusApiError;
     }
   | { kind: "network-error"; error: NxusApiError }
-  | { kind: "timeout"; error: NxusApiError };
+  | { kind: "timeout"; error: NxusApiError }
+  | { kind: "canceled"; reason: unknown };
 
 type RawAttemptOutcome =
   | { kind: "response"; response: Response }
@@ -1098,12 +1153,16 @@ type RawAttemptOutcome =
       response: Response;
     }
   | { kind: "network-error"; error: NxusApiError }
-  | { kind: "timeout"; error: NxusApiError };
+  | { kind: "timeout"; error: NxusApiError }
+  | { kind: "canceled"; reason: unknown };
 
 function shouldRetry<T>(
   outcome: AttemptOutcome<T> | RawAttemptOutcome,
   retryTimeout = false,
 ): boolean {
+  // The caller asked us to stop. Retrying would be the opposite of that, and
+  // for a Create it would resubmit work the caller is trying to abandon.
+  if (outcome.kind === "canceled") return false;
   if (outcome.kind === "network-error") return true;
   if (outcome.kind === "timeout") return retryTimeout;
   if (outcome.kind === "http-error") {
@@ -1179,6 +1238,96 @@ function parseShouldRetry(value: string | null): boolean | undefined {
   return undefined;
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Sleep that a caller can interrupt.
+ *
+ * Retry backoff can be seconds long. Without the signal, a caller cancelling
+ * mid-backoff would still wait out the delay and then issue another request.
+ */
+/**
+ * Abort detection that survives a cross-realm boundary.
+ *
+ * `instanceof DOMException` is false for an abort raised in another realm
+ * (undici's fetch, a worker, a polyfilled test double), and a miss there gets
+ * reported as a network error and retried — the opposite of what a cancelling
+ * caller asked for.
+ */
+function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException && error.name === "AbortError") return true;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (!signal) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  if (signal.aborted) {
+    return Promise.reject(signal.reason);
+  }
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+/**
+ * Read a caller-supplied `signal` out of per-request `fetchOptions`.
+ *
+ * Returned separately from the rest of the options so the SDK's timeout signal
+ * cannot silently overwrite it, which is exactly what used to happen.
+ */
+function extractCallerSignal(extraFetchOptions: Record<string, unknown>): {
+  callerSignal: AbortSignal | undefined;
+  rest: Record<string, unknown>;
+} {
+  const { signal, ...rest } = extraFetchOptions;
+  return {
+    callerSignal: signal instanceof AbortSignal ? signal : undefined,
+    rest,
+  };
+}
+
+/**
+ * One signal that aborts when either the caller or the timeout does.
+ *
+ * `AbortSignal.any` landed in Node 20.3; the package supports Node 18, so the
+ * manual path is not dead code.
+ */
+function combineAbortSignals(
+  callerSignal: AbortSignal | undefined,
+  timeoutSignal: AbortSignal,
+): AbortSignal {
+  if (!callerSignal) return timeoutSignal;
+
+  const anyFn = (
+    AbortSignal as unknown as {
+      any?: (signals: AbortSignal[]) => AbortSignal;
+    }
+  ).any;
+  if (typeof anyFn === "function") {
+    return anyFn([callerSignal, timeoutSignal]);
+  }
+
+  const controller = new AbortController();
+  const forward = (source: AbortSignal) => () =>
+    controller.abort(source.reason);
+  for (const source of [callerSignal, timeoutSignal]) {
+    if (source.aborted) {
+      controller.abort(source.reason);
+      break;
+    }
+    source.addEventListener("abort", forward(source), { once: true });
+  }
+  return controller.signal;
 }
