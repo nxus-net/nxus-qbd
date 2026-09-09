@@ -13,13 +13,13 @@ import {
 
 type ConnectionsWithResponseMethods<TResponse, TCreate, TUpdate, TStatus> =
   Pick<
-    WrappedResourceMethods<TResponse, TCreate, TUpdate>,
+    WrappedResourceMethods<TResponse, TCreate, TUpdate, void>,
     "list" | "retrieve" | "create" | "update" | "delete"
   > & {
     archive(
       id: string,
       options?: RequestOptions,
-    ): Promise<NxusResponse<undefined>>;
+    ): Promise<NxusResponse<void>>;
     restore(
       id: string,
       options?: RequestOptions,
@@ -50,7 +50,7 @@ export class ConnectionsResource<
   TCreate = Record<string, unknown>,
   TUpdate = Record<string, unknown>,
   TStatus = TResponse,
-> extends Resource<TResponse, TCreate, TUpdate> {
+> extends Resource<TResponse, TCreate, TUpdate, void> {
   constructor(transport: NxusHttpTransport) {
     super(transport, "/api/v1/connections", "/api/v1/connections");
   }

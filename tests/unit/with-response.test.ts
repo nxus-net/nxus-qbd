@@ -255,10 +255,11 @@ describe("withResponse — across verbs", () => {
     installFetchMock(
       jsonResponse(VENDOR),
       jsonResponse(VENDOR),
-      new Response(null, {
-        status: 204,
-        headers: { "x-request-id": "req_del" },
-      }),
+      jsonResponse(
+        { deleted: true, id: "id-1", status: "deleted" },
+        200,
+        { "x-request-id": "req_del" },
+      ),
     );
     const nxus = client();
 
@@ -271,8 +272,9 @@ describe("withResponse — across verbs", () => {
     ).toEqual(VENDOR);
 
     const deleted = await nxus.vendors.withResponse.delete("id-1");
-    expect(deleted.statusCode).toBe(204);
+    expect(deleted.statusCode).toBe(200);
     expect(deleted.requestId).toBe("req_del");
+    expect(deleted.data).toMatchObject({ deleted: true, id: "id-1" });
   });
 
   it("wraps the first page of list without auto-paginating", async () => {

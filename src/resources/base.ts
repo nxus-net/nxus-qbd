@@ -19,7 +19,12 @@ import type {
 } from "../helpers/pagination.js";
 import { PaginationError } from "../helpers/pagination.js";
 import { NxusResponse } from "../helpers/response.js";
-import type { CountResponse, QbdActiveStatus, VoidResponse } from "../models/index.js";
+import type {
+  CountResponse,
+  DeleteResponse,
+  QbdActiveStatus,
+  VoidResponse,
+} from "../models/index.js";
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -342,6 +347,7 @@ export interface WrappedResourceMethods<
   T,
   TCreate = Record<string, unknown>,
   TUpdate = Record<string, unknown>,
+  TDelete = DeleteResponse,
 > {
   /**
    * First page plus its response metadata.
@@ -365,7 +371,7 @@ export interface WrappedResourceMethods<
   delete(
     id: string,
     options?: RequestOptions,
-  ): Promise<NxusResponse<undefined>>;
+  ): Promise<NxusResponse<TDelete>>;
   void(
     id: string,
     options?: RequestOptions,
@@ -379,12 +385,12 @@ export interface WrappedResourceMethods<
  * are wrappers that discard the snapshot — so parsing, retries and error
  * translation cannot drift between the two forms.
  */
-function buildWithResponse<T, TCreate, TUpdate>(ctx: {
+function buildWithResponse<T, TCreate, TUpdate, TDelete = DeleteResponse>(ctx: {
   transport: NxusHttpTransport;
   basePath: string;
   getCreatePath: () => string;
   getSingularPath: (id: string) => string;
-}): WrappedResourceMethods<T, TCreate, TUpdate> {
+}): WrappedResourceMethods<T, TCreate, TUpdate, TDelete> {
   return {
     async list(listQuery, options) {
       const { query: requestQuery, options: requestOptions } =
@@ -427,7 +433,7 @@ function buildWithResponse<T, TCreate, TUpdate>(ctx: {
     },
 
     async delete(id, options) {
-      const wire = await ctx.transport.sendDelete<undefined>(
+      const wire = await ctx.transport.sendDelete<TDelete>(
         ctx.getSingularPath(id),
         withDefaultMaxRetries(options, 0),
       );
@@ -449,12 +455,13 @@ function pickWrappedResourceMethods<
   T,
   TCreate,
   TUpdate,
-  K extends keyof WrappedResourceMethods<T, TCreate, TUpdate>,
+  TDelete,
+  K extends keyof WrappedResourceMethods<T, TCreate, TUpdate, TDelete>,
 >(
-  methods: WrappedResourceMethods<T, TCreate, TUpdate>,
+  methods: WrappedResourceMethods<T, TCreate, TUpdate, TDelete>,
   keys: ReadonlyArray<K>,
-): Pick<WrappedResourceMethods<T, TCreate, TUpdate>, K> {
-  const picked = {} as Pick<WrappedResourceMethods<T, TCreate, TUpdate>, K>;
+): Pick<WrappedResourceMethods<T, TCreate, TUpdate, TDelete>, K> {
+  const picked = {} as Pick<WrappedResourceMethods<T, TCreate, TUpdate, TDelete>, K>;
 
   for (const key of keys) {
     picked[key] = methods[key];
@@ -467,6 +474,7 @@ export class Resource<
   T,
   TCreate = Record<string, unknown>,
   TUpdate = Record<string, unknown>,
+  TDelete = DeleteResponse,
 > {
   constructor(
     protected readonly transport: NxusHttpTransport,
@@ -597,8 +605,8 @@ export class Resource<
    * await resource.delete("80000001-1234567890", { connectionId: "..." });
    * ```
    */
-  async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(
+  async delete(id: string, options?: RequestOptions): Promise<TDelete> {
+    return this.transport.delete<TDelete>(
       this.getSingularPath(id),
       withDefaultMaxRetries(options, 0),
     );
@@ -618,11 +626,11 @@ export class Resource<
    * ```
    */
   get withResponse(): Pick<
-    WrappedResourceMethods<T, TCreate, TUpdate>,
+    WrappedResourceMethods<T, TCreate, TUpdate, TDelete>,
     "list" | "retrieve" | "create" | "update" | "delete"
   > {
     return pickWrappedResourceMethods(
-      buildWithResponse<T, TCreate, TUpdate>({
+      buildWithResponse<T, TCreate, TUpdate, TDelete>({
         transport: this.transport,
         basePath: this.basePath,
         getCreatePath: () => this.getCreatePath(),
@@ -840,8 +848,8 @@ export class NoUpdateResource<T, TCreate = Record<string, unknown>> {
     );
   }
 
-  async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(
+  async delete(id: string, options?: RequestOptions): Promise<DeleteResponse> {
+    return this.transport.delete<DeleteResponse>(
       this.getSingularPath(id),
       withDefaultMaxRetries(options, 0),
     );
@@ -960,8 +968,8 @@ export class ListRetrieveDeleteResource<T> {
     return this.transport.get<T>(this.getSingularPath(id), undefined, options);
   }
 
-  async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(
+  async delete(id: string, options?: RequestOptions): Promise<DeleteResponse> {
+    return this.transport.delete<DeleteResponse>(
       this.getSingularPath(id),
       withDefaultMaxRetries(options, 0),
     );
@@ -1006,8 +1014,8 @@ export class ListDeleteResource<T> {
     ).list(query, options);
   }
 
-  async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(
+  async delete(id: string, options?: RequestOptions): Promise<DeleteResponse> {
+    return this.transport.delete<DeleteResponse>(
       this.getSingularPath(id),
       withDefaultMaxRetries(options, 0),
     );
@@ -1152,8 +1160,8 @@ export class CrudNoUpdateResource<T, TCreate = Record<string, unknown>> {
     );
   }
 
-  async delete(id: string, options?: RequestOptions): Promise<void> {
-    await this.transport.delete<void>(
+  async delete(id: string, options?: RequestOptions): Promise<DeleteResponse> {
+    return this.transport.delete<DeleteResponse>(
       this.getSingularPath(id),
       withDefaultMaxRetries(options, 0),
     );
