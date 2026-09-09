@@ -109,11 +109,13 @@ function withValidationDetail(
 /**
  * Error codes from the nXus API.
  * Mirrors the ErrorCode enum from types.gen.ts for convenience.
+ *
+ * `IDEMPOTENCY_KEY_REUSED` used to be spliced in by hand: the API sent it on a
+ * 409 but never declared it, so regeneration could not supply it. The backend
+ * published it on 2026-09-09 and it now arrives through `ErrorDetail['code']`
+ * like every other code, so the manual entry is gone.
  */
-export type NxusErrorCode =
-    | ErrorDetail['code']
-    | 'IDEMPOTENCY_KEY_REUSED'
-    | (string & {});
+export type NxusErrorCode = ErrorDetail['code'] | (string & {});
 export type NxusErrorType = ErrorDetail['type'] | (string & {});
 
 // ---------------------------------------------------------------------------
