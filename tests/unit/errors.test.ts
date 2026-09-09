@@ -362,3 +362,56 @@ describe('NxusApiError.from — existing shapes still win', () => {
         );
     });
 });
+
+/**
+ * Field errors arrive at `error.errors`, inside the wrapper.
+ *
+ * The published home of the per-field map is `ErrorDetail.errors`, so this is the
+ * shape the API actually sends. TypeScript reads it correctly and always has, but
+ * nothing asserted it -- .NET turned out to be dropping the map on exactly this
+ * shape, so the gap was in coverage rather than behaviour. Python has asserted it
+ * since the 09-08 error pass.
+ */
+describe('NxusApiError.from — validation inside the error wrapper', () => {
+    const parse = () =>
+        NxusApiError.from({
+            error: {
+                message: 'Validation failed',
+                userFacingMessage: 'Please check your input and try again.',
+                type: 'VALIDATION_ERROR_TYPE',
+                code: 'VALIDATION_ERROR',
+                httpStatusCode: 400,
+                requestId: 'req_val_1',
+                errors: {
+                    Name: ['The Name field is required.'],
+                    Amount: ['Must be positive.'],
+                },
+            },
+        });
+
+    it('is classified as validation', () => {
+        const err = parse();
+
+        expect(err.isValidationError).toBe(true);
+        expect(err.code).toBe('VALIDATION_ERROR');
+        expect(err.type).toBe('VALIDATION_ERROR_TYPE');
+        expect(err.status).toBe(400);
+        expect(err.requestId).toBe('req_val_1');
+    });
+
+    it('keeps the per-field detail through the wrapper', () => {
+        expect(parse().validationErrors).toEqual({
+            Name: ['The Name field is required.'],
+            Amount: ['Must be positive.'],
+        });
+    });
+
+    it('names the offending fields in the developer message', () => {
+        expect(parse().message).toContain('Name');
+        expect(parse().message).toContain('Amount');
+    });
+
+    it('leaves an API-supplied userFacingMessage alone', () => {
+        expect(parse().userMessage).toBe('Please check your input and try again.');
+    });
+});
