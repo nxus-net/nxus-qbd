@@ -227,7 +227,8 @@ export class NxusApiError extends Error {
         return (
             this.status === 401 ||
             this.status === 403 ||
-            this.type === 'AUTHENTICATION_ERROR_TYPE'
+            this.type === 'AUTHENTICATION_ERROR_TYPE' ||
+            this.type === 'AUTHORIZATION_ERROR_TYPE'
         );
     }
 
@@ -263,7 +264,17 @@ export class NxusApiError extends Error {
             this.restrictionReason != null ||
             this.restrictionCode != null ||
             this.type === 'RESTRICTION_ERROR_TYPE' ||
-            this.type === 'BILLING_ERROR_TYPE'
+            this.type === 'BILLING_ERROR_TYPE' ||
+            this.type === 'PAYMENT_REQUIRED_ERROR_TYPE'
+        );
+    }
+
+    /** Whether the QuickBooks Web Connector is not polling this connection. */
+    get isConnectorOffline(): boolean {
+        return (
+            this.code === 'QWC_NOT_CONNECTED' ||
+            this.code === 'QWC_NEVER_CONNECTED' ||
+            this.type === 'INTEGRATION_CONNECTION_OFFLINE_TYPE'
         );
     }
 
@@ -444,7 +455,8 @@ export class NxusApiError extends Error {
             });
         }
 
-        // ProblemDetails shape: { title, detail, status, errors? }
+        // RETIRED SHAPE — ProblemDetails is retained only for older deployments.
+        // Current API errors use StandardErrorResponse or the validation envelope.
         if ('status' in obj && ('title' in obj || 'detail' in obj)) {
             const problemErrors = coerceValidationErrors(obj.errors);
             const isValidationProblem = problemErrors != null;

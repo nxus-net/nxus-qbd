@@ -126,6 +126,27 @@ describe('NxusApiError.from — nXus validation envelope', () => {
 });
 
 describe('NxusApiError.from — existing shapes still win', () => {
+    it('recognizes connector-offline codes and types', () => {
+        expect(NxusApiError.from({ error: {
+            code: 'QWC_NOT_CONNECTED', message: 'Offline',
+        }}).isConnectorOffline).toBe(true);
+        expect(NxusApiError.from({ error: {
+            type: 'INTEGRATION_CONNECTION_OFFLINE_TYPE', message: 'Offline',
+        }}).isConnectorOffline).toBe(true);
+        expect(NxusApiError.from({ error: {
+            code: 'QBD_CONNECTION_ERROR', message: 'Other',
+        }}).isConnectorOffline).toBe(false);
+    });
+
+    it('includes authorization and payment-required types in helpers', () => {
+        expect(NxusApiError.from({ error: {
+            type: 'AUTHORIZATION_ERROR_TYPE', message: 'Forbidden',
+        }}).isAuthError).toBe(true);
+        expect(NxusApiError.from({ error: {
+            type: 'PAYMENT_REQUIRED_ERROR_TYPE', message: 'Pay',
+        }}).isRestrictionError).toBe(true);
+    });
+
     it('does not invent validation for a generic RFC 7807 failure', () => {
         const err = NxusApiError.from({
             status: 503,
