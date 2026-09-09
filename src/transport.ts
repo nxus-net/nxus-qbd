@@ -918,12 +918,13 @@ export class NxusHttpTransport {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    const composed = combineAbortSignals(callerSignal, controller.signal);
 
     try {
       const fetchInit = await this.resolveFetchInit(
         init,
         headers,
-        combineAbortSignals(callerSignal, controller.signal),
+        composed.signal,
         rest,
       );
       const response = await fetch(url, fetchInit);
@@ -999,15 +1000,21 @@ export class NxusHttpTransport {
         value: snapshot<T>(response, parsed, text, includeRawBody),
       };
     } catch (error) {
+      // The caller's signal is checked FIRST, and independently of what was
+      // thrown. fetch rejects with the signal's abort reason verbatim, and
+      // `controller.abort(new Error("deployment shutdown"))` produces a plain
+      // Error whose name is "Error" — so keying off the thrown value's name
+      // classified a real cancellation as a network failure and retried it.
+      // Whether the caller aborted is a fact about the signal, not about the
+      // shape of the rejection.
+      if (callerSignal?.aborted) {
+        return { kind: "canceled", reason: callerSignal.reason };
+      }
+
       if (isAbortError(error)) {
-        // Both aborts arrive here as the same DOMException, so the signal is
-        // the only way to tell them apart — and they mean opposite things. A
-        // timeout leaves the outcome unknown and may deserve a retry; a
-        // cancellation is an instruction to stop, and retrying a Create after
-        // one would resubmit work the caller is abandoning.
-        if (callerSignal?.aborted) {
-          return { kind: "canceled", reason: callerSignal.reason };
-        }
+        // Not the caller, so this is our own timeout controller firing. The
+        // two mean opposite things: a timeout leaves the outcome unknown and
+        // may deserve a retry, a cancellation is an instruction to stop.
         return {
           kind: "timeout",
           error: new NxusApiError({
@@ -1031,6 +1038,7 @@ export class NxusHttpTransport {
       };
     } finally {
       clearTimeout(timer);
+      composed.dispose();
     }
   }
 
@@ -1049,12 +1057,13 @@ export class NxusHttpTransport {
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
+    const composed = combineAbortSignals(callerSignal, controller.signal);
 
     try {
       const fetchInit = await this.resolveFetchInit(
         init,
         headers,
-        combineAbortSignals(callerSignal, controller.signal),
+        composed.signal,
         rest,
       );
       const response = await fetch(url, fetchInit);
@@ -1075,10 +1084,12 @@ export class NxusHttpTransport {
 
       return { kind: "response", response };
     } catch (error) {
+      // Checked first and independently of the thrown value — see attempt().
+      if (callerSignal?.aborted) {
+        return { kind: "canceled", reason: callerSignal.reason };
+      }
+
       if (isAbortError(error)) {
-        if (callerSignal?.aborted) {
-          return { kind: "canceled", reason: callerSignal.reason };
-        }
         return {
           kind: "timeout",
           error: new NxusApiError({
@@ -1101,6 +1112,7 @@ export class NxusHttpTransport {
       };
     } finally {
       clearTimeout(timer);
+      composed.dispose();
     }
   }
 }
@@ -1329,16 +1341,24 @@ function extractCallerSignal(extraFetchOptions: Record<string, unknown>): {
 }
 
 /**
- * One signal that aborts when either the caller or the timeout does.
+ * One signal that aborts when either the caller or the timeout does, plus the
+ * cleanup that detaches whatever it attached.
  *
  * `AbortSignal.any` landed in Node 20.3; the package supports Node 18, so the
  * manual path is not dead code.
+ *
+ * The caller's signal usually outlives the request — one controller cancels a
+ * whole batch — so the fallback's listeners MUST be removed when the request
+ * finishes, not only when an abort fires. `{ once: true }` covers the abort
+ * case and nothing else: twelve successful requests sharing one caller signal
+ * left twelve listeners attached, each retaining a controller and its closure.
+ * Hence the returned `dispose`, which every attempt calls from its finally.
  */
 function combineAbortSignals(
   callerSignal: AbortSignal | undefined,
   timeoutSignal: AbortSignal,
-): AbortSignal {
-  if (!callerSignal) return timeoutSignal;
+): { signal: AbortSignal; dispose: () => void } {
+  if (!callerSignal) return { signal: timeoutSignal, dispose: () => {} };
 
   const anyFn = (
     AbortSignal as unknown as {
@@ -1346,18 +1366,30 @@ function combineAbortSignals(
     }
   ).any;
   if (typeof anyFn === "function") {
-    return anyFn([callerSignal, timeoutSignal]);
+    // Native composition detaches itself once the composed signal is
+    // unreachable; there is nothing for us to clean up.
+    return { signal: anyFn([callerSignal, timeoutSignal]), dispose: () => {} };
   }
 
   const controller = new AbortController();
-  const forward = (source: AbortSignal) => () =>
-    controller.abort(source.reason);
+  const attached: Array<[AbortSignal, () => void]> = [];
   for (const source of [callerSignal, timeoutSignal]) {
     if (source.aborted) {
       controller.abort(source.reason);
       break;
     }
-    source.addEventListener("abort", forward(source), { once: true });
+    const forward = () => controller.abort(source.reason);
+    source.addEventListener("abort", forward, { once: true });
+    attached.push([source, forward]);
   }
-  return controller.signal;
+
+  return {
+    signal: controller.signal,
+    dispose: () => {
+      for (const [source, forward] of attached) {
+        source.removeEventListener("abort", forward);
+      }
+      attached.length = 0;
+    },
+  };
 }

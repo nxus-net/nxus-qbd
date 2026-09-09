@@ -48,6 +48,25 @@ function hangingFetch() {
   );
 }
 
+/**
+ * A fetch that rejects with the signal's *actual* abort reason, the way the
+ * platform does. The helper above always names its rejection "AbortError",
+ * which is exactly why the original tests missed a caller aborting with an
+ * ordinary Error.
+ */
+function reasonRespectingFetch() {
+  return installFetch(
+    (_url, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init.signal?.addEventListener(
+          "abort",
+          () => reject((init.signal as AbortSignal).reason),
+          { once: true },
+        );
+      }),
+  );
+}
+
 function client() {
   return new NxusClient({
     apiKey: "sk_test_123",
@@ -203,3 +222,162 @@ describe("caller cancellation", () => {
     expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 });
+
+/**
+ * Regressions from the 09-08 cancellation fix, both found by review.
+ *
+ * The first fix keyed cancellation off the *thrown value* being an AbortError.
+ * That holds for `controller.abort()` with no argument, which is all the
+ * original tests exercised — but fetch rejects with whatever reason the caller
+ * supplied, and `abort(new Error("shutting down"))` is named "Error". A real
+ * cancellation was being reported as a retryable network failure.
+ */
+describe("caller cancellation — classification and cleanup", () => {
+  afterEach(() => {
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: originalFetch,
+      writable: true,
+    });
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("recognises an abort whose reason is an ordinary Error", async () => {
+    const fetchMock = reasonRespectingFetch();
+    const reason = new Error("deployment shutdown");
+    expect(reason.name).toBe("Error"); // the whole point: not "AbortError"
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(reason), 5);
+
+    const error = await captureError(
+      client().connections.retrieve("conn_1", {
+        fetchOptions: { signal: controller.signal },
+        maxRetries: 0,
+      }),
+    );
+
+    expect(error).toBe(reason);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry an abort whose reason is an ordinary Error", async () => {
+    // The misclassification made this a "network-error", which IS retryable.
+    const fetchMock = reasonRespectingFetch();
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new Error("stop")), 5);
+
+    await captureError(
+      client().connections.retrieve("conn_1", {
+        fetchOptions: { signal: controller.signal },
+        maxRetries: 3,
+      }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("recognises an abort reason that is not an Error at all", async () => {
+    reasonRespectingFetch();
+    const reason = { code: "SHUTDOWN" };
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(reason), 5);
+
+    const error = await captureError(
+      client().connections.retrieve("conn_1", {
+        fetchOptions: { signal: controller.signal },
+        maxRetries: 0,
+      }),
+    );
+
+    expect(error).toBe(reason);
+  });
+
+  it("still reports a timeout as a timeout when a caller signal is present", async () => {
+    // Guards the other direction: the signal check now runs first, so an
+    // un-aborted caller signal must not swallow the timeout classification.
+    reasonRespectingFetch();
+    const controller = new AbortController(); // never aborted
+
+    const error = await captureError(
+      client().connections.retrieve("conn_1", {
+        fetchOptions: { signal: controller.signal },
+        timeout: 20,
+        maxRetries: 0,
+      }),
+    );
+
+    expect(error?.name).not.toBe("AbortError");
+    expect(String(error?.message)).toContain("timed out");
+  });
+
+  it("leaves no abort listeners behind on the older-Node fallback", async () => {
+    // A caller signal usually outlives the request — one controller cancels a
+    // batch — so listeners attached per attempt accumulate. `{ once: true }`
+    // only fires on abort, which never happens on a successful request.
+    installFetch(
+      async () =>
+        new Response(JSON.stringify({ id: "conn_1" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    );
+
+    const withAny = AbortSignal as unknown as { any?: unknown };
+    const nativeAny = withAny.any;
+    withAny.any = undefined; // exercise the shipped fallback
+
+    try {
+      const controller = new AbortController();
+      let attached = 0;
+      const signal = controller.signal;
+      const add = signal.addEventListener.bind(signal);
+      const remove = signal.removeEventListener.bind(signal);
+      signal.addEventListener = ((...args: Parameters<typeof add>) => {
+        attached += 1;
+        return add(...args);
+      }) as typeof signal.addEventListener;
+      signal.removeEventListener = ((...args: Parameters<typeof remove>) => {
+        attached -= 1;
+        return remove(...args);
+      }) as typeof signal.removeEventListener;
+
+      const sdk = client();
+      for (let i = 0; i < 12; i += 1) {
+        await sdk.connections.retrieve("conn_1", {
+          fetchOptions: { signal },
+        });
+      }
+
+      expect(attached).toBe(0);
+    } finally {
+      withAny.any = nativeAny;
+    }
+  });
+
+  it("still cancels correctly on the fallback path", async () => {
+    // Disposal must not detach the listener the abort actually needs.
+    const withAny = AbortSignal as unknown as { any?: unknown };
+    const nativeAny = withAny.any;
+    withAny.any = undefined;
+
+    try {
+      reasonRespectingFetch();
+      const reason = new Error("stop");
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(reason), 5);
+
+      const error = await captureError(
+        client().connections.retrieve("conn_1", {
+          fetchOptions: { signal: controller.signal },
+          maxRetries: 0,
+        }),
+      );
+
+      expect(error).toBe(reason);
+    } finally {
+      withAny.any = nativeAny;
+    }
+  });
+});
+
