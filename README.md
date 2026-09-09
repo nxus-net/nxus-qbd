@@ -485,6 +485,7 @@ try {
     console.log(err.isRateLimited); // false
     console.log(err.isRestrictionError); // lifecycle or billing restriction
     console.log(err.isArchivedConnection); // lifecycleState === "archived"
+    console.log(err.isConnectorOffline); // QuickBooks Web Connector is not polling
   }
 }
 ```
@@ -492,6 +493,13 @@ try {
 Restriction responses also expose `lifecycleState`, `restrictionReason`,
 `restrictionCode`, `requiresPayment`, and `checkoutUrl`. `throwIfError(value)`
 converts an arbitrary generated-client error value into `NxusApiError`.
+
+`isConnectorOffline` is worth handling on its own: it means the QuickBooks Web
+Connector is not polling, so the API answered 503 without queuing anything and
+retrying cannot succeed until someone starts the connector. Read `code` to tell
+`QWC_NEVER_CONNECTED` (the `.qwc` file was never installed) from
+`QWC_NOT_CONNECTED` (it authenticated once and has since stopped) — the two want
+different operator instructions.
 
 ## Resources
 
