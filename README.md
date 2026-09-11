@@ -1,4 +1,4 @@
-# nxus-qbd
+# nxus-qbd v1.0.0
 
 Official TypeScript SDK for the [Nxus](https://nx-us.net/docs/) QuickBooks Desktop API.
 
